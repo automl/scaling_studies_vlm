@@ -1,0 +1,1 @@
+{"dataset": "cifar10", "model": "ViT-B-32", "pretrained": "./openclip_checkpoints/Model-B-32_Data-2B_Samples-34B_lr-1e-3_bs-79k.safetensors", "task": "zeroshot_classification", "metrics": {"acc1": 0.9365, "acc5": 0.9987, "mean_per_class_recall": 0.9364999999999999}, "language": "en"}

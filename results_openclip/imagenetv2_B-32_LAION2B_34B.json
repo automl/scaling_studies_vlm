@@ -1,0 +1,1 @@
+{"dataset": "imagenetv2", "model": "ViT-B-32", "pretrained": "./openclip_checkpoints/Model-B-32_Data-2B_Samples-34B_lr-1e-3_bs-79k.safetensors", "task": "zeroshot_classification", "metrics": {"acc1": 0.5818, "acc5": 0.8398, "mean_per_class_recall": 0.5815999999999999}, "language": "en"}

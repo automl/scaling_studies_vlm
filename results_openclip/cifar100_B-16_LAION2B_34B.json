@@ -1,0 +1,1 @@
+{"dataset": "cifar100", "model": "ViT-B-16", "pretrained": "./openclip_checkpoints/Model-B-16_Data-2B_Samples-34B_lr-1e-3_bs-88k.safetensors", "task": "zeroshot_classification", "metrics": {"acc1": 0.7683, "acc5": 0.9465, "mean_per_class_recall": 0.7683000000000001}, "language": "en"}
