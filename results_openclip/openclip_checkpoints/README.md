@@ -5,7 +5,7 @@ They should be downloaded locally before running the experiments.
 
 ## Checkpoints
 
-- Model-B-32_Data-2B_Samples-34B_lr-1e-3_bs-88k.pt
+- Model-B-16_Data-2B_Samples-34B_lr-1e-3_bs-88k.pt
 - Model-B-32_Data-2B_Samples-34B_lr-1e-3_bs-79k.pt
 
 ## Instructions

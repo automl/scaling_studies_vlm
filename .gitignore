@@ -11,6 +11,7 @@ dist/
 .venv/
 venv/
 env/
+.idea
 
 # Notebooks
 .ipynb_checkpoints/
