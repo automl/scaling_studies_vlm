@@ -2,3 +2,4 @@ clip-benchmark==1.6.2
 notebook
 ipykernel
 img2dataset
+hf_xet

@@ -23,6 +23,8 @@ checkpoints/
 openclip_checkpoints/
 results*/
 *.log
+*data*/
+
 
 # OS files
 .DS_Store
