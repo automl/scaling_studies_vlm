@@ -107,7 +107,7 @@ if __name__ == "__main__":
             repo_id="laion/relaion400m",
             revision="refs/convert/parquet",
             allow_patterns=[
-                "default/train/00*.parquet",
+                "default/train/0*.parquet",
             ],
             local_dir=metadata_dir,
             cache_dir=cache_dir,
