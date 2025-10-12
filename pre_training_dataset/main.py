@@ -89,6 +89,20 @@ def get_parser():
         help='Parquet selection, e.g. "0-10" or "0-10,34-76,105", which will be used to generate tar files.',
     )
 
+    parser.add_argument(
+        "--download_parquet_files",
+        action="store_true",
+        default=False,
+        help="Whether to consider downloading parquet files from HF.",
+    )
+
+    parser.add_argument(
+        "--convert_parquet_to_tar",
+        action="store_true",
+        default=False,
+        help="Whether to convert downloaded parquet files to tar files.",
+    )
+
     return parser
 
 
@@ -97,50 +111,52 @@ if __name__ == "__main__":
 
     metadata_dir = args.data_dir / "parquet_files"
 
-    if not metadata_dir.exists():
-        metadata_dir.mkdir(parents=True)
+    if args.download_parquet_files:
+        if not metadata_dir.exists():
+            metadata_dir.mkdir(parents=True)
 
-        print(f"Downloading parquet files to {metadata_dir}...")
+            print(f"Downloading parquet files to {metadata_dir}...")
 
-        cache_dir = metadata_dir.parent / f"hf"
-        hf_snapshot_args = dict(
-            repo_id="laion/relaion400m",
-            revision="refs/convert/parquet",
-            allow_patterns=[
-                "default/train/0*.parquet",
-            ],
-            local_dir=metadata_dir,
-            cache_dir=cache_dir,
-            repo_type="dataset",
-            max_workers=12,
-            token="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",
+            cache_dir = metadata_dir.parent / f"hf"
+            hf_snapshot_args = dict(
+                repo_id="laion/relaion400m",
+                revision="refs/convert/parquet",
+                allow_patterns=[
+                    "default/train/0*.parquet",
+                ],
+                local_dir=metadata_dir,
+                cache_dir=cache_dir,
+                repo_type="dataset",
+                max_workers=12,
+                token="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",
+            )
+
+            snapshot_download(**hf_snapshot_args)
+            shutil.rmtree(cache_dir, ignore_errors=True)
+
+            print("Downloaded parquet files")
+
+    if args.convert_parquet_to_tar:
+        shard_dir = args.data_dir / "shards"
+        shard_dir.mkdir(parents=True, exist_ok=True)
+        print(f"Downloading images to {shard_dir}")
+
+        download(
+            url_list=str(metadata_dir),
+            image_size=args.image_size,
+            output_folder=str(shard_dir),
+            processes_count=args.processes_count,
+            thread_count=args.thread_count,
+            encode_format=args.encode_format,
+            output_format=args.output_format,
+            input_format="parquet",
+            url_col="url",
+            caption_col="text",
+            number_sample_per_shard=10000,
+            oom_shard_count=8,
+            retries=args.retries,
+            enable_wandb=args.enable_wandb,
+            wandb_project=args.wandb_project,
         )
 
-        snapshot_download(**hf_snapshot_args)
-        shutil.rmtree(cache_dir, ignore_errors=True)
-
-        print("Downloaded parquet files")
-
-    shard_dir = args.data_dir / "shards"
-    shard_dir.mkdir(parents=True, exist_ok=True)
-    print(f"Downloading images to {shard_dir}")
-
-    download(
-        url_list=str(metadata_dir),
-        image_size=args.image_size,
-        output_folder=str(shard_dir),
-        processes_count=args.processes_count,
-        thread_count=args.thread_count,
-        encode_format=args.encode_format,
-        output_format=args.output_format,
-        input_format="parquet",
-        url_col="url",
-        caption_col="text",
-        number_sample_per_shard=10000,
-        oom_shard_count=8,
-        retries=args.retries,
-        enable_wandb=args.enable_wandb,
-        wandb_project=args.wandb_project,
-    )
-
-    print("Downloaded shards")
+        print("Downloaded shards")

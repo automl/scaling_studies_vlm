@@ -19,7 +19,7 @@ start=`date +%s`
 # A few SLURM variables
 echo "Running job $SLURM_JOB_NAME using $SLURM_JOB_CPUS_PER_NODE cpus per node with given JID $SLURM_JOB_ID on queue $SLURM_JOB_PARTITION";
 
-python main.py --data_dir ../pre_training_dataset/laion400m
+python main.py --data_dir ../pre_training_dataset/laion400m --download_parquet_files True
 
 end=`date +%s`
 runtime=$((end-start))
