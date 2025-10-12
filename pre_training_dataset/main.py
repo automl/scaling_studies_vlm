@@ -23,7 +23,7 @@ def get_parser():
         type=int,
         required=False,
         default=16,
-        help="Number of processes for download.",
+        help="Number of processes for download for img2dataset.",
     )
 
     parser.add_argument(
@@ -31,7 +31,7 @@ def get_parser():
         type=int,
         required=False,
         default=128,
-        help="Number of threads for download.",
+        help="Number of threads for download for img2dataset.",
     )
 
     parser.add_argument(
@@ -65,7 +65,7 @@ def get_parser():
         type=int,
         required=False,
         default=2,
-        help="Number of time a download should be retried (default 2)",
+        help="Number of time a download should be retried (default 2) for img2dataset.",
     )
     parser.add_argument(
         "--enable_wandb",
@@ -79,14 +79,6 @@ def get_parser():
         required=False,
         default="laion400m",
         help="Name of W&B project used (default laion400m)",
-    )
-
-    parser.add_argument(
-        "--parquet_range",
-        type=str,
-        required=False,
-        default="0-10, 11-12",
-        help='Parquet selection, e.g. "0-10" or "0-10,34-76,105", which will be used to generate tar files.',
     )
 
     parser.add_argument(
@@ -127,7 +119,7 @@ if __name__ == "__main__":
                 local_dir=metadata_dir,
                 cache_dir=cache_dir,
                 repo_type="dataset",
-                max_workers=12,
+                max_workers=16,
                 token="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",
             )
 
