@@ -134,7 +134,7 @@ if __name__ == "__main__":
         print(f"Downloading images to {shard_dir}")
 
         download(
-            url_list=str(metadata_dir),
+            url_list=str(metadata_dir / "default/train/0000.parquet"),
             image_size=args.image_size,
             output_folder=str(shard_dir),
             processes_count=args.processes_count,
@@ -143,12 +143,13 @@ if __name__ == "__main__":
             output_format=args.output_format,
             input_format="parquet",
             url_col="url",
-            caption_col="text",
+            caption_col="caption",
             number_sample_per_shard=10000,
             oom_shard_count=8,
             retries=args.retries,
             enable_wandb=args.enable_wandb,
-            wandb_project=args.wandb_project,
+            max_shard_retry=0,
+            wandb_project=args.wandb_project
         )
 
         print("Downloaded shards")
