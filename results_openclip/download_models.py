@@ -16,8 +16,14 @@ def download_model(model, samples_seen, dataset):
     ]
     if len(res) == 1:
         filename = res.name.tolist()[0]
-        hf_hub_download("laion/scaling-laws-openclip", filename, cache_dir=".", force_filename=filename)
+        local_path = hf_hub_download("laion/scaling-laws-openclip", filename, cache_dir=".", force_filename=filename)
         print(f"'{filename}' downloaded.")
+
+        DEST = Path("openclip_checkpoints")
+        DEST.mkdir(exist_ok=True)
+
+        target = DEST / Path(filename).name
+        shutil.copy2(local_path, target)
         return filename
     else:
         print("The model is not available in the repository")
@@ -32,18 +38,3 @@ if __name__ == "__main__":
         for samples_seen in args.samples_seen:
             for dataset in args.dataset:
                 download_model(model, samples_seen, dataset)
-
-    dest_dir = Path("openclip_checkpoints")
-    dest_dir.mkdir(exist_ok=True)
-
-    pt_files = list(snapshot_dir.rglob("*.pt"))
-
-    for pt_file in pt_files:
-        target_path = dest_dir / pt_file.name
-        print(f"Moving {pt_file} → {target_path}")
-        shutil.move(str(pt_file), str(target_path))
-
-    print("Cleaning up the old cache directory...")
-    shutil.rmtree(base_cache_dir)
-    shutil.rmtree(".locks")
-    print("Done.")
