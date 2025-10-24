@@ -10,5 +10,4 @@ They should be downloaded locally before running the experiments.
 
 ## Instructions
 
-Download the checkpoints from the [Hugging Face hub](https://huggingface.co/laion/scaling-laws-openclip/tree/main).  
-Place the files in this folder before running experiments.
+Run [`open_clip.ipynb`](../open_clip.ipynb) notebook, which downloads the mentioned models, and runs zero-shot classification tasks on 5 datasets(check notebook).
