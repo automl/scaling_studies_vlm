@@ -1,0 +1,1 @@
+{"dataset": "mnist", "model": "ViT-B-16", "pretrained": "openclip_checkpoints/Model-B-16_Data-2B_Samples-34B_lr-1e-3_bs-88k.safetensors", "task": "linear_probe", "metrics": {"lp_acc1": 0.6168, "lp_acc5": 0.9032, "lp_mean_per_class_recall": 0.6176022891570045, "weight_decay": 0, "epochs": 1, "seed": 0, "fewshot_k": 5, "normalized": true}, "language": "en"}

@@ -1,0 +1,4 @@
+lp_acc1,language,model_fullname,epochs,pretrained,lp_mean_per_class_recall,dataset,normalized,task,model,fewshot_k,seed,lp_acc5,weight_decay
+0.9738,en,ViT-B-16 openclip_checkpoints/Model-B-16_Data-2B_Samples-34B_lr-1e-3_bs-88k.safetensors,1,openclip_checkpoints/Model-B-16_Data-2B_Samples-34B_lr-1e-3_bs-88k.safetensors,0.9736810500562403,mnist,True,linear_probe,ViT-B-16,-1,0,0.9989,0
+0.6168,en,ViT-B-16 openclip_checkpoints/Model-B-16_Data-2B_Samples-34B_lr-1e-3_bs-88k.safetensors,1,openclip_checkpoints/Model-B-16_Data-2B_Samples-34B_lr-1e-3_bs-88k.safetensors,0.6176022891570045,mnist,True,linear_probe,ViT-B-16,5,0,0.9032,0
+0.5932,en,ViT-B-16 openclip_checkpoints/Model-B-16_Data-2B_Samples-34B_lr-1e-3_bs-88k.safetensors,1,openclip_checkpoints/Model-B-16_Data-2B_Samples-34B_lr-1e-3_bs-88k.safetensors,0.5937303945710315,mnist,True,linear_probe,ViT-B-16,5,0,0.8765,1e-06

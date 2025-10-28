@@ -10,4 +10,4 @@ They should be downloaded locally before running the experiments.
 
 ## Instructions
 
-Run [`open_clip.ipynb`](../open_clip.ipynb) notebook, which downloads the mentioned models, and runs zero-shot classification tasks on 5 datasets(check notebook).
+Run [`open_clip.ipynb`](../open_clip.ipynb) notebook, which downloads the mentioned models, and runs zero-shot classification tasks on 5 datasets(MNIST, CIFAR10, CIFAR100, ImageNet1k, ImageNetv2), zero-shot retrieval(image/text) for MS-COCO dataset, and linear probing for MNIST, with full and few-shot setting, and hyperparameter sweep over the weight decay.
