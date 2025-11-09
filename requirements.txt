@@ -3,3 +3,7 @@ notebook
 ipykernel
 img2dataset
 hf_xet
+tabulate
+fvcore
+open_clip_torch[training]
+neural-pipeline-search==0.12.0

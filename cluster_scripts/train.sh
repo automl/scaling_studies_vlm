@@ -1,7 +1,7 @@
 #!/bin/bash -x
-#SBATCH --nodes=1
-#SBATCH --gres=gpu:4
-#SBATCH --ntasks-per-node=4
+#SBATCH --nodes=2
+#SBATCH --gres=gpu:8
+#SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=8
 #SBATCH --wait-all-nodes=1
 #SBATCH --job-name=openclip_pretrain
@@ -43,4 +43,5 @@ srun --cpu_bind=v --accel-bind=gn python -m open_clip_train.main \
 end=`date +%s`
 runtime=$((end-start))
 
+echo "Ended at $(date)";
 echo Job execution complete.

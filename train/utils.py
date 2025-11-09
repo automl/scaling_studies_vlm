@@ -1,8 +1,8 @@
 import json
 from glob import glob
 
-if __name__ == "__main__":
-    # first find the number of total pairs in all shards
+
+def successful_downloaded_pairs_in_shards():
     stats_files = glob("../pre_training_dataset/laion400m/shards/*.json")
 
     total_successes = 0
