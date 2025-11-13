@@ -5,5 +5,5 @@ img2dataset
 hf_xet
 tabulate
 fvcore
-open_clip_torch[training]
+open_clip_torch
 neural-pipeline-search==0.12.0

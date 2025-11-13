@@ -1,7 +1,6 @@
 import os
 import re
-import shlex
-import subprocess
+import sys
 from pathlib import Path
 from time import time
 from typing import Dict, Optional, Union
@@ -10,35 +9,8 @@ import neps
 from neps.optimizers import GridSearch
 from neps.search_spaces.search_space import pipeline_space_from_yaml, SearchSpace
 
-from params import get_parser
-
-SHARDS = "../pre_training_dataset/laion400m/shards/{00000000..00000282}.tar"
-
-def build_openclip_command(
-    learning_rate: float,
-    logs_dir: str,
-    args,
-) -> str:
-    """
-    Construct the OpenCLIP training command as a single string.
-    """
-    cmd = (
-        f"srun --cpu_bind=v --accel-bind=gn python "
-        f"-m open_clip_train.main "  
-        f'--train-data="{SHARDS}" '
-        f"--batch-size={args.batch_size} "
-        f"--epochs={args.epochs} "
-        f"--workers={args.num_workers} "
-        f"--model {args.model} "
-        f"--seed {args.seed} "
-        f"--train-num-samples {args.train_num_samples} "
-        f"--lr {learning_rate} "
-        f"--local-loss "
-        f"--gather-with-grad "
-        f"--dataset-type=webdataset "
-        f'--logs="{logs_dir}" '
-    )
-    return cmd
+from train.open_clip_train import params
+from train.open_clip_train.main import main as train_one_model
 
 
 def get_latest_contrastive_loss(log_path: str):
@@ -73,27 +45,12 @@ def train_and_evaluate(learning_rate: float, root_dir: str, args) -> Dict[str, O
     """
     Run one HPO trial.
     """
-    logs_dir = os.path.join(root_dir, "individual_training_logs")
+    logs_dir = os.path.join(root_dir, "individual_training_logs", "lr=" + str(learning_rate))
     os.makedirs(logs_dir, exist_ok=True)
 
-    cmd = build_openclip_command(learning_rate=learning_rate, logs_dir=logs_dir, args=args)
-    print("Running command:\n", cmd)
-
-    proc = subprocess.Popen(
-        shlex.split(cmd),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        env=os.environ.copy(),
-    )
-    assert proc.stdout is not None
-    for line in proc.stdout:
-        print(line, end="")
-
-    proc.wait()
-
-    if proc.returncode != 0:
-        print(f"Training process exited with code {proc.returncode}.")
+    args.lr = learning_rate
+    args.logs = logs_dir
+    train_one_model(args)
 
     latest_folder = get_latest_folder_name(logs_dir)
     if latest_folder is None:
@@ -125,7 +82,7 @@ def resolve_search_space(path: Union[str, Path]) -> SearchSpace:
 
 
 if __name__ == "__main__":
-    args = get_parser().parse_args()
+    args = params.parse_args(sys.argv[1:])
 
     root_dir = f"./results/model={args.model}/seed={args.seed}"
     os.makedirs(root_dir, exist_ok=True)
