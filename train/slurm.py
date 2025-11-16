@@ -1,27 +1,30 @@
 import subprocess
+from dataclasses import asdict
 from enum import Enum
 from pathlib import Path
+
+from train.config import TrainConfig
 
 
 class DatasetShards(str, Enum):
     LAION400M = "../pre_training_dataset/laion400m/shards/{00000000..00000009}.tar"
 
 
-def build_cmd(args, learning_rate: float, logs_dir: str) -> str:
+def build_cmd(config: TrainConfig) -> str:
+    args = asdict(config)
+
     cmd_parts = [
-        f'--train-data="{DatasetShards.LAION400M}"',
-        f"--batch-size={args.batch_size}",
-        f"--epochs={args.epochs}",
-        f"--workers={args.workers}",
-        f"--model {args.model}",
-        f"--seed {args.seed}",
-        f"--train-num-samples {args.train_num_samples}",
-        f"--lr {learning_rate}",
+        f'--train-data "{DatasetShards.LAION400M.value}"',
         "--local-loss",
+        "--batch-size 64",
         "--gather-with-grad",
-        "--dataset-type=webdataset",
-        f'--logs="{logs_dir}"',
+        "--dataset-type webdataset",
     ]
+
+    for key, value in args.items():
+        cli_key = key.replace("_", "-")
+        cmd_parts.append(f"--{cli_key} {value}")
+
     return "srun --cpu-bind --accel-bind=gn python -u -m open_clip_train.main \\\n    " + " \\\n    ".join(cmd_parts)
 
 
@@ -120,7 +123,7 @@ echo "Job execution complete."
         """
         return "source ~/miniconda3/bin/activate && conda activate vlm_scaling_law"
 
-    def submit_job(self, cmd: str, wait: bool = False):
+    def submit_job(self, cmd: str, wait: bool = True):
         """
         Submit the Slurm script using sbatch.
         If wait=True, block until the job finishes.
