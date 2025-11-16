@@ -246,6 +246,9 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
             # resetting batch / data time meters per log window
             batch_time_m.reset()
             data_time_m.reset()
+
+            epoch_loss_dict = {name: meter.avg for name, meter in losses_m.items()}
+            return epoch_loss_dict
     # end for
 
 
