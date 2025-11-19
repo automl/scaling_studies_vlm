@@ -52,7 +52,7 @@ class NePSConfig:
 
 GRID_SPACE = NePSConfig(
     searcher=Searcher.Grid,
-    max_evaluations_total=10,
+    max_evaluations_total=2,
     pipeline_space={
         "lr": neps.FloatParameter(
             lower=1e-6,
@@ -67,9 +67,14 @@ GRID_SPACE = NePSConfig(
 @dataclass
 class TrainConfig:
     """
-        Train configuration.
+    Train configuration.
 
-        Args:
+    Args:
+        model: vision backbone to train on.
+        train_num_samples: number of training samples to use(this number defines epoch length).
+        epochs: number of epochs to train for.
+        logs: string pointing to relative path where to store logs.
+        seed: random seed for reproducibility.
     """
 
     # static fields from args
@@ -81,3 +86,7 @@ class TrainConfig:
 
     # hyperparameters from NePs
     lr: float
+
+    def __post_init__(self):
+        if self.logs and "train/" in self.logs:
+            self.logs = self.logs.replace("train/", "")

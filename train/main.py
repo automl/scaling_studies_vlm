@@ -28,7 +28,10 @@ def train_and_evaluate(hps: Dict[str, Any], root_dir: str, args) -> Dict[str, Op
 
     cmd = build_cmd(config)
 
-    slurm = SlurmManager(partition=args.partition, nodes=args.nodes, gpus_per_node=args.gpus_per_node,
+    job_name = f"openclip_train:{config.model}_ns{config.train_num_samples}_e{config.epochs}_s{config.seed}"
+
+
+    slurm = SlurmManager(job_name=job_name, partition=args.partition, nodes=args.nodes, gpus_per_node=args.gpus_per_node,
                          root_dir=root_dir)
     slurm.submit_job(cmd)
 
@@ -36,7 +39,7 @@ def train_and_evaluate(hps: Dict[str, Any], root_dir: str, args) -> Dict[str, Op
 
 
 def main(args):
-    root_dir = f"./results/model={args.model}/seed={args.seed}"
+    root_dir = f"./train/results/model={args.model}/seed={args.seed}"
 
     print("Starting HPO...")
     start = time()

@@ -7,7 +7,7 @@ from train.config import TrainConfig
 
 
 class DatasetShards(str, Enum):
-    LAION400M = "../pre_training_dataset/laion400m/shards/{00000000..00000009}.tar"
+    LAION400M = "../pre_training_dataset/laion400m/shards/{00000000..00000282}.tar"
 
 
 def build_cmd(config: TrainConfig) -> str:
@@ -25,7 +25,7 @@ def build_cmd(config: TrainConfig) -> str:
         cli_key = key.replace("_", "-")
         cmd_parts.append(f"--{cli_key} {value}")
 
-    return "srun --cpu-bind --accel-bind=gn python -u -m open_clip_train.main \\\n    " + " \\\n    ".join(cmd_parts)
+    return "srun --cpu-bind=v --accel-bind=gn python -u -m open_clip_train.main \\\n    " + " \\\n    ".join(cmd_parts)
 
 
 class SlurmManager:
@@ -101,6 +101,13 @@ export MASTER_PORT=12802
 # first node to be used as the master node in multi-node distributed setup
 master_addr=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
 export MASTER_ADDR=$master_addr
+
+PROJECT_ROOT="/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm"
+TRAIN_DIR="${{PROJECT_ROOT}}/train"
+
+cd "${{TRAIN_DIR}}"
+
+export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
 
 {cmd}
 
