@@ -147,6 +147,10 @@ if __name__ == "__main__":
             number_sample_per_shard=10000,
             oom_shard_count=8,
             retries=args.retries,
+            timeout=1,
+            extract_exif=False,
+            compute_hash=None,
+            disable_all_reencoding = True,
             enable_wandb=args.enable_wandb,
             max_shard_retry=0,
             wandb_project=args.wandb_project
