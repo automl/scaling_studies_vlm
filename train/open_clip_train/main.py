@@ -476,24 +476,16 @@ def main(args):
         evaluate(model, data, start_epoch, args, tb_writer=writer, tokenizer=tokenizer)
         return
 
-    loss_file = os.path.join(args.logs, "epoch_losses.json")
-
-    if os.path.exists(loss_file):
-        with open(loss_file, "r") as f:
-            epoch_losses = json.load(f)
-    else:
-        epoch_losses = {}
-
     loss = create_loss(args)
 
     for epoch in range(start_epoch, args.epochs):
         if is_master(args):
             logging.info(f'Start epoch {epoch}')
 
-        epoch_loss_dict = train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args, tb_writer=writer)
+        avg_epoch_loss = train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args, tb_writer=writer)
         completed_epoch = epoch + 1
 
-        epoch_losses[str(completed_epoch)] = epoch_loss_dict.get("loss")
+        # epoch_losses[str(completed_epoch)] = epoch_loss_dict.get("loss")
 
         if any(v in data for v in ('val', 'imagenet-val', 'imagenet-v2')):
             evaluate(model, data, completed_epoch, args, tb_writer=writer, tokenizer=tokenizer)
@@ -528,10 +520,10 @@ def main(args):
                 torch.save(checkpoint_dict, tmp_save_path)
                 os.replace(tmp_save_path, latest_save_path)
 
-    save_path = os.path.join(log_base_path, "epoch_losses.json")
-
-    with open(save_path, "w") as f:
-        json.dump(epoch_losses, f, indent=2)
+    # save_path = os.path.join(log_base_path, "epoch_losses.json")
+    #
+    # with open(save_path, "w") as f:
+    #     json.dump(epoch_losses, f, indent=2)
 
     if args.wandb and is_master(args):
         wandb.finish()

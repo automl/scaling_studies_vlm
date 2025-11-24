@@ -82,6 +82,7 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
     batch_time_m = AverageMeter()
     data_time_m = AverageMeter()
     end = time.time()
+
     for i, batch in enumerate(dataloader):
         i_accum = i // args.accum_freq
         step = num_batches_per_epoch * epoch + i_accum
@@ -172,7 +173,7 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                     scaler.step(optimizer)
             else:
                 if args.grad_clip_norm is not None:
-                    scaler.unscale_(optimizer) # uscaling back to correct values
+                    scaler.unscale_(optimizer)  # uscaling back to correct values
                     torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip_norm, norm_type=2.0)
                 scaler.step(optimizer)
             scaler.update()
@@ -192,7 +193,6 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
         batch_time_m.update(time.time() - end)
         end = time.time()
         batch_count = i_accum + 1
-        print("Batch number:" + str(batch_count))
         if is_master(args) and (i_accum % args.log_every_n_steps == 0 or batch_count == num_batches_per_epoch):
             batch_size = len(images)
             num_samples = batch_count * batch_size * args.accum_freq * args.world_size
@@ -208,7 +208,7 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
             logit_scale_scalar = logit_scale.item()
             loss_log = " ".join(
                 [
-                    f"{loss_name.capitalize()}: {loss_m.val:#.5g} ({loss_m.avg:#.5g})" 
+                    f"{loss_name.capitalize()}: {loss_m.val:#.5g} ({loss_m.avg:#.5g})"
                     for loss_name, loss_m in losses_m.items()
                 ]
             )
@@ -230,27 +230,25 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                 "samples_per_second_per_gpu": samples_per_second_per_gpu,
                 "scale": logit_scale_scalar,
                 "lr": optimizer.param_groups[0]["lr"]
-            }            
-            log_data.update({name:val.val for name,val in losses_m.items()})
+            }
+            log_data.update({name: val.val for name, val in losses_m.items()})
 
             log_data = {"train/" + name: val for name, val in log_data.items()}
 
             if tb_writer is not None:
                 for name, val in log_data.items():
                     tb_writer.add_scalar(name, val, step)
-            
+
             if args.wandb:
                 assert wandb is not None, 'Please install wandb.'
                 log_data['step'] = step  # for backwards compatibility
                 wandb.log(log_data, step=step)
-            
+
             # resetting batch / data time meters per log window
             batch_time_m.reset()
             data_time_m.reset()
-
-            epoch_loss_dict = {name: meter.avg for name, meter in losses_m.items()}
-            return epoch_loss_dict
     # end for
+    return losses_m["contrastive_loss"].avg
 
 
 def evaluate(model, data, epoch, args, tb_writer=None, tokenizer=None):
@@ -298,9 +296,9 @@ def evaluate(model, data, epoch, args, tb_writer=None, tokenizer=None):
                     batch_size = images.shape[0]
                     labels = torch.arange(batch_size, device=device).long()
                     total_loss = (
-                        F.cross_entropy(logits_per_image, labels) +
-                        F.cross_entropy(logits_per_text, labels)
-                    ) / 2
+                                         F.cross_entropy(logits_per_image, labels) +
+                                         F.cross_entropy(logits_per_text, labels)
+                                 ) / 2
 
                     gen_loss = maybe_compute_generative_loss(model_out)
 
