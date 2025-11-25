@@ -4,6 +4,7 @@ import torch
 import open_clip
 import pandas as pd
 from torch.utils.flop_counter import FlopCounterMode
+
 try:
     import fvcore
     import fvcore.nn
@@ -22,6 +23,7 @@ parser.add_argument('--batch-size', default=1, type=int, help='Batch size for pr
 parser.add_argument(
     "--device", default="cuda", type=str, help="Accelerator to use."
 )
+
 
 def profile_fvcore(
         model,
@@ -128,6 +130,7 @@ def profile_torch(model, text_input_size, image_input_size, batch_size=1, force_
 def count_params(model):
     return sum(m.numel() for m in model.parameters())
 
+
 def profile_model(model_name, batch_size=1, profiler='torch', device="cuda"):
     assert profiler in ['torch', 'fvcore'], 'Only torch and fvcore profilers are supported'
     if profiler == 'fvcore':
@@ -175,7 +178,8 @@ def profile_model(model_name, batch_size=1, profiler='torch', device="cuda"):
 
             if profiler == 'fvcore':
                 macs, acts = profile_fvcore(
-                    model, image_input_size=image_input_size, text_input_size=text_input_size, force_cpu=not retries, batch_size=batch_size)
+                    model, image_input_size=image_input_size, text_input_size=text_input_size, force_cpu=not retries,
+                    batch_size=batch_size)
 
                 image_macs, image_acts = profile_fvcore_image(
                     model.visual, image_input_size=image_input_size, force_cpu=not retries, batch_size=batch_size)
@@ -185,10 +189,10 @@ def profile_model(model_name, batch_size=1, profiler='torch', device="cuda"):
 
                 results['gmacs'] = round(macs / 1e9, 2)
                 results['macts'] = round(acts / 1e6, 2)
-                
+
                 results['image_gmacs'] = round(image_macs / 1e9, 2)
                 results['image_macts'] = round(image_acts / 1e6, 2)
-                
+
                 results['text_gmacs'] = round(text_macs / 1e9, 2)
                 results['text_macts'] = round(text_acts / 1e6, 2)
             elif profiler == 'torch':
@@ -197,7 +201,8 @@ def profile_model(model_name, batch_size=1, profiler='torch', device="cuda"):
                 text_flops = profile_torch_text(
                     model.text, text_input_size=text_input_size, force_cpu=not retries, batch_size=batch_size)
                 total_flops = profile_torch(
-                    model, image_input_size=image_input_size, text_input_size=text_input_size, force_cpu=not retries, batch_size=batch_size)
+                    model, image_input_size=image_input_size, text_input_size=text_input_size, force_cpu=not retries,
+                    batch_size=batch_size)
 
                 results['gflops'] = round(total_flops / 1e9, 2)
                 results['image_gflops'] = round(image_flops / 1e9, 2)
@@ -206,6 +211,43 @@ def profile_model(model_name, batch_size=1, profiler='torch', device="cuda"):
         except RuntimeError as e:
             pass
     return results
+
+
+def get_model_flops(model, num_samples_seen):
+    """
+    Compute FLOPs for a FULL OpenCLIP model (image + text encoders)
+    using torch.utils.flop_counter.
+
+    model: an instantiated OpenCLIP model
+    """
+
+    model.eval()
+
+    if isinstance(model.visual.image_size, (tuple, list)):
+        image_input_size = (3,) + tuple(model.visual.image_size[-2:])
+    else:
+        image_input_size = (3, model.visual.image_size, model.visual.image_size)
+
+    text_input_size = (77,)
+    if hasattr(model, "context_length") and model.context_length:
+        text_input_size = (model.context_length,)
+
+    retries = 2
+    last_err = None
+
+    while retries:
+        retries -= 1
+        try:
+            total_flops = profile_torch(
+                model,
+                text_input_size=text_input_size,
+                image_input_size=image_input_size,
+            )
+            return round(total_flops / 1e9, 2) * num_samples_seen
+        except RuntimeError as e:
+            last_err = e
+
+    raise RuntimeError("FLOPs profiling failed") from last_err
 
 
 def main():
@@ -220,7 +262,7 @@ def main():
     results = []
     models_with_errors = []
     for m in parsed_model:
-        print('='*100)
+        print('=' * 100)
         print(f'Profiling {m}')
         try:
             row = profile_model(m, batch_size=args.batch_size, profiler=args.profiler, device=args.device)
@@ -238,7 +280,7 @@ def main():
     else:
         df = df.sort_values(by=['gflops', 'mparams', 'model'])
 
-    print('='*100)
+    print('=' * 100)
     print('Done.')
     print(df)
     if args.results_file:

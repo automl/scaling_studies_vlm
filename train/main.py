@@ -17,13 +17,12 @@ def train_and_evaluate(hps: Dict[str, Any], root_dir: str, pipeline_id, args):
     logs_dir = os.path.join(root_dir, "individual_training_logs")
     os.makedirs(logs_dir, exist_ok=True)
 
-    args.pipeline_id = pipeline_id
-
     config = TrainConfig(
         model=args.model,
         train_num_samples=args.train_num_samples,
         epochs=args.epochs,
         seed=args.seed,
+        pipeline_id=pipeline_id,
         logs=logs_dir,
         **hps,
     )

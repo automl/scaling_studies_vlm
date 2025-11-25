@@ -3,20 +3,20 @@ import glob
 import json
 import logging
 import os
+import random
 import re
 import subprocess
 import sys
-import random
 from datetime import datetime
-from functools import partial
 from pathlib import Path
 
+import neps
 import numpy as np
 import torch
-from torch import optim
-import neps
-
 from open_clip_train.params import parse_args
+from torch import optim
+
+from open_clip_train.profiler import get_model_flops
 
 try:
     import wandb
@@ -536,10 +536,16 @@ def main(args):
     with open(losses_path, "w") as f:
         json.dump(epoch_history, f, indent=2)
 
+    # Calculate model compute. First check the global csv, if the data is there, simply query compute per single sample per model, then multiply by number seen samples
+    compute = get_model_flops(model, args.train_num_samples)
+
     if is_master(args):
         final_loss = epoch_history[str(args.epochs)]
         neps.save_pipeline_results(
-            user_result={"objective_to_minimize": final_loss},
+            user_result={
+                "objective_to_minimize": final_loss,
+                "cost": compute
+            },
             pipeline_id=args.pipeline_id,
             root_directory=Path(args.logs).parent,
         )

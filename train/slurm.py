@@ -128,7 +128,7 @@ echo "Job execution complete."
         Returns:
             str: The command to activate the environment.
         """
-        return "source ~/miniconda3/bin/activate && conda activate vlm_scaling_law"
+        return "source ~/miniconda3/bin/activate && conda activate test_scaling_laws"
 
     def submit_job(self, cmd: str, wait: bool = True):
         """

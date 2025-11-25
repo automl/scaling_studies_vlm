@@ -69,6 +69,9 @@ class TrainConfig:
     logs: str
     seed: int
 
+    # specific to NePs
+    pipeline_id: int
+
     # hyperparameters from NePs
     lr: float
 
