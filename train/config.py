@@ -2,12 +2,10 @@ from dataclasses import dataclass
 from enum import Enum
 
 import neps
-from neps.optimizers import GridSearch
-from neps.search_spaces import SearchSpace
-from neps.search_spaces.parameter import Parameter
+from neps.space import Parameter
 
 
-class Searcher(Enum):
+class Optimizer(Enum):
     Grid = "grid_search"
 
 
@@ -17,47 +15,34 @@ class NePSConfig:
     NePS configuration.
 
     Args:
-        searcher: search instance.
-        max_evaluations_total: The total number of evaluations to run.
+        optimizer: optimizer instance.
+        evaluations_to_spend: The total number of evaluations to run.
         pipeline_space: The search space for the pipeline.
     """
 
-    searcher: Searcher = None
+    optimizer: Optimizer = None
     pipeline_space: dict[str, Parameter] = None
-    max_evaluations_total: int | None = None
+    evaluations_to_spend: int | None = None
     grid_step_size: int = 10
-
-    def _build_searcher(self):
-        if self.searcher is None:
-            return None
-
-        if self.searcher == Searcher.Grid:
-            space = SearchSpace(**self.pipeline_space)
-            return GridSearch(
-                pipeline_space=space,
-                grid_step_size=self.grid_step_size,
-            )
-
-        raise ValueError(f"Unsupported searcher: {self.searcher}")
 
     @property
     def run_args(self) -> dict[str, any]:
         args = {
-            "searcher": self._build_searcher(),
-            "max_evaluations_total": self.max_evaluations_total,
+            "optimizer": self.optimizer.value,
+            "evaluations_to_spend": self.evaluations_to_spend,
+            "pipeline_space": self.pipeline_space,
         }
 
         return args
 
 
 GRID_SPACE = NePSConfig(
-    searcher=Searcher.Grid,
-    max_evaluations_total=2,
+    optimizer=Optimizer.Grid,
+    evaluations_to_spend=2,
     pipeline_space={
-        "lr": neps.FloatParameter(
+        "lr": neps.Float(
             lower=1e-6,
             upper=1,
-            default=1e-3,
             log=True,
         ),
     },

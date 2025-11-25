@@ -480,6 +480,13 @@ def parse_args(args):
         help='A string to specify a specific distributed loss implementation.'
     )
 
+    parser.add_argument(
+        "--pipeline-id",
+        type=int,
+        default=None,
+        help="NePs pipeline id.",
+    )
+
     args = parser.parse_args(args)
 
     if 'timm' not in args.opt:

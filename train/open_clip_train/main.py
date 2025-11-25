@@ -9,10 +9,12 @@ import sys
 import random
 from datetime import datetime
 from functools import partial
+from pathlib import Path
 
 import numpy as np
 import torch
 from torch import optim
+import neps
 
 from open_clip_train.params import parse_args
 
@@ -534,8 +536,16 @@ def main(args):
     with open(losses_path, "w") as f:
         json.dump(epoch_history, f, indent=2)
 
-    if args.wandb and is_master(args):
-        wandb.finish()
+    if is_master(args):
+        final_loss = epoch_history[str(args.epochs)]
+        neps.save_pipeline_results(
+            user_result={"objective_to_minimize": final_loss},
+            pipeline_id=args.pipeline_id,
+            root_directory=Path(args.logs).parent,
+        )
+
+        if args.wandb:
+            wandb.finish()
 
     # run a final sync.
     if remote_sync_process is not None:
