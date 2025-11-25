@@ -248,7 +248,8 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
             batch_time_m.reset()
             data_time_m.reset()
     # end for
-    return losses_m["contrastive_loss"].avg
+    if is_master(args):
+        return losses_m["contrastive_loss"].avg
 
 
 def evaluate(model, data, epoch, args, tb_writer=None, tokenizer=None):

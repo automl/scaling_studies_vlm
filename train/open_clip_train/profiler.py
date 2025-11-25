@@ -6,6 +6,8 @@ import pandas as pd
 import torch
 from torch.utils.flop_counter import FlopCounterMode
 
+from utils import unwrap_model
+
 try:
     import fvcore
     import fvcore.nn
@@ -221,7 +223,7 @@ def get_model_flops(model, num_samples_seen):
 
     model: an instantiated OpenCLIP model
     """
-
+    model = unwrap_model(model)
     model.eval()
 
     if isinstance(model.visual.image_size, (tuple, list)):

@@ -13,3 +13,11 @@ def successful_downloaded_pairs_in_shards():
             total_successes += data.get("successes", 0)
 
     print("Total successes:", total_successes)
+
+
+def unwrap_model(model):
+    """Unwrapping for DDP"""
+    if hasattr(model, "module"):
+        return unwrap_model(model.module)
+
+    return model
