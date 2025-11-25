@@ -1,8 +1,9 @@
 import argparse
+import logging
 
-import torch
 import open_clip
 import pandas as pd
+import torch
 from torch.utils.flop_counter import FlopCounterMode
 
 try:
@@ -243,7 +244,10 @@ def get_model_flops(model, num_samples_seen):
                 text_input_size=text_input_size,
                 image_input_size=image_input_size,
             )
-            return round(total_flops / 1e9, 2) * num_samples_seen
+            gflops = round(total_flops / 1e9, 2)
+            logging.info(f'GFlops per single sample: {gflops}')
+            return gflops * num_samples_seen
+
         except RuntimeError as e:
             last_err = e
 
