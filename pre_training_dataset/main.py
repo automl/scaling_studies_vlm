@@ -95,6 +95,13 @@ def get_parser():
         help="Whether to convert downloaded parquet files to tar files.",
     )
 
+    parser.add_argument(
+        "--disable_all_reencoding",
+        action="store_true",
+        default=True,
+        help="Whether to download raw images without any resizing.",
+    )
+
     return parser
 
 
@@ -150,7 +157,7 @@ if __name__ == "__main__":
             timeout=1,
             extract_exif=False,
             compute_hash=None,
-            disable_all_reencoding = True,
+            disable_all_reencoding = args.disable_all_reencoding,
             enable_wandb=args.enable_wandb,
             max_shard_retry=0,
             wandb_project=args.wandb_project
