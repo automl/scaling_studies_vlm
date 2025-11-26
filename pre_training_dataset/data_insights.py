@@ -25,8 +25,12 @@ from train.open_clip_train.data import expand_urls, get_data
 from train.open_clip_train.data import tarfile_to_samples_nothrow
 from train.open_clip_train.data import filter_no_caption_or_no_image
 
+
 def main(args):
     args = parse_args(args)
+
+    file_path = args.train_data
+    filename = "_".join(file_path.split("/")[:2])
 
     if torch.cuda.is_available():
         # This enables tf32 on Ampere GPUs which is only 8% slower than
@@ -142,7 +146,7 @@ def main(args):
     unexpected = seen - keys_valid
 
     write_stats_to_file(
-        "dataset_stats.txt",
+        filename,
         corrupted_tars,
         empty_tars,
         per_tar_stats,
@@ -150,8 +154,8 @@ def main(args):
         filtered_out,
         unexpected,
         keys_all,
-        keys_valid,num_batches, num_samples, len(seen))
-    print("Saved dataset statistics to dataset_stats.txt")
+        keys_valid, num_batches, num_samples, len(seen))
+    print(f"Saved dataset statistics to ${filename}")
 
 
 def write_stats_to_file(filename,
@@ -219,7 +223,6 @@ def write_stats_to_file(filename,
             f"samples(total)={num_samples}, "
             f"unique_seen={seen}"
         )
-
 
         def _write(name, s):
             f.write(f"\n{name}:\n")
