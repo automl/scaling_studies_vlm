@@ -30,7 +30,7 @@ def main(args):
     args = parse_args(args)
 
     file_path = args.train_data
-    filename = "_".join(file_path.split("/")[:2])
+    filename = "_".join(file_path.split("/")[:2]) + ".txt"
 
     if torch.cuda.is_available():
         # This enables tf32 on Ampere GPUs which is only 8% slower than
