@@ -55,5 +55,13 @@ def parse_args(args):
         help="Number of gpus per node for training.",
     )
 
+    # args for HPO
+    parser.add_argument(
+        "--num-neps-workers",
+        type=int,
+        default=1,
+        help="Number of parallel workers.",
+    )
+
     args = parser.parse_args(args)
     return args
