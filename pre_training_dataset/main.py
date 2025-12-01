@@ -98,7 +98,7 @@ def get_parser():
     parser.add_argument(
         "--disable_all_reencoding",
         action="store_true",
-        default=True,
+        default=False,
         help="Whether to download raw images without any resizing.",
     )
 
@@ -154,6 +154,8 @@ if __name__ == "__main__":
             number_sample_per_shard=10000,
             oom_shard_count=8,
             retries=args.retries,
+            max_image_area=1_500_000,
+            encode_quality=75,
             timeout=1,
             extract_exif=False,
             compute_hash=None,
