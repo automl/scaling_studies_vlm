@@ -6,6 +6,8 @@ from pathlib import Path
 from huggingface_hub import snapshot_download
 from img2dataset import download
 
+from pre_training_dataset.resizing import resize
+
 
 def get_parser():
     parser = argparse.ArgumentParser()
@@ -107,7 +109,14 @@ def get_parser():
         type=str,
         nargs="*",
         default=None,
-        help="Specific parquet files to use. If not provided, all parquet files in the folder will be used.",
+        help="Specific parquet files to convert to tar files. If not provided, all parquet files in the folder will be used.",
+    )
+
+    parser.add_argument(
+        "--separate_resizing",
+        action="store_true",
+        default=False,
+        help="Whether to resize images after the raw download.",
     )
 
     return parser
@@ -159,41 +168,51 @@ def download_tar_shards(args):
 
     parquet_dir = args.data_dir / "parquet_files/default/train"
     if args.parquet_files:
-        parquet_paths = [
-            str(parquet_dir / fname) for fname in args.parquet_files
-        ]
-        url_list = ",".join(parquet_paths)
-
+        parquet_files = [parquet_dir / fname for fname in args.parquet_files]
     else:
-        url_list = str(parquet_dir)
+        parquet_files = sorted(parquet_dir.glob("*.parquet"))
 
-    download(
-        url_list=url_list,
-        image_size=args.image_size,
-        output_folder=str(shard_dir),
-        processes_count=args.processes_count,
-        thread_count=args.thread_count,
-        encode_format=args.encode_format,
-        output_format=args.output_format,
-        input_format="parquet",
-        url_col="url",
-        caption_col="caption",
-        number_sample_per_shard=10000,
-        oom_shard_count=8,
-        retries=args.retries,
-        max_image_area=1_500_000,
-        encode_quality=75,
-        timeout=1,
-        incremental_mode="extend",
-        extract_exif=False,
-        compute_hash=None,
-        disable_all_reencoding=args.disable_all_reencoding,
-        enable_wandb=args.enable_wandb,
-        max_shard_retry=0,
-        wandb_project=args.wandb_project,
-    )
+    for parquet_path in parquet_files:
+        print(f"Processing parquet: {parquet_path}")
+        download(
+            url_list=parquet_path,
+            image_size=args.image_size,
+            output_folder=str(shard_dir),
+            processes_count=args.processes_count,
+            thread_count=args.thread_count,
+            encode_format=args.encode_format,
+            output_format=args.output_format,
+            input_format="parquet",
+            url_col="url",
+            caption_col="caption",
+            number_sample_per_shard=10000,
+            oom_shard_count=8,
+            retries=args.retries,
+            timeout=2,
+            incremental_mode="extend",
+            extract_exif=False,
+            compute_hash=None,
+            disable_all_reencoding=args.disable_all_reencoding,
+            enable_wandb=args.enable_wandb,
+            max_shard_retry=0,
+            wandb_project=args.wandb_project,
+        )
 
     print("Downloaded shards.")
+
+
+def infer_resize_start(shard_dir):
+    shard_ids = []
+
+    for p in shard_dir.glob("*.tar"):
+        stem = p.stem
+        if stem.isdigit():
+            shard_ids.append(int(stem))
+
+    if not shard_ids:
+        return 0
+
+    return max(shard_ids) + 1
 
 
 if __name__ == "__main__":
@@ -201,3 +220,10 @@ if __name__ == "__main__":
 
     download_parquet_files(args)
     download_tar_shards(args)
+
+    if args.separate_resizing:
+        shard_dir = args.data_dir / "shards"
+        resizing_proc = args.processes_count // 2
+        resize(root_dir=str(shard_dir),
+               start_at=infer_resize_start(shard_dir),
+               processes=resizing_proc)
