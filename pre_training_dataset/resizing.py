@@ -1,3 +1,4 @@
+import argparse
 import io
 import json
 import multiprocessing
@@ -217,7 +218,7 @@ def multiprocessing_resizer(processes_count, resizer, gen, shard_timeout_seconds
     return failed_shards
 
 
-if __name__ == "__main__":
+def resize(root_dir=".", start_at=0, processes=8):
     resizer = Resizer(
         image_size=256,
         resize_mode="border",
@@ -225,6 +226,28 @@ if __name__ == "__main__":
         encode_quality=95,
     )
 
-    gen = iter_shards(".", start_at=1)
+    gen = iter_shards(root_dir, start_at=start_at)
 
-    multiprocessing_resizer(processes_count=8, resizer=resizer, gen=gen)
+    return multiprocessing_resizer(
+        processes_count=processes,
+        resizer=resizer,
+        gen=gen
+    )
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root_dir", type=str, default=".",
+                        help="Directory containing *.tar shards")
+    parser.add_argument("--start_at", type=int, default=0,
+                        help="Start processing at this shard number")
+    parser.add_argument("--processes", type=int, default=8,
+                        help="Number of parallel processes")
+
+    args = parser.parse_args()
+
+    resize(
+        root_dir=args.root_dir,
+        start_at=args.start_at,
+        processes=args.processes
+    )
