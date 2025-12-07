@@ -479,25 +479,14 @@ def main(args):
 
     loss = create_loss(args)
 
-    losses_file = "epoch_losses.json"
-    losses_path = os.path.join(log_base_path, losses_file)
-
-    if os.path.exists(losses_path):
-        with open(losses_path) as f:
-            epoch_history = json.load(f)
-    else:
-        epoch_history = {}
-
     for epoch in range(start_epoch, args.epochs):
         if is_master(args):
             logging.info(f'Start epoch {epoch}')
 
-        avg_epoch_loss = train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args,
-                                         tb_writer=writer)
+        train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args,
+                        tb_writer=writer)
 
         completed_epoch = epoch + 1
-
-        epoch_history[str(completed_epoch)] = avg_epoch_loss
 
         if any(v in data for v in ('val', 'imagenet-val', 'imagenet-v2')):
             evaluate(model, data, completed_epoch, args, tb_writer=writer, tokenizer=tokenizer)
@@ -532,17 +521,15 @@ def main(args):
                 torch.save(checkpoint_dict, tmp_save_path)
                 os.replace(tmp_save_path, latest_save_path)
 
-    with open(losses_path, "w") as f:
-        json.dump(epoch_history, f, indent=2)
-
     # Calculate model compute
     compute = get_model_flops(model, data["train"].dataloader.num_samples)
 
+    validation_loss = read_last_json_line(args.checkpoint_path + "/results.json")["clip_val_loss"]
+
     if is_master(args):
-        final_loss = epoch_history[str(args.epochs)]
         neps.save_pipeline_results(
             user_result={
-                "objective_to_minimize": final_loss,
+                "objective_to_minimize": validation_loss,
                 "cost": compute
             },
             pipeline_id=args.pipeline_id,
@@ -582,6 +569,15 @@ def copy_codebase(args):
     copytree(current_code_path, new_code_path, ignore=ignore_patterns('log', 'logs', 'wandb'))
     print("Done copying code.")
     return 1
+
+
+def read_last_json_line(path):
+    last = None
+    with open(path, "r") as f:
+        for line in f:
+            if line.strip():
+                last = line
+    return json.loads(last)
 
 
 if __name__ == "__main__":

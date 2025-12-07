@@ -248,8 +248,6 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
             batch_time_m.reset()
             data_time_m.reset()
     # end for
-    if is_master(args):
-        return losses_m["contrastive_loss"].avg
 
 
 def evaluate(model, data, epoch, args, tb_writer=None, tokenizer=None):
@@ -315,14 +313,16 @@ def evaluate(model, data, epoch, args, tb_writer=None, tokenizer=None):
                         logging.info(
                             f"Generative Loss: {cumulative_gen_loss / num_samples:.6f}\t")
 
-            val_metrics = get_clip_metrics(
-                image_features=torch.cat(all_image_features),
-                text_features=torch.cat(all_text_features),
-                logit_scale=logit_scale.cpu(),
-            )
+            # val_metrics = get_clip_metrics(
+            #     image_features=torch.cat(all_image_features),
+            #     text_features=torch.cat(all_text_features),
+            #     logit_scale=logit_scale.cpu(),
+            # )
             loss = cumulative_loss / num_samples
             metrics.update(
-                {**val_metrics, "clip_val_loss": loss.item(), "epoch": epoch, "num_samples": num_samples}
+                # {**val_metrics, "clip_val_loss": loss.item(), "epoch": epoch, "num_samples": num_samples}
+                {"clip_val_loss": loss.item(), "epoch": epoch, "num_samples": num_samples}
+
             )
             if gen_loss is not None:
                 gen_loss = cumulative_gen_loss / num_samples

@@ -7,14 +7,16 @@ from train.config import TrainConfig
 
 
 class DatasetShards(str, Enum):
-    LAION400M = "../pre_training_dataset/laion400m/shards/{00000000..00000282}.tar"
+    LAION400M_TRAIN_DATA = "../pre_training_dataset/laion400m/shards/{00000000..00000282}.tar",
+    LAION400M_VALIDATION_DATA = "../pre_training_dataset/laion400m/validation_data/{00000000..00000282}.tar"
 
 
 def build_cmd(config: TrainConfig) -> str:
     args = asdict(config)
 
     cmd_parts = [
-        f'--train-data "{DatasetShards.LAION400M.value}"',
+        f'--train-data "{DatasetShards.LAION400M_TRAIN_DATA.value}"',
+        f'--val-data "{DatasetShards.LAION400M_VALIDATION_DATA.value}"',
         "--local-loss",
         "--batch-size 64",
         "--gather-with-grad",
