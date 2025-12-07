@@ -7,6 +7,7 @@ import random
 import re
 import subprocess
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -479,6 +480,8 @@ def main(args):
 
     loss = create_loss(args)
 
+    start_time = time.time()
+
     for epoch in range(start_epoch, args.epochs):
         if is_master(args):
             logging.info(f'Start epoch {epoch}')
@@ -521,6 +524,9 @@ def main(args):
                 torch.save(checkpoint_dict, tmp_save_path)
                 os.replace(tmp_save_path, latest_save_path)
 
+    end_time = time.time()
+    training_time_seconds = end_time - start_time
+
     # Calculate model compute
     compute = get_model_flops(model, data["train"].dataloader.num_samples)
 
@@ -530,7 +536,12 @@ def main(args):
         neps.save_pipeline_results(
             user_result={
                 "objective_to_minimize": validation_loss,
-                "cost": compute
+                "cost": compute,
+                "info_dict": {
+                    "train_start_time": start_time,
+                    "train_end_time": end_time,
+                    "train_duration_seconds": end_time - start_time,
+                }
             },
             pipeline_id=args.pipeline_id,
             root_directory=Path(args.logs).parent,
