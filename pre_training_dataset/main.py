@@ -17,7 +17,15 @@ def get_parser():
         type=Path,
         required=False,
         default=Path(os.path.dirname(__file__)) / "laion400m",
-        help="Path to directory where the data (webdataset shards) will be stored.",
+        help="Path to directory where the parquet files are found/will be downloaded.",
+    )
+
+    parser.add_argument(
+        "--shard_data_dir",
+        type=str,
+        required=False,
+        default="train_shards",
+        help="Path to directory where the data (webdataset shards) will be downloaded.",
     )
 
     parser.add_argument(
@@ -161,7 +169,7 @@ def download_tar_shards(args):
     if not args.convert_parquet_to_tar:
         return
 
-    shard_dir = args.data_dir / "shards"
+    shard_dir = args.data_dir / args.shard_data_dir
 
     shard_dir.mkdir(parents=True, exist_ok=True)
     print(f"Downloading images to {shard_dir}...")
@@ -218,12 +226,14 @@ def infer_resize_start(shard_dir):
 if __name__ == "__main__":
     args = get_parser().parse_args()
 
+    shard_dir = args.data_dir / args.shard_data_dir
+    resize_start_at = infer_resize_start(shard_dir)
+
     download_parquet_files(args)
     download_tar_shards(args)
 
     if args.separate_resizing:
-        shard_dir = args.data_dir / "shards"
-        resizing_proc = args.processes_count // 2
+        resizing_proc = args.processes_count // 4
         resize(root_dir=str(shard_dir),
-               start_at=infer_resize_start(shard_dir),
+               start_at=resize_start_at,
                processes=resizing_proc)
