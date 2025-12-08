@@ -1,6 +1,8 @@
 import argparse
+import json
 import os
 import shutil
+import time
 from pathlib import Path
 
 from huggingface_hub import snapshot_download
@@ -229,11 +231,37 @@ if __name__ == "__main__":
     shard_dir = args.data_dir / args.shard_data_dir
     resize_start_at = infer_resize_start(shard_dir)
 
+    time_dir = Path("time_tracking")
+    time_dir.mkdir(exist_ok=True, parents=True)
+    time_file = time_dir / "time_log.jsonl"
+
+    run_log = {}
+
+    download_start = time.time()
+
     download_parquet_files(args)
     download_tar_shards(args)
 
+    download_end = time.time()
+
+    run_log["download"] = {
+        "start": download_start,
+        "end": download_end,
+        "duration_sec": round(download_end - download_start, 2)
+    }
+
     if args.separate_resizing:
         resizing_proc = args.processes_count // 4
+        resize_start = time.time()
         resize(root_dir=str(shard_dir),
                start_at=resize_start_at,
                processes=resizing_proc)
+        resize_end = time.time()
+
+        run_log["resize"] = {
+            "start": resize_start,
+            "end": resize_end,
+            "duration_sec": round(resize_end - resize_start, 2)
+        }
+    with open(time_file, "a") as f:
+        f.write(json.dumps(run_log) + "\n")

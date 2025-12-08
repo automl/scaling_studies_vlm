@@ -530,7 +530,7 @@ def main(args):
     # Calculate model compute
     compute = get_model_flops(model, data["train"].dataloader.num_samples)
 
-    validation_loss = read_last_json_line(args.checkpoint_path + "/results.json")["clip_val_loss"]
+    validation_loss = read_last_json_line(args.checkpoint_path + "/results.jsonl")["clip_val_loss"]
 
     if is_master(args):
         neps.save_pipeline_results(

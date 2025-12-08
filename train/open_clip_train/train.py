@@ -343,7 +343,7 @@ def evaluate(model, data, epoch, args, tb_writer=None, tokenizer=None):
             for name, val in log_data.items():
                 tb_writer.add_scalar(name, val, epoch)
 
-        with open(os.path.join(args.checkpoint_path, "results.json"), "a+") as f:
+        with open(os.path.join(args.checkpoint_path, "results.jsonl"), "a+") as f:
             f.write(json.dumps(metrics))
             f.write("\n")
 
