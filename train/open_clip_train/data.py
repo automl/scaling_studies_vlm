@@ -403,7 +403,7 @@ def get_wds_dataset(args, preprocess_img, is_train, epoch=0, floor=False, tokeni
         wds.rename(image="jpg;png;jpeg;webp", text="txt"),
         wds.map_dict(image=preprocess_img, text=lambda text: tokenizer(text)[0]),
         wds.to_tuple("image", "text"),
-        wds.batched(args.batch_size, partial=not is_train)
+        wds.batched((args.batch_size if is_train else 128), partial=not is_train)
     ])
 
     dataset = wds.DataPipeline(*pipeline)
