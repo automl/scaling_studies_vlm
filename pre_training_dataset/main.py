@@ -8,7 +8,7 @@ from pathlib import Path
 from huggingface_hub import snapshot_download
 from img2dataset import download
 
-from pre_training_dataset.resizing import resize
+from resizing import resize
 
 
 def get_parser():
@@ -245,6 +245,8 @@ if __name__ == "__main__":
     download_end = time.time()
 
     run_log["download"] = {
+        "shard_dir": args.shard_data_dir,
+        "parquet_files": args.parquet_files,
         "start": download_start,
         "end": download_end,
         "duration_sec": round(download_end - download_start, 2)
@@ -259,6 +261,8 @@ if __name__ == "__main__":
         resize_end = time.time()
 
         run_log["resize"] = {
+            "shard_dir": args.shard_data_dir,
+            "parquet_files": args.parquet_files,
             "start": resize_start,
             "end": resize_end,
             "duration_sec": round(resize_end - resize_start, 2)
