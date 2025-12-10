@@ -1,6 +1,8 @@
 import json
 from glob import glob
 
+from neps import plot
+
 
 def successful_downloaded_pairs_in_shards():
     stats_files = glob("../pre_training_dataset/laion400m/shards/*.json")
@@ -21,3 +23,7 @@ def unwrap_model(model):
         return unwrap_model(model.module)
 
     return model
+
+
+if __name__ == "__main__":
+    plot(root_directory="results/model=ViT-S-32/seed=0")

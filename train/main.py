@@ -8,6 +8,9 @@ from typing import Dict, Any
 import neps
 
 import multiprocessing as mp
+
+from neps import plot
+
 from train import params
 from train.config import GRID_SPACE, TrainConfig
 from train.slurm import SlurmManager, build_cmd
@@ -93,3 +96,4 @@ if __name__ == "__main__":
     with open(os.path.join(root_dir, "time.txt"), "w", encoding="utf-8") as f:
         f.write(f"{elapsed}")
     print(f"Finished HPO in {elapsed:.2f} seconds")
+    plot(root_directory=root_dir)
