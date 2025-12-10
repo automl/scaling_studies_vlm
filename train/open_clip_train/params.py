@@ -487,6 +487,12 @@ def parse_args(args):
         help="NePs pipeline id.",
     )
 
+    parser.add_argument(
+        "--sync-neps",
+        default=False,
+        action="store_true",
+        help="Whether to use sync neps.")
+
     args = parser.parse_args(args)
 
     if 'timm' not in args.opt:

@@ -1,9 +1,11 @@
+import json
 import multiprocessing as mp
 import os
 import subprocess
 import sys
 from dataclasses import asdict
 from enum import Enum
+from pathlib import Path
 from time import time
 from typing import Dict, Any
 
@@ -32,10 +34,22 @@ def build_cmd(config: TrainConfig) -> str:
 
     for key, value in args.items():
         cli_key = key.replace("_", "-")
+
+        if isinstance(value, bool):
+            if value:
+                cmd_parts.append(f"--{cli_key}")
+            continue
+
         cmd_parts.append(f"--{cli_key} {value}")
 
     return "python -u -m open_clip_train.main " + " ".join(cmd_parts)
 
+def fetch_result(root_dir, pipeline_id):
+    sync_dir = Path(root_dir) / "sync_results"
+    result_file = sync_dir / f"{pipeline_id}.json"
+
+    with open(result_file, "r") as f:
+        return json.load(f)
 
 def train_and_evaluate(hps: Dict[str, Any], root_dir: str, pipeline_id, args):
     """
@@ -50,6 +64,7 @@ def train_and_evaluate(hps: Dict[str, Any], root_dir: str, pipeline_id, args):
         epochs=args.epochs,
         seed=args.seed,
         pipeline_id=pipeline_id,
+        sync_neps=args.sync_neps,
         logs=logs_dir,
         **hps,
     )
@@ -59,6 +74,11 @@ def train_and_evaluate(hps: Dict[str, Any], root_dir: str, pipeline_id, args):
     process = subprocess.Popen(cmd)
     process.wait()
     os.chdir("..")
+
+    if args.sync_neps:
+        result = fetch_result(root_dir, pipeline_id)
+        return result
+    return None
 
 
 def main(args, root_dir):

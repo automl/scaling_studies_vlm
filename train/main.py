@@ -1,5 +1,7 @@
+import json
 import os
 import sys
+from pathlib import Path
 from time import time
 from typing import Dict, Any
 
@@ -9,6 +11,14 @@ import multiprocessing as mp
 from train import params
 from train.config import GRID_SPACE, TrainConfig
 from train.slurm import SlurmManager, build_cmd
+
+
+def fetch_result(root_dir, pipeline_id):
+    sync_dir = Path(root_dir) / "sync_results"
+    result_file = sync_dir / f"{pipeline_id}.json"
+
+    with open(result_file, "r") as f:
+        return json.load(f)
 
 
 def train_and_evaluate(hps: Dict[str, Any], root_dir: str, pipeline_id, args):
@@ -24,6 +34,7 @@ def train_and_evaluate(hps: Dict[str, Any], root_dir: str, pipeline_id, args):
         epochs=args.epochs,
         seed=args.seed,
         pipeline_id=pipeline_id,
+        sync_neps=args.sync_neps,
         logs=logs_dir,
         **hps,
     )
@@ -36,6 +47,11 @@ def train_and_evaluate(hps: Dict[str, Any], root_dir: str, pipeline_id, args):
                          gpus_per_node=args.gpus_per_node,
                          root_dir=root_dir)
     slurm.submit_job(cmd)
+
+    if args.sync_neps:
+        result = fetch_result(root_dir, pipeline_id)
+        return result
+    return None
 
 
 def main(args, root_dir):

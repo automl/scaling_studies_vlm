@@ -71,6 +71,7 @@ class TrainConfig:
 
     # specific to NePs
     pipeline_id: int
+    sync_neps: bool
 
     # hyperparameters from NePs
     lr: float

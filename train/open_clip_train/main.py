@@ -532,24 +532,6 @@ def main(args):
 
     validation_loss = read_last_json_line(args.checkpoint_path + "/results.jsonl")["clip_val_loss"]
 
-    if is_master(args):
-        neps.save_pipeline_results(
-            user_result={
-                "objective_to_minimize": validation_loss,
-                "cost": compute,
-                "info_dict": {
-                    "train_start_time": start_time,
-                    "train_end_time": end_time,
-                    "train_duration_seconds": end_time - start_time,
-                }
-            },
-            pipeline_id=args.pipeline_id,
-            root_directory=Path(args.logs).parent,
-        )
-
-        if args.wandb:
-            wandb.finish()
-
     # run a final sync.
     if remote_sync_process is not None:
         logging.info('Final remote sync.')
@@ -563,6 +545,35 @@ def main(args):
             logging.info('Final remote sync successful.')
         else:
             logging.info('Final remote sync failed.')
+
+    if is_master(args):
+        if args.wandb:
+            wandb.finish()
+
+        result = {
+            "objective_to_minimize": validation_loss,
+            "cost": compute,
+            "info_dict": {
+                "train_start_time": start_time,
+                "train_end_time": end_time,
+                "train_duration_seconds": training_time_seconds,
+            },
+        }
+        root_dir = Path(args.logs).parent
+
+        if not args.sync_neps:
+            neps.save_pipeline_results(
+                user_result=result,
+                pipeline_id=args.pipeline_id,
+                root_directory=root_dir,
+            )
+            return
+        sync_dir = root_dir / "sync_results"
+        sync_dir.mkdir(parents=True, exist_ok=True)
+
+        pipeline_file = sync_dir / f"{args.pipeline_id}.json"
+        with open(pipeline_file, "w") as f:
+            json.dump(result, f, indent=2)
 
 
 def copy_codebase(args):

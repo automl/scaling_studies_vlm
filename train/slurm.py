@@ -25,6 +25,12 @@ def build_cmd(config: TrainConfig) -> str:
 
     for key, value in args.items():
         cli_key = key.replace("_", "-")
+
+        if isinstance(value, bool):
+            if value:
+                cmd_parts.append(f"--{cli_key}")
+            continue
+
         cmd_parts.append(f"--{cli_key} {value}")
 
     return "srun --cpu-bind=v --accel-bind=gn python -u -m open_clip_train.main \\\n    " + " \\\n    ".join(cmd_parts)
