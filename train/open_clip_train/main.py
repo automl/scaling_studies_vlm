@@ -18,6 +18,10 @@ from open_clip_train.params import parse_args
 from open_clip_train.profiler import get_model_flops
 from torch import optim
 
+from eval.downstream_eval import ClipBenchmarkEvaluator
+
+from config import ZeroShotDataset, RetrievalDataset
+
 try:
     import wandb
 except ImportError:
@@ -95,11 +99,7 @@ def main(args):
             date_str = broadcast_object(args, date_str)
         args.name = '-'.join([
             date_str,
-            f"model_{model_name_safe}",
-            f"lr_{args.lr}",
-            f"b_{args.batch_size}",
-            f"j_{args.workers}",
-            f"p_{args.precision}",
+            f"lr_{args.lr:.4g}"
         ])
 
     resume_latest = args.resume == 'latest'
@@ -550,6 +550,8 @@ def main(args):
         if args.wandb:
             wandb.finish()
 
+        eval_results = evaluate_benchmarks(args.model, log_base_path)
+
         result = {
             "objective_to_minimize": validation_loss,
             "cost": compute,
@@ -557,6 +559,7 @@ def main(args):
                 "train_start_time": start_time,
                 "train_end_time": end_time,
                 "train_duration_seconds": training_time_seconds,
+                "eval_results": eval_results
             },
         }
         root_dir = Path(args.logs).parent
@@ -600,6 +603,20 @@ def read_last_json_line(path):
             if line.strip():
                 last = line
     return json.loads(last)
+
+
+def evaluate_benchmarks(model, root, seed):
+    evaluator = ClipBenchmarkEvaluator(model=model, root=root, seed=seed)
+
+    zero_shot_results = evaluator.zero_shot_eval([ZeroShotDataset.CIFAR10, ZeroShotDataset.IMAGENET])
+    retrieval_results = evaluator.zero_shot_retrieval([RetrievalDataset.MS_COCO])
+    lp_results = evaluator.linear_probe([ZeroShotDataset.CIFAR10, ZeroShotDataset.IMAGENET])
+
+    return {
+        "zero_shot": zero_shot_results,
+        "linear_probe": lp_results,
+        "retrieval": retrieval_results
+    }
 
 
 if __name__ == "__main__":

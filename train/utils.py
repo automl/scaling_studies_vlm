@@ -1,7 +1,6 @@
 import json
 from glob import glob
-
-from neps import plot
+from pathlib import Path
 
 
 def successful_downloaded_pairs_in_shards():
@@ -25,5 +24,20 @@ def unwrap_model(model):
     return model
 
 
-if __name__ == "__main__":
-    plot(root_directory="results/model=ViT-S-32/seed=0")
+def find_latest_checkpoint(checkpoints_dir: Path) -> str:
+    """
+    Finds the newest checkpoint (epoch_X.pt) inside the directory.
+    """
+    checkpoints = sorted(
+        checkpoints_dir.glob("epoch_*.pt"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True
+    )
+    if not checkpoints:
+        raise FileNotFoundError(f"No epoch_*.pt files found in {checkpoints_dir}")
+    latest = checkpoints[0]
+    return latest.name
+
+
+def _build_output_name(dataset: str, epoch: int) -> str:
+    return f"{dataset}_epoch_{epoch}.json"
