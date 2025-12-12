@@ -5,9 +5,9 @@ from typing import Iterable, Optional, List
 
 from clip_benchmark.cli import main_eval
 
-from train.config import EvalTask, ZeroShotDataset, EvalDataset, RetrievalDataset
-from train.eval.openclip_benchmark_parser import get_parser
-from train.utils import find_latest_checkpoint, _build_output_name
+from config import EvalTask, ZeroShotDataset, EvalDataset, RetrievalDataset
+from eval.openclip_benchmark_parser import get_parser
+from utils import find_latest_checkpoint, _build_output_name
 
 
 class ClipBenchmarkEvaluator:
@@ -197,32 +197,32 @@ class ClipBenchmarkEvaluator:
         return results
 
 
-def zero_shot_retrieval(self, datasets: RetrievalDataset | list[RetrievalDataset]):
-    out = self.output_dir / "retrieval"
+    def zero_shot_retrieval(self, datasets: RetrievalDataset | list[RetrievalDataset]):
+        out = self.output_dir / "retrieval"
 
-    if isinstance(datasets, RetrievalDataset):
-        datasets = [datasets]
+        if isinstance(datasets, RetrievalDataset):
+            datasets = [datasets]
 
-    results = []
+        results = []
 
-    for ds in datasets:
-        start = time.time()
-        output_file = self.evaluate(
-            task=EvalTask.RETRIEVAL,
-            dataset=ds,
-            output=out,
-        )
-        duration = time.time() - start
+        for ds in datasets:
+            start = time.time()
+            output_file = self.evaluate(
+                task=EvalTask.RETRIEVAL,
+                dataset=ds,
+                output=out,
+            )
+            duration = time.time() - start
 
-        data = json.loads(Path(output_file).read_text())
-        metrics = data["metrics"]
+            data = json.loads(Path(output_file).read_text())
+            metrics = data["metrics"]
 
-        results.append({
-            "dataset": data["dataset"],
-            "task": data["task"],
-            "image_retrieval": metrics.get("image_retrieval_recall@5"),
-            "text_retrieval": metrics.get("text_retrieval_recall@5"),
-            "duration_sec": duration,
-        })
+            results.append({
+                "dataset": data["dataset"],
+                "task": data["task"],
+                "image_retrieval": metrics.get("image_retrieval_recall@5"),
+                "text_retrieval": metrics.get("text_retrieval_recall@5"),
+                "duration_sec": duration,
+            })
 
-    return results
+        return results
