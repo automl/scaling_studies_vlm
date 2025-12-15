@@ -49,7 +49,7 @@ def train_and_evaluate(hps: Dict[str, Any], root_dir: str, pipeline_id, args):
     slurm = SlurmManager(job_name=job_name, partition=args.partition, nodes=args.nodes,
                          gpus_per_node=args.gpus_per_node,
                          root_dir=root_dir)
-    slurm.submit_job(cmd, wait=False)
+    slurm.submit_job(cmd)
 
     if args.sync_neps:
         result = fetch_result(root_dir, pipeline_id)

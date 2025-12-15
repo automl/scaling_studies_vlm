@@ -250,6 +250,76 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
     # end for
 
 
+def _run_split_eval(metrics, split_name, data, model, device, autocast, input_dtype, epoch, args):
+    start_time = time.time()
+
+    dataloader = data[split_name].dataloader
+    num_samples = 0
+    samples_per_split = dataloader.num_samples
+
+    # FIXME this does not scale past small eval datasets
+    # all_image_features @ all_text_features will blow up memory and compute very quickly
+    cumulative_loss = 0.0
+    cumulative_gen_loss = 0.0
+    all_image_features, all_text_features = [], []
+    with torch.inference_mode():
+        for i, batch in enumerate(dataloader):
+            images, texts = batch
+            images = images.to(device=device, dtype=input_dtype, non_blocking=True)
+            texts = texts.to(device=device, non_blocking=True)
+
+            with autocast():
+                model_out = model(images, texts)
+                image_features = model_out["image_features"]
+                text_features = model_out["text_features"]
+                logit_scale = model_out["logit_scale"]
+                # features are accumulated in CPU tensors, otherwise GPU memory exhausted quickly
+                # however, system RAM is easily exceeded and compute time becomes problematic
+                all_image_features.append(image_features.cpu())
+                all_text_features.append(text_features.cpu())
+                logit_scale = logit_scale.mean()
+                logits_per_image = logit_scale * image_features @ text_features.t()
+                logits_per_text = logits_per_image.t()
+
+                batch_size = images.shape[0]
+                labels = torch.arange(batch_size, device=device).long()
+                total_loss = (
+                                     F.cross_entropy(logits_per_image, labels) +
+                                     F.cross_entropy(logits_per_text, labels)
+                             ) / 2
+
+                gen_loss = maybe_compute_generative_loss(model_out)
+
+            cumulative_loss += total_loss * batch_size
+            num_samples += batch_size
+            if is_master(args) and (i % 100) == 0:
+                logging.info(
+                    f"Eval Epoch: {epoch} [{num_samples} / {samples_per_split}]\t"
+                    f"Clip Loss: {cumulative_loss / num_samples:.6f}\t")
+
+                if gen_loss is not None:
+                    cumulative_gen_loss += gen_loss * batch_size
+                    logging.info(
+                        f"Generative Loss: {cumulative_gen_loss / num_samples:.6f}\t")
+
+        loss = cumulative_loss / num_samples
+        metrics.update({
+            # {**val_metrics, "clip_val_loss": loss.item(), "epoch": epoch, "num_samples": num_samples}
+            f"clip_{split_name}_loss": loss.item(),
+            f"{split_name}_num_samples": num_samples,
+            "epoch": epoch,
+        })
+
+        if gen_loss is not None:
+            gen_loss_avg = cumulative_gen_loss / num_samples
+            metrics.update({f"{split_name}_generative_loss": gen_loss_avg.item()})
+
+        eval_time = time.time() - start_time
+        metrics[f"{split_name}_time_sec"] = eval_time
+
+    return metrics
+
+
 def evaluate(model, data, epoch, args, tb_writer=None, tokenizer=None):
     metrics = {}
     if not is_master(args):
@@ -264,69 +334,10 @@ def evaluate(model, data, epoch, args, tb_writer=None, tokenizer=None):
     input_dtype = get_input_dtype(args.precision)
 
     if 'val' in data and (args.val_frequency and ((epoch % args.val_frequency) == 0 or epoch == args.epochs)):
-        dataloader = data['val'].dataloader
-        num_samples = 0
-        samples_per_val = dataloader.num_samples
+        _run_split_eval(metrics, "val", data, model, device, autocast, input_dtype, epoch, args)
 
-        # FIXME this does not scale past small eval datasets
-        # all_image_features @ all_text_features will blow up memory and compute very quickly
-        cumulative_loss = 0.0
-        cumulative_gen_loss = 0.0
-        all_image_features, all_text_features = [], []
-        with torch.inference_mode():
-            for i, batch in enumerate(dataloader):
-                images, texts = batch
-                images = images.to(device=device, dtype=input_dtype, non_blocking=True)
-                texts = texts.to(device=device, non_blocking=True)
-
-                with autocast():
-                    model_out = model(images, texts)
-                    image_features = model_out["image_features"]
-                    text_features = model_out["text_features"]
-                    logit_scale = model_out["logit_scale"]
-                    # features are accumulated in CPU tensors, otherwise GPU memory exhausted quickly
-                    # however, system RAM is easily exceeded and compute time becomes problematic
-                    all_image_features.append(image_features.cpu())
-                    all_text_features.append(text_features.cpu())
-                    logit_scale = logit_scale.mean()
-                    logits_per_image = logit_scale * image_features @ text_features.t()
-                    logits_per_text = logits_per_image.t()
-
-                    batch_size = images.shape[0]
-                    labels = torch.arange(batch_size, device=device).long()
-                    total_loss = (
-                                         F.cross_entropy(logits_per_image, labels) +
-                                         F.cross_entropy(logits_per_text, labels)
-                                 ) / 2
-
-                    gen_loss = maybe_compute_generative_loss(model_out)
-
-                cumulative_loss += total_loss * batch_size
-                num_samples += batch_size
-                if is_master(args) and (i % 100) == 0:
-                    logging.info(
-                        f"Eval Epoch: {epoch} [{num_samples} / {samples_per_val}]\t"
-                        f"Clip Loss: {cumulative_loss / num_samples:.6f}\t")
-
-                    if gen_loss is not None:
-                        cumulative_gen_loss += gen_loss * batch_size
-                        logging.info(
-                            f"Generative Loss: {cumulative_gen_loss / num_samples:.6f}\t")
-
-            # val_metrics = get_clip_metrics(
-            #     image_features=torch.cat(all_image_features),
-            #     text_features=torch.cat(all_text_features),
-            #     logit_scale=logit_scale.cpu(),
-            # )
-            loss = cumulative_loss / num_samples
-            metrics.update(
-                # {**val_metrics, "clip_val_loss": loss.item(), "epoch": epoch, "num_samples": num_samples}
-                {"clip_val_loss": loss.item(), "epoch": epoch, "num_samples": num_samples}
-
-            )
-            if gen_loss is not None:
-                gen_loss = cumulative_gen_loss / num_samples
-                metrics.update({"val_generative_loss": gen_loss.item()})
+    if 'test' in data and epoch == args.epochs:
+        _run_split_eval(metrics, "test", data, model, device, autocast, input_dtype, epoch, args)
 
     if not metrics:
         return metrics
@@ -336,26 +347,35 @@ def evaluate(model, data, epoch, args, tb_writer=None, tokenizer=None):
         + "\t".join([f"{k}: {round(v, 4):.4f}" for k, v in metrics.items()])
     )
 
-    log_data = {"val/" + name: val for name, val in metrics.items()}
+    log_data = {}
+    for name, val in metrics.items():
+        if not isinstance(val, (int, float)):
+            continue
+        if name.startswith("clip_val") or name.startswith("val_"):
+            log_data["val/" + name] = val
+        elif name.startswith("clip_test") or name.startswith("test_"):
+            log_data["test/" + name] = val
+        else:
+            log_data[name] = val
 
     if args.save_logs:
         if tb_writer is not None:
             for name, val in log_data.items():
                 tb_writer.add_scalar(name, val, epoch)
 
-        with open(os.path.join(args.checkpoint_path, "results.jsonl"), "a+") as f:
-            f.write(json.dumps(metrics))
-            f.write("\n")
+    with open(os.path.join(args.checkpoint_path, "results.jsonl"), "a+") as f:
+        f.write(json.dumps(metrics))
+        f.write("\n")
 
     if args.wandb:
-        assert wandb is not None, 'Please install wandb.'
-        if 'train' in data:
-            dataloader = data['train'].dataloader
+        assert wandb is not None, "Please install wandb."
+        if "train" in data:
+            dataloader = data["train"].dataloader
             num_batches_per_epoch = dataloader.num_batches // args.accum_freq
             step = num_batches_per_epoch * epoch
         else:
             step = None
-        log_data['epoch'] = epoch
+        log_data["epoch"] = epoch
         wandb.log(log_data, step=step)
 
     return metrics

@@ -17,7 +17,8 @@ from train.config import GRID_SPACE, TrainConfig
 
 class DatasetShards(str, Enum):
     LAION400M_TRAIN_DATA = "../pre_training_dataset/laion400m/train_data/{00000000..00000009}.tar",
-    LAION400M_VALIDATION_DATA = "../pre_training_dataset/laion400m/validation_data/{00000000..00000004}.tar"
+    LAION400M_VALIDATION_DATA = "../pre_training_dataset/laion400m/validation_data/{00000000..00000002}.tar",
+    LAION400M_TEST_DATA = "../pre_training_dataset/laion400m/validation_data/{00000002..00000004}.tar"
 
 
 def build_cmd(config: TrainConfig) -> str:
@@ -26,6 +27,7 @@ def build_cmd(config: TrainConfig) -> str:
     cmd_parts = [
         f'--train-data "{DatasetShards.LAION400M_TRAIN_DATA.value}"',
         f'--val-data "{DatasetShards.LAION400M_VALIDATION_DATA.value}"',
+        f'--test-data "{DatasetShards.LAION400M_TEST_DATA.value}"',
         "--local-loss",
         "--batch-size 4",
         "--gather-with-grad",

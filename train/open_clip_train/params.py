@@ -48,6 +48,12 @@ def parse_args(args):
         help="Path to file(s) with validation data",
     )
     parser.add_argument(
+        "--test-data",
+        type=str,
+        default=None,
+        help="Path to file(s) with test data",
+    )
+    parser.add_argument(
         "--train-num-samples",
         type=int,
         default=None,

@@ -491,7 +491,7 @@ def main(args):
 
         completed_epoch = epoch + 1
 
-        if any(v in data for v in ('val', 'imagenet-val', 'imagenet-v2')):
+        if any(v in data for v in ('val', 'test', 'imagenet-val', 'imagenet-v2')):
             evaluate(model, data, completed_epoch, args, tb_writer=writer, tokenizer=tokenizer)
 
         # Saving checkpoints.
@@ -530,7 +530,11 @@ def main(args):
     # Calculate model compute
     compute = get_model_flops(model, data["train"].dataloader.num_samples)
 
-    validation_loss = read_last_json_line(args.checkpoint_path + "/results.jsonl")["clip_val_loss"]
+    evaluation_results = read_last_json_line(args.checkpoint_path + "/results.jsonl")
+    validation_loss = evaluation_results["clip_val_loss"]
+    test_loss = evaluation_results.get("test_loss", None)
+    test_duration_seconds = evaluation_results.get("test_time_sec", None)
+
 
     # run a final sync.
     if remote_sync_process is not None:
@@ -550,7 +554,7 @@ def main(args):
         if args.wandb:
             wandb.finish()
 
-        eval_results = evaluate_benchmarks(args.model, log_base_path)
+        downstream_evaluation_results = evaluate_benchmarks(args.model, log_base_path)
 
         result = {
             "objective_to_minimize": validation_loss,
@@ -559,7 +563,11 @@ def main(args):
                 "train_start_time": start_time,
                 "train_end_time": end_time,
                 "train_duration_seconds": training_time_seconds,
-                "eval_results": eval_results
+                "validation_loss": validation_loss,
+                "validation_duration_seconds": evaluation_results["val_time_sec"],
+                "test_loss": test_loss,
+                "test_duration_seconds": test_duration_seconds,
+                "eval_results": downstream_evaluation_results
             },
         }
         root_dir = Path(args.logs).parent

@@ -157,6 +157,7 @@ class ClipBenchmarkEvaluator:
 
         for ds in datasets:
 
+            # TODO add val split for performing hyperparam sweep over weight decay
             extra_args = [
                 "--train_split", "train",
                 "--test_split", "test",
