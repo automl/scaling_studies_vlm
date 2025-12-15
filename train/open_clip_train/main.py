@@ -555,7 +555,10 @@ def main(args):
         if args.wandb:
             wandb.finish()
 
-        # downstream_evaluation_results = evaluate_benchmarks(args.model, log_base_path, args.seed)
+        downstream_evaluation_results = evaluate_benchmarks(args.model, log_base_path, args.seed)
+
+        if not args.pipeline_id:
+            return
 
         result = {
             "objective_to_minimize": validation_loss,
@@ -567,11 +570,12 @@ def main(args):
                 "validation_duration_seconds": evaluation_results["val_time_sec"],
                 "test_loss": test_loss,
                 "test_duration_seconds": test_duration_seconds,
-                # "eval_results": downstream_evaluation_results
+                "eval_results": downstream_evaluation_results
             },
         }
         root_dir = Path(args.logs).parent
 
+        # TODO remove sync neps
         if not args.sync_neps:
             neps.save_pipeline_results(
                 user_result=result,
