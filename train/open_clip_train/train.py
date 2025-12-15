@@ -85,6 +85,7 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
 
     for i, batch in enumerate(dataloader):
         i_accum = i // args.accum_freq
+        # one step represents processing of a batch per GPU
         step = num_batches_per_epoch * epoch + i_accum
 
         if not args.skip_scheduler:
@@ -105,6 +106,7 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                     with torch.no_grad():
                         dist_model_out = dist_model(images, texts)
                     model_out.update({f'dist_{k}': v for k, v in dist_model_out.items()})
+                # gather_features() to sync loss across multiple gpus
                 losses = loss(**model_out, output_dict=True)
 
                 total_loss = sum(losses.values())
@@ -203,6 +205,7 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
             for key, val in losses.items():
                 if key not in losses_m:
                     losses_m[key] = AverageMeter()
+                # sample weighted mean, not a batch weighted mean
                 losses_m[key].update(val.item(), batch_size)
 
             logit_scale_scalar = logit_scale.item()
@@ -248,6 +251,7 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
             batch_time_m.reset()
             data_time_m.reset()
     # end for
+    return losses_m["contrastive_loss"].avg
 
 
 def _run_split_eval(metrics, split_name, data, model, device, autocast, input_dtype, epoch, args):

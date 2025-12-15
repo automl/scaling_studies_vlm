@@ -482,12 +482,14 @@ def main(args):
 
     start_time = time.time()
 
+    training_loss = None
+
     for epoch in range(start_epoch, args.epochs):
         if is_master(args):
             logging.info(f'Start epoch {epoch}')
 
-        train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args,
-                        tb_writer=writer)
+        training_loss = train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args,
+                                        tb_writer=writer)
 
         completed_epoch = epoch + 1
 
@@ -525,16 +527,15 @@ def main(args):
                 os.replace(tmp_save_path, latest_save_path)
 
     end_time = time.time()
-    training_time_seconds = end_time - start_time
+    training_duration_seconds = end_time - start_time
 
     # Calculate model compute
     compute = get_model_flops(model, data["train"].dataloader.num_samples)
 
     evaluation_results = read_last_json_line(args.checkpoint_path + "/results.jsonl")
     validation_loss = evaluation_results["clip_val_loss"]
-    test_loss = evaluation_results.get("test_loss", None)
+    test_loss = evaluation_results.get("clip_test_loss", None)
     test_duration_seconds = evaluation_results.get("test_time_sec", None)
-
 
     # run a final sync.
     if remote_sync_process is not None:
@@ -554,20 +555,19 @@ def main(args):
         if args.wandb:
             wandb.finish()
 
-        downstream_evaluation_results = evaluate_benchmarks(args.model, log_base_path)
+        # downstream_evaluation_results = evaluate_benchmarks(args.model, log_base_path, args.seed)
 
         result = {
             "objective_to_minimize": validation_loss,
             "cost": compute,
             "info_dict": {
-                "train_start_time": start_time,
-                "train_end_time": end_time,
-                "train_duration_seconds": training_time_seconds,
+                "train_loss": training_loss,
+                "train_duration_seconds": training_duration_seconds,
                 "validation_loss": validation_loss,
                 "validation_duration_seconds": evaluation_results["val_time_sec"],
                 "test_loss": test_loss,
                 "test_duration_seconds": test_duration_seconds,
-                "eval_results": downstream_evaluation_results
+                # "eval_results": downstream_evaluation_results
             },
         }
         root_dir = Path(args.logs).parent

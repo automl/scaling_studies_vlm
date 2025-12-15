@@ -5,6 +5,8 @@ import math
 import os
 import random
 import sys
+from enum import Enum
+
 import braceexpand
 from dataclasses import dataclass
 from multiprocessing import Value
@@ -24,6 +26,16 @@ try:
     import horovod.torch as hvd
 except ImportError:
     hvd = None
+
+
+class DataSplit(str, Enum):
+    TRAIN = "train"
+    VAL = "val"
+    TEST = "test"
+
+
+def is_train(data_split: DataSplit):
+    return data_split == DataSplit.TRAIN
 
 
 class CsvDataset(Dataset):
@@ -78,7 +90,7 @@ def expand_urls(urls, weights=None):
     if isinstance(urls, str):
         urllist = urls.split("::")
         weights = weights.split('::')
-        assert len(weights) == len(urllist),\
+        assert len(weights) == len(urllist), \
             f"Expected the number of data components ({len(urllist)}) and weights({len(weights)}) to match."
         weights = [float(weight) for weight in weights]
         all_urls, all_weights = [], []
@@ -125,6 +137,7 @@ def get_dataset_size(shards):
             total_size = None
 
     return total_size, num_shards
+
 
 def get_imagenet(args, preprocess_fns, split):
     assert split in ["train", "val", "v2"]
@@ -286,13 +299,13 @@ class ResampledShards2(IterableDataset):
     """An iterable dataset yielding a list of urls."""
 
     def __init__(
-        self,
-        urls,
-        weights=None,
-        nshards=sys.maxsize,
-        worker_seed=None,
-        deterministic=False,
-        epoch=-1,
+            self,
+            urls,
+            weights=None,
+            nshards=sys.maxsize,
+            worker_seed=None,
+            deterministic=False,
+            epoch=-1,
     ):
         """Sample shards from the shard list with replacement.
 
@@ -303,7 +316,7 @@ class ResampledShards2(IterableDataset):
         self.urls = urls
         self.weights = weights
         if self.weights is not None:
-            assert len(self.urls) == len(self.weights),\
+            assert len(self.urls) == len(self.weights), \
                 f"Number of urls {len(self.urls)} and weights {len(self.weights)} should match."
         assert isinstance(self.urls[0], str)
         self.nshards = nshards
@@ -336,13 +349,18 @@ class ResampledShards2(IterableDataset):
                 yield dict(url=self.rng.choices(self.urls, weights=self.weights, k=1)[0])
 
 
-def get_wds_dataset(args, preprocess_img, is_train, epoch=0, floor=False, tokenizer=None):
-    input_shards = args.train_data if is_train else args.val_data
+def get_wds_dataset(args, preprocess_img, data_split, epoch=0, floor=False, tokenizer=None):
+    input_shards = {
+        DataSplit.TRAIN: args.train_data,
+        DataSplit.VAL: args.val_data,
+        DataSplit.TEST: args.test_data,
+    }[data_split]
+
     assert input_shards is not None
-    resampled = getattr(args, 'dataset_resampled', False) and is_train
+    resampled = getattr(args, 'dataset_resampled', False) and is_train(data_split)
 
     num_shards = None
-    if is_train:
+    if is_train(data_split):
         if args.train_num_samples is not None:
             num_samples = args.train_num_samples
         else:
@@ -353,13 +371,13 @@ def get_wds_dataset(args, preprocess_img, is_train, epoch=0, floor=False, tokeni
                     'Please specify it via `--train-num-samples` if no dataset length info is present.')
     else:
         # Eval will just exhaust the iterator if the size is not specified.
-        num_samples = args.val_num_samples or 0 
+        num_samples = args.val_num_samples or 0
 
     shared_epoch = SharedEpoch(epoch=epoch)  # create a shared epoch store to sync epoch to dataloader worker proc
 
-    if is_train and args.train_data_upsampling_factors is not None:
+    if is_train(data_split) and args.train_data_upsampling_factors is not None:
         assert resampled, "--train_data_upsampling_factors is only supported when sampling with replacement (with --dataset-resampled)."
-    
+
     if resampled:
         pipeline = [ResampledShards2(
             input_shards,
@@ -371,7 +389,7 @@ def get_wds_dataset(args, preprocess_img, is_train, epoch=0, floor=False, tokeni
         pipeline = [wds.SimpleShardList(input_shards)]
 
     # at this point we have an iterator over all the shards
-    if is_train:
+    if is_train(data_split):
         if not resampled:
             pipeline.extend([
                 detshuffle2(
@@ -403,12 +421,12 @@ def get_wds_dataset(args, preprocess_img, is_train, epoch=0, floor=False, tokeni
         wds.rename(image="jpg;png;jpeg;webp", text="txt"),
         wds.map_dict(image=preprocess_img, text=lambda text: tokenizer(text)[0]),
         wds.to_tuple("image", "text"),
-        wds.batched((args.batch_size if is_train else 128), partial=not is_train)
+        wds.batched((args.batch_size if is_train(data_split) else 128), partial=not is_train(data_split))
     ])
 
     dataset = wds.DataPipeline(*pipeline)
 
-    if is_train:
+    if is_train(data_split):
         if not resampled:
             num_shards = num_shards or len(expand_urls(input_shards)[0])
             assert num_shards >= args.workers * args.world_size, 'number of shards must be >= total workers'
@@ -552,7 +570,7 @@ def get_dataset_fn(data_path, dataset_type):
                 f"Tried to figure out dataset type, but failed for extension {ext}.")
     else:
         raise ValueError(f"Unsupported dataset type: {dataset_type}")
-    
+
 
 def get_data(args, preprocess_fns, epoch=0, tokenizer=None):
     preprocess_train, preprocess_val = preprocess_fns
@@ -560,15 +578,15 @@ def get_data(args, preprocess_fns, epoch=0, tokenizer=None):
 
     if args.train_data or args.dataset_type == "synthetic":
         data["train"] = get_dataset_fn(args.train_data, args.dataset_type)(
-            args, preprocess_train, is_train=True, epoch=epoch, tokenizer=tokenizer)
+            args, preprocess_train, DataSplit.TRAIN, epoch=epoch, tokenizer=tokenizer)
 
     if args.val_data:
         data["val"] = get_dataset_fn(args.val_data, args.dataset_type)(
-            args, preprocess_val, is_train=False, tokenizer=tokenizer)
+            args, preprocess_val, DataSplit.VAL, tokenizer=tokenizer)
 
     if args.test_data:
         data["test"] = get_dataset_fn(args.test_data, args.dataset_type)(
-            args, preprocess_val, is_train=False, tokenizer=tokenizer)
+            args, preprocess_val, DataSplit.TEST, tokenizer=tokenizer)
 
     if args.imagenet_val is not None:
         data["imagenet-val"] = get_imagenet(args, preprocess_fns, "val")
