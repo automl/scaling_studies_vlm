@@ -488,8 +488,8 @@ def main(args):
         if is_master(args):
             logging.info(f'Start epoch {epoch}')
 
-        training_loss = train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args,
-                                        tb_writer=writer)
+        train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args,
+                        tb_writer=writer)
 
         completed_epoch = epoch + 1
 
@@ -529,14 +529,6 @@ def main(args):
     end_time = time.time()
     training_duration_seconds = end_time - start_time
 
-    # Calculate model compute
-    compute = get_model_flops(model, data["train"].dataloader.num_samples)
-
-    evaluation_results = read_last_json_line(args.checkpoint_path + "/results.jsonl")
-    validation_loss = evaluation_results["clip_val_loss"]
-    test_loss = evaluation_results.get("clip_test_loss", None)
-    test_duration_seconds = evaluation_results.get("test_time_sec", None)
-
     # run a final sync.
     if remote_sync_process is not None:
         logging.info('Final remote sync.')
@@ -555,10 +547,17 @@ def main(args):
         if args.wandb:
             wandb.finish()
 
+        # Calculate model compute
+        compute = get_model_flops(model, data["train"].dataloader.num_samples)
+
+        evaluation_results = read_last_json_line(args.checkpoint_path + "/results.jsonl")
+        validation_loss = evaluation_results["clip_val_loss"]
+        test_loss = evaluation_results.get("clip_test_loss", None)
+        test_duration_seconds = evaluation_results.get("test_time_sec", None)
+
         downstream_evaluation_results = evaluate_benchmarks(args.model, log_base_path, args.seed)
 
-        if not args.pipeline_id:
-            return
+        training_loss = read_last_json_line(args.checkpoint_path + "/train_loss.jsonl")["train_loss"]
 
         result = {
             "objective_to_minimize": validation_loss,
@@ -573,6 +572,12 @@ def main(args):
                 "eval_results": downstream_evaluation_results
             },
         }
+
+        logging.info(f"{str(result)}")
+
+        if not args.pipeline_id:
+            return
+
         root_dir = Path(args.logs).parent
 
         # TODO remove sync neps
@@ -618,7 +623,7 @@ def read_last_json_line(path):
 
 
 def evaluate_benchmarks(model, root, seed):
-    evaluator = ClipBenchmarkEvaluator(model=model, root=root, seed=seed)
+    evaluator = ClipBenchmarkEvaluator(model=model, root=root, default_seed=seed)
 
     zero_shot_results = evaluator.zero_shot_eval([ZeroShotDataset.CIFAR10, ZeroShotDataset.IMAGENET])
     retrieval_results = evaluator.zero_shot_retrieval([RetrievalDataset.MS_COCO])

@@ -3,6 +3,7 @@ import logging
 import math
 import os
 import time
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -251,7 +252,17 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
             batch_time_m.reset()
             data_time_m.reset()
     # end for
-    return losses_m["contrastive_loss"].avg
+    if is_master(args):
+        train_loss = losses_m["loss"].avg
+        log_path = Path(args.checkpoint_path) / "train_loss.jsonl"
+
+        record = {
+            "epoch": epoch,
+            "train_loss": train_loss
+        }
+
+        with open(log_path, "a") as f:
+            f.write(json.dumps(record) + "\n")
 
 
 def _run_split_eval(metrics, split_name, data, model, device, autocast, input_dtype, epoch, args):

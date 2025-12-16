@@ -34,15 +34,15 @@ cd train
 export PYTHONPATH="$PYTHONPATH:$(pwd)"
 
 srun --cpu_bind=v --accel-bind=gn python -m open_clip_train.main \
-    --train-data="../pre_training_dataset/train_data/shards/{00000000..00000282}.tar" \
-    --val-data="../pre_training_dataset/validation_data/shards/{00000000..00000282}.tar" \
-    --test-data="../pre_training_dataset/test_data/shards/{00000000..00000282}.tar" \
+    --train-data="../pre_training_dataset/laion400m/train_data/{00000000..00002263}.tar" \
+    --val-data="../pre_training_dataset/laion400m/validation_data/{00000000..00000282}.tar" \
+    --test-data="../pre_training_dataset/laion400m/test_data/{00000000..00000282}.tar" \
     --batch-size=64 \
     --epochs=1 \
     --workers=4 \
     --model ViT-S-32-alt \
-    --seed 200 \
-    --train-num-samples 100 \
+    --seed 0 \
+    --train-num-samples 300000 \
     --local-loss \
     --gather-with-grad
 
