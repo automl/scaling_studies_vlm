@@ -167,7 +167,7 @@ def download_parquet_files(args):
     print("Downloaded parquet files.")
 
 
-def download_tar_shards(args):
+def download_tar_shards(args, parquet_path):
     if not args.convert_parquet_to_tar:
         return
 
@@ -176,39 +176,32 @@ def download_tar_shards(args):
     shard_dir.mkdir(parents=True, exist_ok=True)
     print(f"Downloading images to {shard_dir}...")
 
-    parquet_dir = args.data_dir / "parquet_files/default/train"
-    if args.parquet_files:
-        parquet_files = [parquet_dir / fname for fname in args.parquet_files]
-    else:
-        parquet_files = sorted(parquet_dir.glob("*.parquet"))
+    print(f"Processing parquet: {parquet_path}")
+    download(
+        url_list=parquet_path,
+        image_size=args.image_size,
+        output_folder=str(shard_dir),
+        processes_count=args.processes_count,
+        thread_count=args.thread_count,
+        encode_format=args.encode_format,
+        output_format=args.output_format,
+        input_format="parquet",
+        url_col="url",
+        caption_col="caption",
+        number_sample_per_shard=10000,
+        oom_shard_count=8,
+        retries=args.retries,
+        timeout=2,
+        incremental_mode="extend",
+        extract_exif=False,
+        compute_hash=None,
+        disable_all_reencoding=args.disable_all_reencoding,
+        enable_wandb=args.enable_wandb,
+        max_shard_retry=0,
+        wandb_project=args.wandb_project,
+    )
 
-    for parquet_path in parquet_files:
-        print(f"Processing parquet: {parquet_path}")
-        download(
-            url_list=parquet_path,
-            image_size=args.image_size,
-            output_folder=str(shard_dir),
-            processes_count=args.processes_count,
-            thread_count=args.thread_count,
-            encode_format=args.encode_format,
-            output_format=args.output_format,
-            input_format="parquet",
-            url_col="url",
-            caption_col="caption",
-            number_sample_per_shard=10000,
-            oom_shard_count=8,
-            retries=args.retries,
-            timeout=2,
-            incremental_mode="extend",
-            extract_exif=False,
-            compute_hash=None,
-            disable_all_reencoding=args.disable_all_reencoding,
-            enable_wandb=args.enable_wandb,
-            max_shard_retry=0,
-            wandb_project=args.wandb_project,
-        )
-
-    print("Downloaded shards.")
+    print(f"Downloaded shards for parquet file:{parquet_path}")
 
 
 def infer_resize_start(shard_dir):
@@ -229,7 +222,6 @@ if __name__ == "__main__":
     args = get_parser().parse_args()
 
     shard_dir = args.data_dir / args.shard_data_dir
-    resize_start_at = infer_resize_start(shard_dir)
 
     time_dir = Path("time_tracking")
     time_dir.mkdir(exist_ok=True, parents=True)
@@ -237,35 +229,43 @@ if __name__ == "__main__":
 
     run_log = {}
 
-    download_start = time.time()
-
     download_parquet_files(args)
-    download_tar_shards(args)
 
-    download_end = time.time()
+    parquet_dir = args.data_dir / "parquet_files/default/train"
+    if args.parquet_files:
+        parquet_files = [parquet_dir / fname for fname in args.parquet_files]
+    else:
+        parquet_files = sorted(parquet_dir.glob("*.parquet"))
 
-    run_log["download"] = {
-        "shard_dir": args.shard_data_dir,
-        "parquet_files": args.parquet_files,
-        "start": download_start,
-        "end": download_end,
-        "duration_sec": round(download_end - download_start, 2)
-    }
+    for parquet_path in parquet_files:
+        resize_start_at = infer_resize_start(shard_dir)
 
-    if args.separate_resizing:
-        resizing_proc = args.processes_count // 4
-        resize_start = time.time()
-        resize(root_dir=str(shard_dir),
-               start_at=resize_start_at,
-               processes=resizing_proc)
-        resize_end = time.time()
+        download_start = time.time()
+        download_tar_shards(args, parquet_path)
+        download_end = time.time()
 
-        run_log["resize"] = {
+        run_log["download"] = {
             "shard_dir": args.shard_data_dir,
-            "parquet_files": args.parquet_files,
-            "start": resize_start,
-            "end": resize_end,
-            "duration_sec": round(resize_end - resize_start, 2)
+            "parquet_files": os.path.basename(parquet_path),
+            "start": download_start,
+            "end": download_end,
+            "duration_sec": round(download_end - download_start, 2)
         }
-    with open(time_file, "a") as f:
-        f.write(json.dumps(run_log) + "\n")
+
+        if args.separate_resizing:
+            resizing_proc = args.processes_count // 4
+            resize_start = time.time()
+            resize(root_dir=str(shard_dir),
+                   start_at=resize_start_at,
+                   processes=resizing_proc)
+            resize_end = time.time()
+
+            run_log["resize"] = {
+                "shard_dir": args.shard_data_dir,
+                "parquet_files": os.path.basename(parquet_path),
+                "start": resize_start,
+                "end": resize_end,
+                "duration_sec": round(resize_end - resize_start, 2)
+            }
+        with open(time_file, "a") as f:
+            f.write(json.dumps(run_log) + "\n")
