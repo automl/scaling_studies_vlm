@@ -45,7 +45,7 @@ def train_and_evaluate(hps: Dict[str, Any], root_dir: str, pipeline_id, args):
 
     if args.sync_neps:
         # multi-gpu case is ignored!
-        results = sync_submitter(config, args.gpus_per_node)
+        results = sync_submitter(config, args.gpus_per_node, root_dir)
         return results
 
     async_submitter(root_dir, config, args)
