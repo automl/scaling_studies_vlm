@@ -35,7 +35,27 @@ def build_cmd(config: TrainConfig) -> str:
 
         cmd_parts.append(f"--{cli_key} {value}")
 
-    return "srun --cpu-bind=v --accel-bind=gn python -u -m open_clip_train.main \\\n    " + " \\\n    ".join(cmd_parts)
+    return cmd_parts
+
+
+def build_srun_cmd(config: TrainConfig) -> str:
+    cmd_parts = build_cmd(config)
+
+    return (
+            "srun --cpu-bind=v --accel-bind=gn "
+            "python -u -m open_clip_train.main \\\n    "
+            + " \\\n    ".join(cmd_parts)
+    )
+
+
+def build_torchrun_cmd(config: TrainConfig, nproc_per_node) -> str:
+    cmd_parts = build_cmd(config)
+
+    return (
+            f"torchrun --nproc_per_node {nproc_per_node} "
+            "-m open_clip_train.main "
+            + " ".join(cmd_parts)
+    )
 
 
 class SlurmManager:

@@ -575,12 +575,11 @@ def main(args):
 
         logging.info(f"{str(result)}")
 
-        if not args.pipeline_id:
+        if args.pipeline_id is None:
             return
 
         root_dir = Path(args.logs).parent
 
-        # TODO remove sync neps
         if not args.sync_neps:
             neps.save_pipeline_results(
                 user_result=result,

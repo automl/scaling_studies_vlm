@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import sys
 from pathlib import Path
 from time import time
@@ -13,7 +14,7 @@ from neps import plot
 
 from train import params
 from train.config import GRID_SPACE, TrainConfig
-from train.slurm import SlurmManager, build_cmd
+from train.slurm import SlurmManager, build_srun_cmd, build_torchrun_cmd
 
 
 def fetch_result(root_dir, pipeline_id):
@@ -42,19 +43,32 @@ def train_and_evaluate(hps: Dict[str, Any], root_dir: str, pipeline_id, args):
         **hps,
     )
 
-    cmd = build_cmd(config)
+    if args.sync_neps:
+        # multi-gpu case is ignored!
+        results = sync_submitter(config, args.gpus_per_node)
+        return results
 
-    job_name = f"openclip_train:{config.model}_ns{config.train_num_samples}_e{config.epochs}_s{config.seed}"
+    async_submitter(root_dir, config, args)
+
+
+def async_submitter(root_dir, train_config, args):
+    cmd = build_srun_cmd(train_config)
+    job_name = f"openclip_train:{train_config.model}_ns{train_config.train_num_samples}_e{train_config.epochs}_s{train_config.seed}"
 
     slurm = SlurmManager(job_name=job_name, partition=args.partition, nodes=args.nodes,
                          gpus_per_node=args.gpus_per_node,
                          root_dir=root_dir)
     slurm.submit_job(cmd)
 
-    if args.sync_neps:
-        result = fetch_result(root_dir, pipeline_id)
-        return result
-    return None
+
+def sync_submitter(train_config, nproc_per_node, root_dir):
+    cmd = build_torchrun_cmd(train_config, nproc_per_node)
+    os.chdir("train")
+    process = subprocess.Popen(cmd)
+    process.wait()
+    os.chdir("..")
+
+    return fetch_result(root_dir, pipeline_id=train_config.pipeline_id)
 
 
 def main(args, root_dir):
