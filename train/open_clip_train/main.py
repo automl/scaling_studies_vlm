@@ -626,11 +626,9 @@ def evaluate_benchmarks(model, root, seed):
 
     zero_shot_results = evaluator.zero_shot_eval([ZeroShotDataset.CIFAR10, ZeroShotDataset.IMAGENET])
     retrieval_results = evaluator.zero_shot_retrieval([RetrievalDataset.MS_COCO])
-    lp_results = evaluator.linear_probe([ZeroShotDataset.CIFAR10, ZeroShotDataset.IMAGENET])
 
     return {
         "zero_shot": zero_shot_results,
-        "linear_probe": lp_results,
         "retrieval": retrieval_results
     }
 
