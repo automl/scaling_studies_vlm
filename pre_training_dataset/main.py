@@ -129,6 +129,14 @@ def get_parser():
         help="Whether to resize images after the raw download.",
     )
 
+    parser.add_argument(
+        "--resize_start_at",
+        type=int,
+        required=False,
+        default=None,
+        help="From which tar file to apply the resizing",
+    )
+
     return parser
 
 
@@ -238,19 +246,20 @@ if __name__ == "__main__":
         parquet_files = sorted(parquet_dir.glob("*.parquet"))
 
     for parquet_path in parquet_files:
-        resize_start_at = infer_resize_start(shard_dir)
+        resize_start_at = infer_resize_start(shard_dir) if args.resize_start_at is None else args.resize_start_at
 
         download_start = time.time()
         download_tar_shards(args, parquet_path)
         download_end = time.time()
 
-        run_log["download"] = {
-            "shard_dir": args.shard_data_dir,
-            "parquet_files": os.path.basename(parquet_path),
-            "start": download_start,
-            "end": download_end,
-            "duration_sec": round(download_end - download_start, 2)
-        }
+        if args.convert_parquet_to_tar:
+            run_log["download"] = {
+                "shard_dir": args.shard_data_dir,
+                "parquet_files": os.path.basename(parquet_path),
+                "start": download_start,
+                "end": download_end,
+                "duration_sec": round(download_end - download_start, 2)
+            }
 
         if args.separate_resizing:
             resizing_proc = args.processes_count // 4
