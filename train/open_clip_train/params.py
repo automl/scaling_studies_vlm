@@ -154,7 +154,7 @@ def parse_args(args):
         "--warmup", type=int, default=10000, help="Number of steps to warmup for."
     )
     parser.add_argument(
-        "--warmup-fraction", type=int, default=None, help="Number of steps to warmup for, represented in fraction."
+        "--warmup-fraction", type=float, default=None, help="Number of steps to warmup for, represented in fraction."
     )
     parser.add_argument(
         "--opt", type=str, default='adamw',

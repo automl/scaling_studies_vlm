@@ -1,12 +1,14 @@
 from dataclasses import dataclass
 from enum import Enum
 
-import neps
 from neps.space import Parameter
+
+from train.spaces import (__HP_SPACE)
 
 
 class Optimizer(Enum):
     Grid = "grid_search"
+    Random = "random_search"
 
 
 @dataclass
@@ -23,7 +25,6 @@ class NePSConfig:
     optimizer: Optimizer = None
     pipeline_space: dict[str, Parameter] = None
     evaluations_to_spend: int | None = None
-    grid_step_size: int = 10
 
     @property
     def run_args(self) -> dict[str, any]:
@@ -36,17 +37,29 @@ class NePSConfig:
         return args
 
 
-GRID_SPACE = NePSConfig(
-    optimizer=Optimizer.Grid,
-    evaluations_to_spend=2,
-    pipeline_space={
-        "lr": neps.Float(
-            lower=1e-6,
-            upper=1,
-            log=True,
-        ),
-    },
-)
+HPO_CONFIGS = {
+    "grid": NePSConfig(
+        optimizer=Optimizer.Grid,
+        evaluations_to_spend=2,
+        pipeline_space={
+            **__HP_SPACE
+        },
+    ),
+    "random": NePSConfig(
+        optimizer=Optimizer.Random,
+        evaluations_to_spend=2,
+        pipeline_space={
+            **__HP_SPACE
+        },
+    ),
+    "experimental": NePSConfig(
+        optimizer=Optimizer.Random,
+        evaluations_to_spend=1,
+        pipeline_space={
+            **__HP_SPACE
+        },
+    )
+}
 
 
 @dataclass
@@ -75,6 +88,9 @@ class TrainConfig:
 
     # hyperparameters from NePs
     lr: float
+    wd: float
+    grad_clip_norm: float
+    warmup_fraction: float
 
     def __post_init__(self):
         if self.logs and "train/" in self.logs:

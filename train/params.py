@@ -4,6 +4,14 @@ import argparse
 def parse_args(args):
     parser = argparse.ArgumentParser()
 
+    parser.add_argument(
+        "--hpo-optimizer",
+        type=str,
+        choices=["grid", "random", "experimental"],
+        default="experimental",
+        help="HPO optimizer type."
+    )
+
     # args that override openclip properties
     parser.add_argument(
         "--model",

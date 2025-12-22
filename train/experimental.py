@@ -12,7 +12,7 @@ from typing import Dict, Any
 import neps
 
 from train import params
-from train.config import GRID_SPACE, TrainConfig
+from train.config import TrainConfig, HPO_CONFIGS
 
 
 class DatasetShards(str, Enum):
@@ -90,7 +90,7 @@ def main(args, root_dir):
     neps.run(
         evaluate_pipeline=pipeline,
         root_directory=root_dir,
-        **GRID_SPACE.run_args,
+        **HPO_CONFIGS.get(args.hpo_optimizer).run_args,
     )
 
 

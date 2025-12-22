@@ -7,9 +7,9 @@ from train.config import TrainConfig
 
 
 class DatasetShards(str, Enum):
-    LAION400M_TRAIN_DATA = "../pre_training_dataset/laion400m/shards/{00000000..00000282}.tar",
-    LAION400M_VALIDATION_DATA = "../pre_training_dataset/laion400m/validation_data/{00000000..00000282}.tar"
-    LAION400M_TEST_DATA = "../pre_training_dataset/laion400m/test_data/{00000000..00000282}.tar"
+    LAION400M_TRAIN_DATA = "../pre_training_dataset/laion400m/shards/{00000000..00006193}.tar",
+    LAION400M_VALIDATION_DATA = "../pre_training_dataset/laion400m/validation_data/{00000000..00000015}.tar"
+    LAION400M_TEST_DATA = "../pre_training_dataset/laion400m/test_data/{00000000..00000015}.tar"
 
 
 def build_cmd(config: TrainConfig) -> str:
@@ -23,6 +23,7 @@ def build_cmd(config: TrainConfig) -> str:
         "--batch-size 64",
         "--gather-with-grad",
         "--dataset-type webdataset",
+        "--precision bf16"
     ]
 
     for key, value in args.items():
@@ -53,7 +54,7 @@ def build_torchrun_cmd(config: TrainConfig, nproc_per_node) -> str:
 
     return (
             f"torchrun --nproc_per_node {nproc_per_node} "
-            "-m open_clip_train.main "
+            "-m open_clip_train.main -- "
             + " ".join(cmd_parts)
     )
 

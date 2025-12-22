@@ -13,7 +13,7 @@ import multiprocessing as mp
 from neps import plot
 
 from train import params
-from train.config import GRID_SPACE, TrainConfig
+from train.config import HPO_CONFIGS, TrainConfig
 from train.slurm import SlurmManager, build_srun_cmd, build_torchrun_cmd
 
 
@@ -78,7 +78,7 @@ def main(args, root_dir):
     neps.run(
         evaluate_pipeline=pipeline,
         root_directory=root_dir,
-        **GRID_SPACE.run_args,
+        **HPO_CONFIGS.get(args.hpo_optimizer).run_args,
     )
 
 
