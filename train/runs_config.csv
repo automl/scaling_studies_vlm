@@ -1,0 +1,9 @@
+Model,total params,vision tower params,text tower params,Partition trained on,Nr. Samples trained on,GPUs used,Local batch size,GFLOPs per sample,Train error,Validation error,Test error,Downstream performance,Training time(s),Test time(s),Validation time(s),Hyperparameters
+ViT-S-32,63.09m,22.64m,40.44m,mldlc_gpu-rtx2080,1.28m,2,256,5.51,5.171,3.16,3.139,"ZS: CIFAR10 acc1=0.2329 (18.9s), IN1k acc1=0.0102 (654.2s)
+RET: MSCOCO img=0.015, txt=0.024 (92.6s)",1420.47,196.03,247.15,default besides warmup(1500)
+ViT-S-16,62.26m,21.81m,40.44m,mldlc_gpu-rtx2080,1.28m,4,128,11.75,4.93,2.774,2.757,"ZS: CIFAR10 acc1=0.1969 (23.1s), IN1k acc1=0.0184 (635.86s)
+RET: MSCOCO img=0.025, txt=0.037 (76.81s)",1117.21,201.27,252.64,default besides warmup(1500)
+ViT-S-32,63.09m,22.64m,40.44m,mldlc_gpu-rtx2080,6.4m,4,256,5.51,4.726,1.763,1.753,"ZS: CIFAR10 acc1=0.2245 (16.5s), IN1k acc1=0.048 (262.4s)
+RET: MSCOCO img=0.059, txt=0.090 (33.47s)",3936.7,194.98,241.36,"default besides warmup(4000), lr 1e-3"
+ViT-S-32,63.09m,22.64m,40.44m,mldlc2_gpu-l40s,12.8m,4,512,5.51,4.8,1.245,1.239,"ZS: CIFAR10 acc1=0.3813 (14.82s), IN1k acc1=0.089 (429.25s)
+RET: MSCOCO img=0.1, txt=0.16 (52.57s)",6529.54,170.46,214.56,"default besides warmup(4000), lr 1e-3"
