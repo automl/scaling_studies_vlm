@@ -21,3 +21,11 @@ __HP_SPACE = {
         upper=0.5,
     ),
 }
+
+__SCALE_SPACE = {
+    "samples_seen": neps.Integer(
+        lower=1,
+        upper=50,
+    ),
+
+}
