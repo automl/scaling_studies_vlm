@@ -6,6 +6,9 @@ from pathlib import Path
 
 import pandas as pd
 from matplotlib import pyplot as plt
+from transformers import CLIPModel
+
+from train.open_clip_train.profiler import get_model_flops
 
 
 def successful_downloaded_pairs_in_shards():
@@ -46,6 +49,18 @@ def find_latest_checkpoint(checkpoints_dir: Path) -> str:
 
 def _build_output_name(dataset: str, epoch: int) -> str:
     return f"{dataset}_epoch_{epoch}.json"
+
+
+def get_number_of_parameters(model: CLIPModel):
+    round(sum(m.numel() for m in model.parameters()), 3)
+
+
+def get_total_flops(model: CLIPModel, num_samples_seen):
+    return get_model_flops(model, num_samples_seen)
+
+
+def seen_datapoints_estimator(epoch, num_seen_samples):
+    return epoch * num_seen_samples
 
 
 ####################################################################
