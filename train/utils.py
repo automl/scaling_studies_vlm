@@ -1,14 +1,13 @@
+import bisect
 import json
 import re
 from enum import Enum
 from glob import glob
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from transformers import CLIPModel
-
-from train.open_clip_train.profiler import get_model_flops
 
 
 def successful_downloaded_pairs_in_shards():
@@ -51,16 +50,49 @@ def _build_output_name(dataset: str, epoch: int) -> str:
     return f"{dataset}_epoch_{epoch}.json"
 
 
-def get_number_of_parameters(model: CLIPModel):
-    round(sum(m.numel() for m in model.parameters()), 3)
+####################################################################
+# methods for batch size heuristics
+####################################################################
+
+def monotonic_bs(total_compute, batch_size, buffer_gflops=5.0):
+    order = np.argsort(total_compute)
+    c_sorted = np.array(total_compute, dtype=float)[order]
+    bs_sorted = np.array(batch_size, dtype=int)[order]
+
+    bs_mono = np.maximum.accumulate(bs_sorted)
+
+    ranges = []
+    start = 0.0
+    current_bs = int(bs_mono[0])
+
+    for k in range(1, len(c_sorted)):
+        if int(bs_mono[k]) != current_bs:
+            boundary = float(c_sorted[k]) + buffer_gflops
+            ranges.append({"min": start, "max": boundary, "bs": current_bs})
+            start = boundary
+            current_bs = int(bs_mono[k])
+
+    ranges.append({"min": start, "max": None, "bs": current_bs})
+
+    with open("bs_ranges.json", "w", encoding="utf-8") as f:
+        json.dump(ranges, f, indent=2)
+
+    return ranges
 
 
-def get_total_flops(model: CLIPModel, num_samples_seen):
-    return get_model_flops(model, num_samples_seen)
+def load_ranges(path="bs_ranges.json"):
+    with open(path, "r", encoding="utf-8") as f:
+        ranges = json.load(f)
+
+    ranges.sort(key=lambda r: float(r["min"]))
+    return ranges
 
 
-def seen_datapoints_estimator(epoch, num_seen_samples):
-    return epoch * num_seen_samples
+def query_bs(compute_value):
+    ranges = load_ranges()
+    ends = [r["max"] for r in ranges if r["max"] is not None]
+    idx = bisect.bisect_right(ends, float(compute_value))
+    return int(ranges[idx]["bs"])
 
 
 ####################################################################
