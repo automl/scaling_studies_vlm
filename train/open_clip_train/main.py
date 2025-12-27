@@ -44,6 +44,7 @@ from open_clip_train.logger import setup_logging
 from open_clip_train.scheduler import cosine_lr, const_lr, const_lr_cooldown
 from open_clip_train.train import train_one_epoch, evaluate
 from open_clip_train.file_utils import pt_load, check_exists, start_sync_process, remote_sync
+from utils import precision_to_dtype
 
 LATEST_CHECKPOINT_NAME = "epoch_latest.pt"
 
@@ -549,9 +550,6 @@ def main(args):
         if args.wandb:
             wandb.finish()
 
-        # Calculate model compute
-        compute = get_model_flops(model, data["train"].dataloader.num_samples)
-
         evaluation_results = read_last_json_line(args.checkpoint_path + "/results.jsonl")
         validation_loss = evaluation_results["clip_val_loss"]
         test_loss = evaluation_results.get("clip_test_loss", None)
@@ -560,6 +558,9 @@ def main(args):
         downstream_evaluation_results = evaluate_benchmarks(args.model, log_base_path, args.seed)
 
         training_loss = read_last_json_line(args.checkpoint_path + "/train_loss.jsonl")["train_loss"]
+
+        # Calculate model compute
+        compute = get_model_flops(model, data["train"].dataloader.num_samples, dtype=precision_to_dtype(args.precision))
 
         result = {
             "objective_to_minimize": validation_loss,

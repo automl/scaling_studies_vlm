@@ -115,11 +115,11 @@ def profile_torch_text(model, text_input_size, batch_size=1, force_cpu=False):
     return total_flops / batch_size
 
 
-def profile_torch(model, text_input_size, image_input_size, batch_size=1, force_cpu=False):
+def profile_torch(model, text_input_size, image_input_size, batch_size=1, force_cpu=False, dtype=None):
     """Profile the full model using torch.utils.flop_counter"""
     if force_cpu:
         model = model.to('cpu')
-    device, dtype = next(model.parameters()).device, next(model.parameters()).dtype
+    device, dtype = next(model.parameters()).device, dtype
     image_input = torch.ones((batch_size,) + image_input_size, device=device, dtype=dtype)
     text_input = torch.ones((batch_size,) + text_input_size, device=device, dtype=torch.int64)
 
@@ -216,7 +216,7 @@ def profile_model(model_name, batch_size=1, profiler='torch', device="cuda"):
     return results
 
 
-def get_model_flops(model, num_samples_seen):
+def get_model_flops(model, num_samples_seen, dtype=None):
     """
     Compute FLOPs for a FULL OpenCLIP model (image + text encoders)
     using torch.utils.flop_counter.
@@ -245,6 +245,7 @@ def get_model_flops(model, num_samples_seen):
                 model,
                 text_input_size=text_input_size,
                 image_input_size=image_input_size,
+                dtype=dtype
             )
             gflops = round(total_flops / 1e9, 2)
             logging.info(f'GFlops per single sample: {gflops}')

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import torch
 from matplotlib import pyplot as plt
 
 
@@ -172,3 +173,21 @@ def plot_compute_vs_metric(runs_config_path, plotting: Plotting):
     plt.grid(True, which="both", ls="--", linewidth=0.5)
     plt.tight_layout()
     plt.show()
+
+
+def precision_to_dtype(precision: str, device: str = "cuda") -> torch.dtype:
+    p = precision.lower()
+
+    if p == "fp32":
+        return torch.float32
+
+    if p in {"fp16", "pure_fp16"}:
+        return torch.float16
+
+    if p in {"bf16", "pure_bf16", "amp_bf16", "amp_bfloat16", "amp_bfloat16"}:
+        return torch.bfloat16
+
+    if p == "amp":
+        return torch.float16 if device.startswith("cuda") else torch.float32
+
+    raise ValueError(f"Unknown precision: {precision}")
