@@ -175,7 +175,7 @@ def plot_compute_vs_metric(runs_config_path, plotting: Plotting):
     plt.show()
 
 
-def precision_to_dtype(precision: str, device: str = "cuda") -> torch.dtype:
+def precision_to_dtype(precision: str) -> torch.dtype | None:
     p = precision.lower()
 
     if p == "fp32":
@@ -188,6 +188,6 @@ def precision_to_dtype(precision: str, device: str = "cuda") -> torch.dtype:
         return torch.bfloat16
 
     if p == "amp":
-        return torch.float16 if device.startswith("cuda") else torch.float32
+        return None
 
     raise ValueError(f"Unknown precision: {precision}")
