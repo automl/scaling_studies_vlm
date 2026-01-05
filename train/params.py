@@ -77,5 +77,11 @@ def parse_args(args):
         action="store_true",
         help="Whether to use sync neps.")
 
+    parser.add_argument(
+        "--sampling-only",
+        default=False,
+        action="store_true",
+        help="Use NePs to only sample configurations, but do not train models.")
+
     args = parser.parse_args(args)
     return args

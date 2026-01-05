@@ -46,6 +46,7 @@ def build_cmd(config: TrainConfig) -> str:
 
     return "python -u -m open_clip_train.main " + " ".join(cmd_parts)
 
+
 def fetch_result(root_dir, pipeline_id):
     sync_dir = Path(root_dir) / "sync_results"
     result_file = sync_dir / f"{pipeline_id}.json"
@@ -53,10 +54,14 @@ def fetch_result(root_dir, pipeline_id):
     with open(result_file, "r") as f:
         return json.load(f)
 
+
 def train_and_evaluate(hps: Dict[str, Any], root_dir: str, pipeline_id, args):
     """
     Run one HPO trial.
     """
+    if args.sampling_only:
+        return None
+
     logs_dir = os.path.join(root_dir, "individual_training_logs")
     os.makedirs(logs_dir, exist_ok=True)
 

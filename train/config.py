@@ -81,6 +81,7 @@ class TrainConfig:
     epochs: int
     logs: str
     seed: int
+    batch_size:int
 
     # specific to NePs
     pipeline_id: int

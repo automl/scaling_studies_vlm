@@ -20,7 +20,6 @@ def build_cmd(config: TrainConfig) -> str:
         f'--val-data "{DatasetShards.LAION400M_VALIDATION_DATA.value}"',
         f'--test-data "{DatasetShards.LAION400M_TEST_DATA.value}"',
         "--local-loss",
-        "--batch-size 64",
         "--gather-with-grad",
         "--dataset-type webdataset",
         "--precision bf16"
@@ -94,6 +93,7 @@ class SlurmManager:
     def build_script(
             self,
             cmd: str,
+            save_to: Path = None
     ) -> None:
         """
         Build a Slurm script that runs the given command.
@@ -148,8 +148,10 @@ runtime=$((end-start))
 echo "Ended at $(date)";
 echo "Job execution complete."
 """
-
-        self.script_path.write_text(script)
+        if save_to:
+            save_to.write_text(script)
+        else:
+            self.script_path.write_text(script)
 
     @property
     def conda_env(self) -> str:
@@ -161,22 +163,24 @@ echo "Job execution complete."
         """
         return "source ~/miniconda3/bin/activate && conda activate test_scaling_laws"
 
-    def submit_job(self, cmd: str, wait: bool = True):
+    def submit_job(self, cmd: str):
         """
         Submit the Slurm script using sbatch.
         If wait=True, block until the job finishes.
         """
 
         self.build_script(cmd=cmd)
+        self.submit_without_build()
 
-        if not self.script_path.exists():
+    def submit_without_build(self, script_path: Path = None, wait: bool = True):
+        if not self.script_path.exists() and not script_path.exists():
             raise FileNotFoundError("Slurm script not found.")
 
         sbatch_cmd = ["sbatch"]
         if wait:
             sbatch_cmd.append("--wait")
 
-        sbatch_cmd.append(str(self.script_path))
+        sbatch_cmd.append(str(self.script_path) if script_path is None else str(script_path))
 
         print("Submitting:", " ".join(sbatch_cmd))
 
