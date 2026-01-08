@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import torch
 from matplotlib import pyplot as plt
+from open_clip import create_model
 
 
 def successful_downloaded_pairs_in_shards():
@@ -51,6 +52,14 @@ def _build_output_name(dataset: str, epoch: int) -> str:
     return f"{dataset}_epoch_{epoch}.json"
 
 
+def create_default_model(model_str) -> torch.nn.Module:
+    return create_model(
+        model_str,
+        precision="bf16",
+        output_dict=True
+    )
+
+
 ####################################################################
 # methods for batch size heuristics
 ####################################################################
@@ -81,7 +90,7 @@ def monotonic_bs(total_compute, batch_size, buffer_gflops=5.0):
     return ranges
 
 
-def load_ranges(path="bs_ranges.json"):
+def load_ranges(path="train/bs_ranges.json"):
     with open(path, "r", encoding="utf-8") as f:
         ranges = json.load(f)
 
@@ -191,3 +200,27 @@ def precision_to_dtype(precision: str) -> torch.dtype | None:
         return None
 
     raise ValueError(f"Unknown precision: {precision}")
+
+
+####################################################################
+# methods for batch size cache
+####################################################################
+
+def _cache_key(partition: str, model_name: str) -> str:
+    return f"{partition}_{model_name}"
+
+
+def _read_cached_bs(cache_dir: Path, key: str) -> int | None:
+    p = cache_dir / f"{key}.json"
+    if not p.exists():
+        return None
+    try:
+        return int(json.loads(p.read_text())["max_bs"])
+    except Exception:
+        return None
+
+
+def _write_cached_bs(cache_dir: Path, key: str, max_bs: int) -> None:
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    payload = {"max_bs": int(max_bs)}
+    (cache_dir / f"{key}.json").write_text(json.dumps(payload, indent=2))
