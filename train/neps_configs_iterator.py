@@ -17,7 +17,9 @@ def infer_local_bs(partition: str,
                    model_name: str,
                    ) -> int:
     cache_str = "bs_probe_cache"
-    cache_dir = Path("train" + "/" + cache_str)
+
+    cache_dir = (Path.cwd().resolve() / "train" / cache_str)
+    cache_dir.mkdir(parents=True, exist_ok=True)
 
     key = _cache_key(partition, model_name)
 
@@ -41,13 +43,19 @@ def infer_local_bs(partition: str,
         f'python probe_max_bs.py '
         f'--partition "{partition}" '
         f'--model "{model_name}" '
-        f'--cache-dir "{cache_str}"'
+        f'--cache_dir "{str(cache_dir)}"'
     )
 
     batch_size_slurm_manager.build_script(cmd=cmd, save_to=current_script_path)
     batch_size_slurm_manager.submit_without_build(script_path=current_script_path)
 
-    return _read_cached_bs(cache_dir, key)
+    cached = _read_cached_bs(cache_dir, key)
+    if cached is not None:
+        return cached
+
+    raise ValueError(
+        f"Local batch size ({cached}) must not be None"
+    )
 
 
 def infer_hardware_setup_and_local_bs(model_name: str,
@@ -89,18 +97,25 @@ def submit_job_per_config(trial_id, row, root_dir, args):
     if torch.cuda.is_available():
         model = model.cuda()
     total_compute = get_model_flops(model, args.train_num_samples, dtype=precision_to_dtype(precision))
+    print(f"total_compute: {total_compute}")
     global_batch_size = query_bs(total_compute)
+    print(f"global_batch_size: {global_batch_size}")
     gpus_per_node, nodes_nr, local_bs = infer_hardware_setup_and_local_bs(model_name=args.model,
                                                                           partition=args.partition,
                                                                           global_batch_size=global_batch_size)
+
+    print(f"local_bs: {local_bs}")
+    print(f"gpus_per_node: {gpus_per_node}")
+    print(f"nodes_nr: {nodes_nr}")
 
     config = TrainConfig(
         model=args.model,
         train_num_samples=args.train_num_samples,
         seed=args.seed,
+        epochs=1,
         batch_size=local_bs,
+        sync_neps=False,
         pipeline_id=trial_id,
-        sync_neps=args.sync_neps,
         logs=logs_dir,
         **hps,
     )
@@ -123,11 +138,12 @@ if __name__ == "__main__":
     root_dir = args.root_dir
 
     full_df, result = neps.status(root_dir)
-    for trial_id, row in full_df.iterrows():
-        try:
-            # if row.state != "success":
-            submit_job_per_config(trial_id, row, root_dir, args)
-            # TODO post hoc evaluation
+    # for trial_id, row in full_df.iterrows():
+    try:
+        #         # if row.state != "success":
+        trial_id, row = next(full_df.iterrows())
+        submit_job_per_config(trial_id, row, root_dir, args)
+        # TODO post hoc evaluation
 
-        except Exception as e:
-            print(e)
+    except Exception as e:
+        print(e)

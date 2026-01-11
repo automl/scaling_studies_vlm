@@ -7,7 +7,7 @@ from train.config import TrainConfig
 
 
 class DatasetShards(str, Enum):
-    LAION400M_TRAIN_DATA = "../pre_training_dataset/laion400m/shards/{00000000..00006193}.tar",
+    LAION400M_TRAIN_DATA = "../pre_training_dataset/laion400m/train_data/{00000000..00012136}.tar",
     LAION400M_VALIDATION_DATA = "../pre_training_dataset/laion400m/validation_data/{00000000..00000015}.tar"
     LAION400M_TEST_DATA = "../pre_training_dataset/laion400m/test_data/{00000000..00000015}.tar"
 
@@ -222,25 +222,32 @@ class BatchSizeSlurmManager(SlurmManager):
 
     def build_script(self, cmd: str = "", save_to: Path = None) -> None:
         script = f"""#!/bin/bash
-        #SBATCH --nodes={self.nodes}
-        #SBATCH --gres=gpu:{self.gpus_per_node}
-        #SBATCH --ntasks-per-node={self.gpus_per_node}
-        #SBATCH --cpus-per-task={self.cpus_per_task}
-        #SBATCH --job-name={self.job_name}
-        #SBATCH -p {self.partition}
+#SBATCH --nodes={self.nodes}
+#SBATCH --gres=gpu:{self.gpus_per_node}
+#SBATCH --ntasks-per-node={self.gpus_per_node}
+#SBATCH --cpus-per-task={self.cpus_per_task}
+#SBATCH --job-name={self.job_name}
+#SBATCH -p {self.partition}
 
-        #SBATCH --output bs_probing_logs/%x-%A.out
-        #SBATCH --error bs_probing_logs/%x-%A.err
+#SBATCH --output bs_probing_logs/%x-%A.out
+#SBATCH --error bs_probing_logs/%x-%A.err
 
-        {self.conda_env}
+{self.conda_env}
 
-        echo "Started at $(date)";
+echo "Started at $(date)";
 
-        python probe_max_bs.py
+PROJECT_ROOT="/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm"
+TRAIN_DIR="${{PROJECT_ROOT}}/train"
 
-        echo "Ended at $(date)";
-        echo "Job execution complete."
-        """
+cd "${{TRAIN_DIR}}"
+
+export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
+
+{cmd}
+
+echo "Ended at $(date)";
+echo "Job execution complete."
+"""
         if save_to:
             save_to.write_text(script)
         else:

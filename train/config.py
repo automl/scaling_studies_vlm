@@ -96,22 +96,3 @@ class TrainConfig:
     def __post_init__(self):
         if self.logs and "train/" in self.logs:
             self.logs = self.logs.replace("train/", "")
-
-
-class EvalTask(str, Enum):
-    ZEROSHOT_CLASSIFICATION = "zeroshot_classification"
-    RETRIEVAL = "zeroshot_retrieval"
-    LINEAR_PROBE = "linear_probe"
-
-
-class EvalDataset(str, Enum):
-    pass
-
-
-class ZeroShotDataset(EvalDataset):
-    CIFAR10 = "cifar10"
-    IMAGENET = "imagenet1k"
-
-
-class RetrievalDataset(EvalDataset):
-    MS_COCO = "mscoco_captions"

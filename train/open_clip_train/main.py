@@ -19,8 +19,7 @@ from open_clip_train.profiler import get_model_flops
 from torch import optim
 
 from eval.downstream_eval import ClipBenchmarkEvaluator
-
-from config import ZeroShotDataset, RetrievalDataset
+from eval.downstream_eval import ZeroShotDataset, RetrievalDataset
 
 try:
     import wandb

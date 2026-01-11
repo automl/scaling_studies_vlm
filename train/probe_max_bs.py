@@ -1,15 +1,16 @@
 import argparse
 import math
+import time
 from pathlib import Path
 
 import torch
 from open_clip import get_input_dtype, ClipLoss
 from torch import optim
 
-from train.open_clip_train.precision import get_autocast
-from train.open_clip_train.scheduler import cosine_lr
-from train.open_clip_train.train import backward, unwrap_model
-from train.utils import create_default_model, _cache_key, _write_cached_bs
+from open_clip_train.precision import get_autocast
+from open_clip_train.scheduler import cosine_lr
+from open_clip_train.train import backward, unwrap_model
+from utils import create_default_model, _cache_key, _write_cached_bs
 
 
 def parse_args():
@@ -109,6 +110,7 @@ def find_max_local_bs(
             key = _cache_key(partition=partition, model_name=model_name)
             _write_cached_bs(Path(cache_str), key=key, max_bs=bs)
             print("best:", best)
+            time.sleep(1)
             break
 
         except RuntimeError as e:

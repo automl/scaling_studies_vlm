@@ -25,14 +25,6 @@ def successful_downloaded_pairs_in_shards():
     print("Total successes:", total_successes)
 
 
-def unwrap_model(model):
-    """Unwrapping for DDP"""
-    if hasattr(model, "module"):
-        return unwrap_model(model.module)
-
-    return model
-
-
 def find_latest_checkpoint(checkpoints_dir: Path) -> str:
     """
     Finds the newest checkpoint (epoch_X.pt) inside the directory.
@@ -214,10 +206,7 @@ def _read_cached_bs(cache_dir: Path, key: str) -> int | None:
     p = cache_dir / f"{key}.json"
     if not p.exists():
         return None
-    try:
-        return int(json.loads(p.read_text())["max_bs"])
-    except Exception:
-        return None
+    return int(json.loads(p.read_text())["max_bs"])
 
 
 def _write_cached_bs(cache_dir: Path, key: str, max_bs: int) -> None:

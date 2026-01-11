@@ -6,8 +6,6 @@ import pandas as pd
 import torch
 from torch.utils.flop_counter import FlopCounterMode
 
-from train.utils import unwrap_model
-
 try:
     import fvcore
     import fvcore.nn
@@ -214,6 +212,14 @@ def profile_model(model_name, batch_size=1, profiler='torch', device="cuda"):
         except RuntimeError as e:
             pass
     return results
+
+
+def unwrap_model(model):
+    """Unwrapping for DDP"""
+    if hasattr(model, "module"):
+        return unwrap_model(model.module)
+
+    return model
 
 
 def get_model_flops(model, num_samples_seen, dtype=None):

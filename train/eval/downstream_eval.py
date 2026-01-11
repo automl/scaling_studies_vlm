@@ -1,13 +1,31 @@
 import json
 import time
+from enum import Enum
 from pathlib import Path
 from typing import Iterable, Optional, List
 
 from clip_benchmark.cli import main_eval
-
-from config import EvalTask, ZeroShotDataset, EvalDataset, RetrievalDataset
 from eval.openclip_benchmark_parser import get_parser
 from utils import find_latest_checkpoint, _build_output_name
+
+
+class EvalTask(str, Enum):
+    ZEROSHOT_CLASSIFICATION = "zeroshot_classification"
+    RETRIEVAL = "zeroshot_retrieval"
+    LINEAR_PROBE = "linear_probe"
+
+
+class EvalDataset(str, Enum):
+    pass
+
+
+class ZeroShotDataset(EvalDataset):
+    CIFAR10 = "cifar10"
+    IMAGENET = "imagenet1k"
+
+
+class RetrievalDataset(EvalDataset):
+    MS_COCO = "mscoco_captions"
 
 
 class ClipBenchmarkEvaluator:
@@ -196,7 +214,6 @@ class ClipBenchmarkEvaluator:
             })
 
         return results
-
 
     def zero_shot_retrieval(self, datasets: RetrievalDataset | list[RetrievalDataset]):
         out = self.output_dir / "retrieval"
