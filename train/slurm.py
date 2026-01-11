@@ -199,3 +199,49 @@ echo "Job execution complete."
 
         self.job_id = job_id
         print("Job ID:", job_id)
+
+
+class BatchSizeSlurmManager(SlurmManager):
+    """
+    Submits a short 1 GPU job that finds the max local batch size that fits on that GPU.
+    """
+
+    def __init__(
+            self,
+            partition: str,
+            job_name: str = "OpenClip_bs_probe",
+            **kwargs,
+    ) -> None:
+        super().__init__(
+            job_name=job_name,
+            partition=partition,
+            nodes=1,
+            gpus_per_node=1,
+            **kwargs,
+        )
+
+    def build_script(self, cmd: str = "", save_to: Path = None) -> None:
+        script = f"""#!/bin/bash
+        #SBATCH --nodes={self.nodes}
+        #SBATCH --gres=gpu:{self.gpus_per_node}
+        #SBATCH --ntasks-per-node={self.gpus_per_node}
+        #SBATCH --cpus-per-task={self.cpus_per_task}
+        #SBATCH --job-name={self.job_name}
+        #SBATCH -p {self.partition}
+
+        #SBATCH --output bs_probing_logs/%x-%A.out
+        #SBATCH --error bs_probing_logs/%x-%A.err
+
+        {self.conda_env}
+
+        echo "Started at $(date)";
+
+        python probe_max_bs.py
+
+        echo "Ended at $(date)";
+        echo "Job execution complete."
+        """
+        if save_to:
+            save_to.write_text(script)
+        else:
+            self.script_path.write_text(script)

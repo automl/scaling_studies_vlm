@@ -6,7 +6,7 @@ from pathlib import Path
 import neps
 import torch
 
-from train import params
+from train import iterator_params
 from train.config import TrainConfig
 from train.open_clip_train.profiler import get_model_flops
 from train.slurm import SlurmManager, build_srun_cmd, BatchSizeSlurmManager
@@ -50,7 +50,9 @@ def infer_local_bs(partition: str,
     return _read_cached_bs(cache_dir, key)
 
 
-def infer_hardware_setup_and_local_bs(model_name: str, partition: str, global_batch_size: int,
+def infer_hardware_setup_and_local_bs(model_name: str,
+                                      partition: str,
+                                      global_batch_size: int,
                                       max_gpus_per_node: int = 4):
     local_bs = infer_local_bs(partition=partition, model_name=model_name)
 
@@ -82,6 +84,7 @@ def submit_job_per_config(trial_id, row, root_dir, args):
     os.makedirs(scripts_dir, exist_ok=True)
 
     precision = "bf16"
+    # TODO model to be created based on scale parameters
     model = create_default_model(args.model)
     if torch.cuda.is_available():
         model = model.cuda()
@@ -94,7 +97,6 @@ def submit_job_per_config(trial_id, row, root_dir, args):
     config = TrainConfig(
         model=args.model,
         train_num_samples=args.train_num_samples,
-        epochs=args.epochs,
         seed=args.seed,
         batch_size=local_bs,
         pipeline_id=trial_id,
@@ -112,13 +114,13 @@ def submit_job_per_config(trial_id, row, root_dir, args):
     script_name = job_name + ".sh"
     script_path = Path(scripts_dir + "/" + script_name)
     slurm.build_script(cmd, save_to=script_path)
-    # slurm.submit_without_build(script_path)
+    slurm.submit_without_build(script_path)
 
 
 if __name__ == "__main__":
-    args = params.parse_args(sys.argv[1:])
+    args = iterator_params.parse_args(sys.argv[1:])
 
-    root_dir = f"./train/results/model={args.model}/seed={args.seed}"
+    root_dir = args.root_dir
 
     full_df, result = neps.status(root_dir)
     for trial_id, row in full_df.iterrows():

@@ -47,14 +47,14 @@ HPO_CONFIGS = {
     ),
     "random": NePSConfig(
         optimizer=Optimizer.Random,
-        evaluations_to_spend=2,
+        evaluations_to_spend=30,
         pipeline_space={
             **__HP_SPACE
         },
     ),
     "experimental": NePSConfig(
         optimizer=Optimizer.Random,
-        evaluations_to_spend=1,
+        evaluations_to_spend=10,
         pipeline_space={
             **__HP_SPACE
         },

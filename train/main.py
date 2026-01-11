@@ -29,6 +29,9 @@ def train_and_evaluate(hps: Dict[str, Any], root_dir: str, pipeline_id, args):
     """
     Run one HPO trial.
     """
+    if args.sampling_only:
+        return None
+
     logs_dir = os.path.join(root_dir, "individual_training_logs")
     os.makedirs(logs_dir, exist_ok=True)
 

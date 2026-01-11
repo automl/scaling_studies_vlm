@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 from torch.utils.flop_counter import FlopCounterMode
 
-from utils import unwrap_model
+from train.utils import unwrap_model
 
 try:
     import fvcore

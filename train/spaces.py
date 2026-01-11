@@ -23,7 +23,7 @@ __HP_SPACE = {
 }
 
 __SCALE_SPACE = {
-    "samples_seen": neps.Integer(
+    "samples_seen": neps.Float(
         lower=1,
         upper=50,
     ),
