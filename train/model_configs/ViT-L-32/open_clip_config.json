@@ -1,6 +1,6 @@
 {
   "model_cfg": {
-    "embed_dim": 512,
+    "embed_dim": 384,
     "vision_cfg": {
       "image_size": 224,
       "layers": 24,
