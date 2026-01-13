@@ -450,7 +450,8 @@ def main(args):
             tags=[],
             resume='auto' if args.resume == "latest" else None,
             config=vars(args),
-            settings=wandb.Settings(symlink=False)
+            settings=wandb.Settings(symlink=False),
+            mode="offline"
         )
         if args.debug:
             wandb.watch(model, log='all')

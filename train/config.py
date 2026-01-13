@@ -90,7 +90,6 @@ class TrainConfig:
     # hyperparameters from NePs
     lr: float
     wd: float
-    grad_clip_norm: float
     warmup_fraction: float
 
     def __post_init__(self):

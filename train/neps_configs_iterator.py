@@ -64,13 +64,13 @@ def infer_hardware_setup_and_local_bs(model_name: str,
                                       max_gpus_per_node: int = 4):
     local_bs = infer_local_bs(partition=partition, model_name=model_name)
 
+    if local_bs > global_batch_size:
+        local_bs = global_batch_size
+
     if global_batch_size % local_bs != 0:
         raise ValueError(
             f"global_batch_size ({global_batch_size}) must be divisible by local_bs ({local_bs})"
         )
-
-    if local_bs > global_batch_size:
-        local_bs = global_batch_size
 
     gpus_needed = global_batch_size // local_bs
     gpus_per_node = min(gpus_needed, max_gpus_per_node)
@@ -129,7 +129,7 @@ def submit_job_per_config(trial_id, row, root_dir, args):
     script_name = job_name + ".sh"
     script_path = Path(scripts_dir + "/" + script_name)
     slurm.build_script(cmd, save_to=script_path)
-    slurm.submit_without_build(script_path)
+    # slurm.submit_without_build(script_path)
 
 
 if __name__ == "__main__":
@@ -138,12 +138,10 @@ if __name__ == "__main__":
     root_dir = args.root_dir
 
     full_df, result = neps.status(root_dir)
-    # for trial_id, row in full_df.iterrows():
-    try:
-        #         # if row.state != "success":
-        trial_id, row = next(full_df.iterrows())
-        submit_job_per_config(trial_id, row, root_dir, args)
-        # TODO post hoc evaluation
+    for trial_id, row in full_df.iterrows():
+        try:
+            submit_job_per_config(trial_id, row, root_dir, args)
+            # TODO post hoc evaluation
 
-    except Exception as e:
-        print(e)
+        except Exception as e:
+            print(e)

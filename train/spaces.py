@@ -11,11 +11,6 @@ __HP_SPACE = {
         upper=1.0e-1,
         log=True,
     ),
-    "grad_clip_norm": neps.Float(
-        lower=0.5,
-        upper=10.0,
-        log=True,
-    ),
     "warmup_fraction": neps.Float(
         lower=0.0,
         upper=0.5,
@@ -24,8 +19,8 @@ __HP_SPACE = {
 
 __SCALE_SPACE = {
     "samples_seen": neps.Float(
-        lower=1,
-        upper=50,
+        lower=0.6,
+        upper=60,
     ),
 
 }
