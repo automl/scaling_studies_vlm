@@ -9,7 +9,7 @@ import torch
 from train import iterator_params
 from train.config import TrainConfig, EvalConfig
 from train.open_clip_train.profiler import get_model_flops
-from train.slurm import SlurmManager, build_srun_cmd, BatchSizeSlurmManager, build_eval_cmd
+from train.slurm import SlurmManager, build_srun_cmd, BatchSizeSlurmManager, build_eval_cmd, eval_array_job_cmd
 from train.utils import query_bs, precision_to_dtype, create_default_model, _cache_key, _read_cached_bs
 
 
@@ -79,7 +79,7 @@ def infer_hardware_setup_and_local_bs(model_name: str,
     return gpus_per_node, nodes_nr, local_bs
 
 
-def submit_job_per_config(trial_id, row, root_dir, args):
+def generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs):
     hps = {
         col.replace("config.", ""): val
         for col, val in row.items()
@@ -110,7 +110,7 @@ def submit_job_per_config(trial_id, row, root_dir, args):
     print(f"gpus_per_node: {gpus_per_node}")
     print(f"nodes_nr: {nodes_nr}")
 
-    job_name = f"train_{args.model}_trial{trial_id}"
+    job_name = f"train_trial{trial_id}"
 
     config = TrainConfig(
         model=args.model,
@@ -136,11 +136,18 @@ def submit_job_per_config(trial_id, row, root_dir, args):
 
     eval_config = EvalConfig(model=args.model, seed=args.seed, logs=str(logs_dir), name=job_name)
     eval_cmd = build_eval_cmd(eval_config)
-    eval_job_name = f"eval_{args.model}_trial{trial_id}"
+    eval_job_name = f"eval_trial{trial_id}"
 
-    script_name = eval_job_name + ".sh"
-    eval_script_path = Path(evaluation_scripts_path + "/" + script_name)
+    eval_script_name = eval_job_name + ".sh"
+    eval_script_path = Path(evaluation_scripts_path + "/" + eval_script_name)
     slurm.build_evaluation_script(cmd=eval_cmd, job_name=eval_job_name, save_to=eval_script_path)
+
+    array_job_eval_script_name = "array_job.sh"
+    array_job_eval_script_path = Path(evaluation_scripts_path + "/" + array_job_eval_script_name)
+    if not array_job_eval_script_path.exists():
+        array_job_cmd = eval_array_job_cmd(args.model, args.seed, logs_dir)
+        slurm.build_array_job_for_evaluation(cmd=array_job_cmd, nr_total_configs=nr_configs,
+                                             save_to=array_job_eval_script_path)
 
 
 if __name__ == "__main__":
@@ -149,9 +156,10 @@ if __name__ == "__main__":
     root_dir = args.root_dir
 
     full_df, result = neps.status(root_dir)
+    nr_configs = len(full_df)
     for trial_id, row in full_df.iterrows():
         try:
-            submit_job_per_config(trial_id, row, root_dir, args)
+            generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs)
             # TODO post hoc evaluation
 
         except Exception as e:

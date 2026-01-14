@@ -12,6 +12,16 @@ class DatasetShards(str, Enum):
     LAION400M_TEST_DATA = "../pre_training_dataset/laion400m/test_data/{00000000..00000015}.tar"
 
 
+eval_cmd_parts = [
+    f'--val-data "{DatasetShards.LAION400M_VALIDATION_DATA.value}"',
+    f'--test-data "{DatasetShards.LAION400M_TEST_DATA.value}"',
+    "--dataset-type webdataset",
+    "--precision fp32",
+    "--resume latest",
+    "--epochs 1",
+]
+
+
 def build_cmd(config: TrainConfig) -> str:
     args = asdict(config)
 
@@ -41,14 +51,7 @@ def build_cmd(config: TrainConfig) -> str:
 def eval_cmd(config: EvalConfig) -> str:
     args = asdict(config)
 
-    cmd_parts = [
-        f'--val-data "{DatasetShards.LAION400M_VALIDATION_DATA.value}"',
-        f'--test-data "{DatasetShards.LAION400M_TEST_DATA.value}"',
-        "--dataset-type webdataset",
-        "--precision fp32",
-        "--resume latest",
-        "--epochs 1",
-    ]
+    cmd_parts = eval_cmd_parts.copy()
 
     for key, value in args.items():
         cli_key = key.replace("_", "-")
@@ -61,6 +64,22 @@ def eval_cmd(config: EvalConfig) -> str:
         cmd_parts.append(f"--{cli_key} {value}")
 
     return cmd_parts
+
+
+def eval_array_job_cmd(model_name, seed, logs_dir):
+    cmd_parts = eval_cmd_parts.copy()
+    if "train/" in logs_dir:
+        logs_dir = logs_dir.replace("train/", "")
+
+    cmd_parts.append(f"--model {model_name}")
+    cmd_parts.append(f"--seed {seed}")
+    cmd_parts.append(f"--logs {logs_dir}")
+
+    return (
+            "srun --cpu-bind=v --accel-bind=gn "
+            "python -u -m open_clip_train.main \\\n    "
+            + " \\\n    ".join(cmd_parts)
+    )
 
 
 def build_eval_cmd(config: EvalConfig) -> str:
@@ -240,7 +259,6 @@ echo "Job execution complete."
         script = f"""#!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
-#SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task={self.cpus_per_task}
 #SBATCH --job-name={job_name}
 #SBATCH -p {self.partition}
@@ -268,6 +286,47 @@ echo "Job execution complete."
             save_to.write_text(script)
         else:
             self.script_path.write_text(script)
+
+    def build_array_job_for_evaluation(self, cmd: str, nr_total_configs, save_to: Path = None):
+        cmd = cmd.strip()
+        cmd = f'{cmd} \\\n    --name "${{RUN_NAME}}"'
+
+        script = f"""#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task={self.cpus_per_task}
+#SBATCH -p {self.partition}
+
+#SBATCH --array=1-{nr_total_configs}
+
+#SBATCH --job-name=eval_trial
+#SBATCH --output=evaluator_logs/%x-%A_%a.out
+#SBATCH --error=evaluator_logs/%x-%A_%a.err
+
+{self.conda_env}
+
+echo "Started at $(date)"
+echo "Array task id: ${{SLURM_ARRAY_TASK_ID}}"
+
+PROJECT_ROOT="/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm"
+TRAIN_DIR="${{PROJECT_ROOT}}/train"
+
+cd "${{TRAIN_DIR}}"
+export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
+
+TRIAL_ID="${{SLURM_ARRAY_TASK_ID}}"
+RUN_NAME="train_trial${{TRIAL_ID}}"
+
+{cmd}
+
+echo "Ended at $(date)"
+echo "Job execution complete."
+"""
+        if save_to:
+            save_to.write_text(script)
+        else:
+            self.script_path.write_text(script)
+
 
 class BatchSizeSlurmManager(SlurmManager):
     """
