@@ -3,7 +3,7 @@ from dataclasses import asdict
 from enum import Enum
 from pathlib import Path
 
-from train.config import TrainConfig
+from train.config import TrainConfig, EvalConfig
 
 
 class DatasetShards(str, Enum):
@@ -36,6 +36,40 @@ def build_cmd(config: TrainConfig) -> str:
         cmd_parts.append(f"--{cli_key} {value}")
 
     return cmd_parts
+
+
+def eval_cmd(config: EvalConfig) -> str:
+    args = asdict(config)
+
+    cmd_parts = [
+        f'--val-data "{DatasetShards.LAION400M_VALIDATION_DATA.value}"',
+        f'--test-data "{DatasetShards.LAION400M_TEST_DATA.value}"',
+        "--dataset-type webdataset",
+        "--precision fp32",
+        "--resume latest",
+        "--epochs 1",
+    ]
+
+    for key, value in args.items():
+        cli_key = key.replace("_", "-")
+
+        if isinstance(value, bool):
+            if value:
+                cmd_parts.append(f"--{cli_key}")
+            continue
+
+        cmd_parts.append(f"--{cli_key} {value}")
+
+    return cmd_parts
+
+
+def build_eval_cmd(config: EvalConfig) -> str:
+    cmd_parts = eval_cmd(config)
+    return (
+            "srun --cpu-bind=v --accel-bind=gn "
+            "python -u -m open_clip_train.main \\\n    "
+            + " \\\n    ".join(cmd_parts)
+    )
 
 
 def build_srun_cmd(config: TrainConfig) -> str:
@@ -200,6 +234,40 @@ echo "Job execution complete."
         self.job_id = job_id
         print("Job ID:", job_id)
 
+    def build_evaluation_script(self, cmd: str, job_name,
+                                save_to: Path = None):
+
+        script = f"""#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task={self.cpus_per_task}
+#SBATCH --job-name={job_name}
+#SBATCH -p {self.partition}
+
+#SBATCH --output evaluator_logs/%x-%A.out
+#SBATCH --error evaluator_logs/%x-%A.err
+
+{self.conda_env}
+
+echo "Started at $(date)";
+
+PROJECT_ROOT="/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm"
+TRAIN_DIR="${{PROJECT_ROOT}}/train"
+
+cd "${{TRAIN_DIR}}"
+
+export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
+
+{cmd}
+
+echo "Ended at $(date)";
+echo "Job execution complete."
+"""
+        if save_to:
+            save_to.write_text(script)
+        else:
+            self.script_path.write_text(script)
 
 class BatchSizeSlurmManager(SlurmManager):
     """

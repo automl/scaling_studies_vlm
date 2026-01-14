@@ -7,9 +7,9 @@ import neps
 import torch
 
 from train import iterator_params
-from train.config import TrainConfig
+from train.config import TrainConfig, EvalConfig
 from train.open_clip_train.profiler import get_model_flops
-from train.slurm import SlurmManager, build_srun_cmd, BatchSizeSlurmManager
+from train.slurm import SlurmManager, build_srun_cmd, BatchSizeSlurmManager, build_eval_cmd
 from train.utils import query_bs, precision_to_dtype, create_default_model, _cache_key, _read_cached_bs
 
 
@@ -88,8 +88,10 @@ def submit_job_per_config(trial_id, row, root_dir, args):
 
     logs_dir = os.path.join(root_dir, "individual_training_logs")
     scripts_dir = os.path.join(root_dir, "slurm_scripts")
+    evaluation_scripts_path = os.path.join(root_dir, "evaluation_scripts")
     os.makedirs(logs_dir, exist_ok=True)
     os.makedirs(scripts_dir, exist_ok=True)
+    os.makedirs(evaluation_scripts_path, exist_ok=True)
 
     precision = "bf16"
     # TODO model to be created based on scale parameters
@@ -108,11 +110,14 @@ def submit_job_per_config(trial_id, row, root_dir, args):
     print(f"gpus_per_node: {gpus_per_node}")
     print(f"nodes_nr: {nodes_nr}")
 
+    job_name = f"train_{args.model}_trial{trial_id}"
+
     config = TrainConfig(
         model=args.model,
         train_num_samples=args.train_num_samples,
         seed=args.seed,
         epochs=1,
+        name=job_name,
         batch_size=local_bs,
         sync_neps=False,
         pipeline_id=trial_id,
@@ -121,7 +126,6 @@ def submit_job_per_config(trial_id, row, root_dir, args):
     )
 
     cmd = build_srun_cmd(config)
-    job_name = f"{config.model}_ns{config.train_num_samples}_s{config.seed}_trial{trial_id}"
 
     slurm = SlurmManager(job_name=job_name, partition=args.partition, nodes=nodes_nr,
                          gpus_per_node=gpus_per_node,
@@ -129,7 +133,14 @@ def submit_job_per_config(trial_id, row, root_dir, args):
     script_name = job_name + ".sh"
     script_path = Path(scripts_dir + "/" + script_name)
     slurm.build_script(cmd, save_to=script_path)
-    # slurm.submit_without_build(script_path)
+
+    eval_config = EvalConfig(model=args.model, seed=args.seed, logs=str(logs_dir), name=job_name)
+    eval_cmd = build_eval_cmd(eval_config)
+    eval_job_name = f"eval_{args.model}_trial{trial_id}"
+
+    script_name = eval_job_name + ".sh"
+    eval_script_path = Path(evaluation_scripts_path + "/" + script_name)
+    slurm.build_evaluation_script(cmd=eval_cmd, job_name=eval_job_name, save_to=eval_script_path)
 
 
 if __name__ == "__main__":

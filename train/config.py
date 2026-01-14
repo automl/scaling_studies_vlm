@@ -71,6 +71,7 @@ class TrainConfig:
         model: vision backbone to train on.
         train_num_samples: number of training samples to use(this number defines epoch length).
         epochs: number of epochs to train for.
+        name: experiment name.
         logs: string pointing to relative path where to store logs.
         seed: random seed for reproducibility.
     """
@@ -79,9 +80,10 @@ class TrainConfig:
     model: str
     train_num_samples: str
     epochs: int
+    name: str
     logs: str
     seed: int
-    batch_size:int
+    batch_size: int
 
     # specific to NePs
     pipeline_id: int
@@ -91,6 +93,28 @@ class TrainConfig:
     lr: float
     wd: float
     warmup_fraction: float
+    grad_clip_norm: float
+
+    def __post_init__(self):
+        if self.logs and "train/" in self.logs:
+            self.logs = self.logs.replace("train/", "")
+
+
+@dataclass
+class EvalConfig:
+    """
+        Evaluation configuration.
+
+        Args:
+            model: vision backbone to evaluate on.
+            seed: random seed for reproducibility.
+            name: experiment name.
+    """
+
+    model: str
+    seed: int
+    name: str
+    logs: str
 
     def __post_init__(self):
         if self.logs and "train/" in self.logs:
