@@ -356,6 +356,45 @@ echo "Job execution complete."
         else:
             self.script_path.write_text(script)
 
+    def build_array_job_for_downstream_evaluation(self, root, nr_total_configs, save_to: Path = None):
+        if "train/" in root:
+            root = root.replace("train/", "")
+        script = f"""#!/bin/bash
+#SBATCH --job-name=downstream_eval_trial
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task={self.cpus_per_task}
+#SBATCH -p {self.partition}
+
+#SBATCH --array=1-{nr_total_configs}
+
+#SBATCH --output=downstream_evaluator_logs/%x-%A_%a.out
+#SBATCH --error=downstream_evaluator_logs/%x-%A_%a.err
+
+{self.conda_env}
+
+PROJECT_ROOT="/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm"
+TRAIN_DIR="${{PROJECT_ROOT}}/train"
+
+cd "${{TRAIN_DIR}}"
+export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
+
+TRIAL_ID="${{SLURM_ARRAY_TASK_ID}}"
+RUN_NAME="train_trial${{TRIAL_ID}}"
+
+ROOT_DIR={root}"/train_trial${{TRIAL_ID}}"
+
+echo "Running downstream eval for trial ${{TRIAL_ID}}"
+echo "Root dir: ${{ROOT_DIR}}"
+
+python post_hoc_iterator.py --root "${{ROOT_DIR}}"
+"""
+
+        if save_to:
+            save_to.write_text(script)
+        else:
+            self.script_path.write_text(script)
+
 
 class BatchSizeSlurmManager(SlurmManager):
     """

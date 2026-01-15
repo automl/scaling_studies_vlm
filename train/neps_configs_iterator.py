@@ -157,6 +157,11 @@ def generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs):
     slurm.build_downstream_evaluation_script(job_name=downstream_eval_job_name, root=logs_dir + "/" + job_name,
                                              save_to=downstream_eval_script_path)
 
+    array_job_downstream_eval_script_path = Path(downstream_evaluation_scripts_path + "/" + array_job_eval_script_name)
+    if not array_job_downstream_eval_script_path.exists():
+        slurm.build_array_job_for_downstream_evaluation(root=logs_dir, nr_total_configs=nr_configs,
+                                                        save_to=array_job_downstream_eval_script_path)
+
 
 if __name__ == "__main__":
     args = iterator_params.parse_args(sys.argv[1:])
