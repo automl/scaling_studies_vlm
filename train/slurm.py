@@ -287,6 +287,35 @@ echo "Job execution complete."
         else:
             self.script_path.write_text(script)
 
+    def build_downstream_evaluation_script(self, job_name, root, save_to: Path = None):
+        if "train/" in root:
+            root = root.replace("train/", "")
+        script = f"""#!/bin/bash
+#SBATCH --job-name={job_name}
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task={self.cpus_per_task}
+#SBATCH -p {self.partition}
+
+#SBATCH --output=downstream_evaluator_logs/%x-%j.out
+#SBATCH --error=downstream_evaluator_logs/%x-%j.err
+
+{self.conda_env}
+
+PROJECT_ROOT="/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm"
+TRAIN_DIR="${{PROJECT_ROOT}}/train"
+
+cd "${{TRAIN_DIR}}"
+
+export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
+
+python post_hoc_iterator.py --root {root}
+"""
+        if save_to:
+            save_to.write_text(script)
+        else:
+            self.script_path.write_text(script)
+
     def build_array_job_for_evaluation(self, cmd: str, nr_total_configs, save_to: Path = None):
         cmd = cmd.strip()
         cmd = f'{cmd} \\\n    --name "${{RUN_NAME}}"'

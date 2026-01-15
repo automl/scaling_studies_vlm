@@ -87,11 +87,14 @@ def generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs):
     }
 
     logs_dir = os.path.join(root_dir, "individual_training_logs")
-    scripts_dir = os.path.join(root_dir, "slurm_scripts")
+    scripts_dir = os.path.join(root_dir, "train_scripts")
     evaluation_scripts_path = os.path.join(root_dir, "evaluation_scripts")
+    downstream_evaluation_scripts_path = os.path.join(root_dir, "downstream_evaluation_scripts")
+
     os.makedirs(logs_dir, exist_ok=True)
     os.makedirs(scripts_dir, exist_ok=True)
     os.makedirs(evaluation_scripts_path, exist_ok=True)
+    os.makedirs(downstream_evaluation_scripts_path, exist_ok=True)
 
     precision = "bf16"
     # TODO model to be created based on scale parameters
@@ -148,6 +151,11 @@ def generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs):
         array_job_cmd = eval_array_job_cmd(args.model, args.seed, logs_dir)
         slurm.build_array_job_for_evaluation(cmd=array_job_cmd, nr_total_configs=nr_configs,
                                              save_to=array_job_eval_script_path)
+
+    downstream_eval_job_name = f"downstream_eval_trial{trial_id}"
+    downstream_eval_script_path = Path(downstream_evaluation_scripts_path + "/" + downstream_eval_job_name + ".sh")
+    slurm.build_downstream_evaluation_script(job_name=downstream_eval_job_name, root=logs_dir + "/" + job_name,
+                                             save_to=downstream_eval_script_path)
 
 
 if __name__ == "__main__":
