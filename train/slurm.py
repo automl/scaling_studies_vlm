@@ -32,7 +32,8 @@ def build_cmd(config: TrainConfig) -> str:
         "--local-loss",
         "--gather-with-grad",
         "--dataset-type webdataset",
-        "--precision bf16"
+        "--precision bf16",
+        "--report-to wandb"
     ]
 
     for key, value in args.items():
