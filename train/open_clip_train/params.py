@@ -474,7 +474,7 @@ def parse_args(args):
         "--use-bnb-linear",
         default=None,
         help='Replace the network linear layers from the bitsandbytes library. '
-        'Allows int8 training/inference, etc.'
+             'Allows int8 training/inference, etc.'
     )
     parser.add_argument(
         "--siglip",
@@ -501,6 +501,20 @@ def parse_args(args):
         default=False,
         action="store_true",
         help="Whether to use sync neps.")
+
+    parser.add_argument(
+        "--downstream-eval",
+        default=False,
+        action='store_true',
+        help="Whether to perform downstream evaluation after training.",
+    )
+
+    parser.add_argument(
+        "--eval",
+        default=False,
+        action='store_true',
+        help="Whether to evaluate on defined validation and test sets.",
+    )
 
     args = parser.parse_args(args)
 

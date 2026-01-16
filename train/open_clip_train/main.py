@@ -14,12 +14,11 @@ from pathlib import Path
 import neps
 import numpy as np
 import torch
+from eval.downstream_eval import ClipBenchmarkEvaluator
+from eval.downstream_eval import ZeroShotDataset, RetrievalDataset
 from open_clip_train.params import parse_args
 from open_clip_train.profiler import get_model_flops
 from torch import optim
-
-from eval.downstream_eval import ClipBenchmarkEvaluator
-from eval.downstream_eval import ZeroShotDataset, RetrievalDataset
 
 try:
     import wandb
@@ -496,7 +495,7 @@ def main(args):
 
         completed_epoch = epoch + 1
 
-        if any(v in data for v in ('val', 'test', 'imagenet-val', 'imagenet-v2')):
+        if any(v in data for v in ('val', 'test', 'imagenet-val', 'imagenet-v2')) & args.eval:
             evaluate(model, data, completed_epoch, args, tb_writer=writer, tokenizer=tokenizer)
 
         # Saving checkpoints.
@@ -555,7 +554,10 @@ def main(args):
         test_loss = evaluation_results.get("clip_test_loss", None)
         test_duration_seconds = evaluation_results.get("test_time_sec", None)
 
-        downstream_evaluation_results = evaluate_benchmarks(args.model, log_base_path, args.seed)
+        downstream_evaluation_results = {}
+
+        if args.downstream_eval:
+            downstream_evaluation_results = evaluate_benchmarks(args.model, log_base_path, args.seed)
 
         training_loss = read_last_json_line(args.checkpoint_path + "/train_loss.jsonl")["train_loss"]
 
