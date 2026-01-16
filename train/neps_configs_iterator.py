@@ -4,13 +4,12 @@ import sys
 from pathlib import Path
 
 import neps
-import torch
 
 from train import iterator_params
 from train.config import TrainConfig, EvalConfig
-from train.open_clip_train.profiler import get_model_flops
-from train.slurm import SlurmManager, build_srun_cmd, BatchSizeSlurmManager, build_eval_cmd, eval_array_job_cmd
-from train.utils import query_bs, precision_to_dtype, create_default_model, _cache_key, _read_cached_bs
+from train.slurm import SlurmManager, build_srun_cmd, BatchSizeSlurmManager, build_eval_cmd, eval_array_job_cmd, \
+    FLOPsSlurmManager
+from train.utils import query_bs, _cache_key, _read_cached_bs
 
 
 def infer_local_bs(partition: str,
@@ -97,11 +96,8 @@ def generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs):
     os.makedirs(downstream_evaluation_scripts_path, exist_ok=True)
 
     precision = "bf16"
-    # TODO model to be created based on scale parameters
-    model = create_default_model(args.model)
-    if torch.cuda.is_available():
-        model = model.cuda()
-    total_compute = get_model_flops(model, args.train_num_samples, dtype=precision_to_dtype(precision))
+
+    total_compute = get_total_compute(args, precision, root_dir, trial_id)
     print(f"total_compute: {total_compute}")
     global_batch_size = query_bs(total_compute)
     print(f"global_batch_size: {global_batch_size}")
@@ -163,6 +159,48 @@ def generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs):
                                                         save_to=array_job_downstream_eval_script_path)
 
 
+def get_total_compute(args, precision, root_dir, trial_id) -> int:
+    print(f"inside get_total_compute, root dir: {root_dir}")
+    flops_scripts_path = Path(root_dir + "/" + "flops_scripts")
+    os.makedirs(flops_scripts_path, exist_ok=True)
+    print(f"flops_scripts_path: {flops_scripts_path}")
+    current_script_path = flops_scripts_path / f"trial{trial_id}.sh"
+    job_name = f"trial{trial_id}_total_compute"
+
+    cmd_parts = [
+        f'--model {args.model}',
+        f'--train_num_samples {str(args.train_num_samples)}',
+        f'--precision {precision}',
+        f'--root_dir {str(flops_scripts_path)}',
+        f'--trial_id {trial_id}',
+    ]
+
+    cmd = (
+            "python flops_count.py \\\n    "
+            + " \\\n    ".join(cmd_parts)
+    )
+
+    flops_slurm_manager = FLOPsSlurmManager(partition=args.partition, job_name=job_name)
+    flops_slurm_manager.build_script(cmd, save_to=current_script_path)
+    flops_slurm_manager.submit_without_build(script_path=current_script_path)
+
+    flops_txt_path = flops_scripts_path / f"trial_{trial_id}.txt"
+    if not flops_txt_path.exists():
+        raise FileNotFoundError(
+            f"FLOPs output file was not created: {flops_txt_path}\n"
+            f"Slurm script: {current_script_path}"
+        )
+
+    raw = flops_txt_path.read_text().strip()
+
+    try:
+        total_compute = int(raw)
+    except ValueError:
+        total_compute = int(float(raw))
+
+    return total_compute
+
+
 if __name__ == "__main__":
     args = iterator_params.parse_args(sys.argv[1:])
 
@@ -173,7 +211,5 @@ if __name__ == "__main__":
     for trial_id, row in full_df.iterrows():
         try:
             generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs)
-            # TODO post hoc evaluation
-
         except Exception as e:
             print(e)
