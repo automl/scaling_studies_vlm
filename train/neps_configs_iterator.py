@@ -14,10 +14,12 @@ from train.utils import query_bs, _cache_key, _read_cached_bs
 
 def infer_local_bs(partition: str,
                    model_name: str,
+                   root_dir: str,
+                   trial_id: int
                    ) -> int:
-    cache_str = "bs_probe_cache"
+    cache_str = "train/bs_probe_cache"
 
-    cache_dir = (Path.cwd().resolve() / "train" / cache_str)
+    cache_dir = Path(cache_str)
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     key = _cache_key(partition, model_name)
@@ -29,20 +31,23 @@ def infer_local_bs(partition: str,
 
     print(f"Cache miss ({partition}, {model_name}), submitting probe job")
 
-    job_name = f"{partition}_{model_name}_max_local_bs_probe"
+    job_name = f"{partition}_{model_name}_trial{trial_id}_max_local_bs_probe"
 
-    scripts_dir = Path("bs_probing_scripts")
+    scripts_dir = Path(root_dir + "/bs_probing_scripts")
     scripts_dir.mkdir(parents=True, exist_ok=True)
 
-    current_script_path = scripts_dir / f"{job_name}.sh"
+    current_script_path = scripts_dir / f"trial{trial_id}.sh"
 
     batch_size_slurm_manager = BatchSizeSlurmManager(partition=partition, job_name=job_name)
+
+    if "train/" in cache_str:
+        cache_str = cache_str.replace("train/", "")
 
     cmd = (
         f'python probe_max_bs.py '
         f'--partition "{partition}" '
         f'--model "{model_name}" '
-        f'--cache_dir "{str(cache_dir)}"'
+        f'--cache_dir "{cache_str}"'
     )
 
     batch_size_slurm_manager.build_script(cmd=cmd, save_to=current_script_path)
@@ -57,11 +62,14 @@ def infer_local_bs(partition: str,
     )
 
 
-def infer_hardware_setup_and_local_bs(model_name: str,
+def infer_hardware_setup_and_local_bs(root_dir,
+                                      trial_id,
+                                      model_name: str,
                                       partition: str,
                                       global_batch_size: int,
-                                      max_gpus_per_node: int = 4):
-    local_bs = infer_local_bs(partition=partition, model_name=model_name)
+                                      max_gpus_per_node: int = 4,
+                                      ):
+    local_bs = infer_local_bs(partition=partition, model_name=model_name, root_dir=root_dir, trial_id=trial_id)
 
     if local_bs > global_batch_size:
         local_bs = global_batch_size
@@ -103,7 +111,8 @@ def generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs):
     print(f"global_batch_size: {global_batch_size}")
     gpus_per_node, nodes_nr, local_bs = infer_hardware_setup_and_local_bs(model_name=args.model,
                                                                           partition=args.partition,
-                                                                          global_batch_size=global_batch_size)
+                                                                          global_batch_size=global_batch_size,
+                                                                          root_dir=root_dir, trial_id=trial_id)
 
     print(f"local_bs: {local_bs}")
     print(f"gpus_per_node: {gpus_per_node}")
@@ -160,10 +169,8 @@ def generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs):
 
 
 def get_total_compute(args, precision, root_dir, trial_id) -> int:
-    print(f"inside get_total_compute, root dir: {root_dir}")
     flops_scripts_path = Path(root_dir + "/" + "flops_scripts")
     os.makedirs(flops_scripts_path, exist_ok=True)
-    print(f"flops_scripts_path: {flops_scripts_path}")
     current_script_path = flops_scripts_path / f"trial{trial_id}.sh"
     job_name = f"trial{trial_id}_total_compute"
 
