@@ -549,10 +549,16 @@ def main(args):
         if args.wandb:
             wandb.finish()
 
-        evaluation_results = read_last_json_line(args.checkpoint_path + "/results.jsonl")
-        validation_loss = evaluation_results["clip_val_loss"]
-        test_loss = evaluation_results.get("clip_test_loss", None)
-        test_duration_seconds = evaluation_results.get("test_time_sec", None)
+        evaluation_results = None
+        validation_loss = None
+        test_loss = None
+        test_duration_seconds = None
+
+        if args.eval:
+            evaluation_results = read_last_json_line(args.checkpoint_path + "/results.jsonl")
+            validation_loss = evaluation_results["clip_val_loss"]
+            test_loss = evaluation_results.get("clip_test_loss", None)
+            test_duration_seconds = evaluation_results.get("test_time_sec", None)
 
         downstream_evaluation_results = {}
 
@@ -565,13 +571,13 @@ def main(args):
         compute = get_model_flops(model, data["train"].dataloader.num_samples, dtype=precision_to_dtype(args.precision))
 
         result = {
-            "objective_to_minimize": validation_loss,
+            "objective_to_minimize": training_loss,
             "cost": compute,
             "info_dict": {
                 "train_loss": training_loss,
                 "train_duration_seconds": training_duration_seconds,
                 "validation_loss": validation_loss,
-                "validation_duration_seconds": evaluation_results["val_time_sec"],
+                "validation_duration_seconds": evaluation_results["val_time_sec"] if evaluation_results else None,
                 "test_loss": test_loss,
                 "test_duration_seconds": test_duration_seconds,
                 "eval_results": downstream_evaluation_results
