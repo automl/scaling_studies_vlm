@@ -93,7 +93,6 @@ class TrainConfig:
     lr: float
     wd: float
     warmup_fraction: float
-    grad_clip_norm: float
 
     def __post_init__(self):
         if self.logs and "train/" in self.logs:
