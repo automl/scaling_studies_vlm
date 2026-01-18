@@ -19,6 +19,7 @@ from eval.downstream_eval import ZeroShotDataset, RetrievalDataset
 from open_clip_train.params import parse_args
 from open_clip_train.profiler import get_model_flops
 from torch import optim
+from utils import read_last_json_line
 
 try:
     import wandb
@@ -288,11 +289,12 @@ def main(args):
         logging.info(f"{str(model)}")
         logging.info("Params:")
         params_file = os.path.join(args.logs, args.name, "params.txt")
-        with open(params_file, "w") as f:
-            for name in sorted(vars(args)):
-                val = getattr(args, name)
-                logging.info(f"  {name}: {val}")
-                f.write(f"{name}: {val}\n")
+        if args.train_data:
+            with open(params_file, "w") as f:
+                for name in sorted(vars(args)):
+                    val = getattr(args, name)
+                    logging.info(f"  {name}: {val}")
+                    f.write(f"{name}: {val}\n")
 
     if args.distributed and not args.horovod:
         if args.use_bn_sync:
@@ -621,15 +623,6 @@ def copy_codebase(args):
     copytree(current_code_path, new_code_path, ignore=ignore_patterns('log', 'logs', 'wandb'))
     print("Done copying code.")
     return 1
-
-
-def read_last_json_line(path):
-    last = None
-    with open(path, "r") as f:
-        for line in f:
-            if line.strip():
-                last = line
-    return json.loads(last)
 
 
 def evaluate_benchmarks(model, root, seed):

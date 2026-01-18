@@ -52,6 +52,15 @@ def create_default_model(model_str) -> torch.nn.Module:
     )
 
 
+def read_last_json_line(path):
+    last = None
+    with open(path, "r") as f:
+        for line in f:
+            if line.strip():
+                last = line
+    return json.loads(last)
+
+
 ####################################################################
 # methods for batch size heuristics
 ####################################################################

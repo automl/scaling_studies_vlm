@@ -1,140 +1,145 @@
-import re
+import argparse
+import json
 from pathlib import Path
 
 import neps
 import pandas as pd
 import yaml
 
-
-def safe_load_yaml(p: Path):
-    try:
-        return yaml.safe_load(p.read_text()) or {}
-    except Exception:
-        return None
+from utils import read_last_json_line
 
 
-def safe_get(dct, path, default=None):
-    cur = dct
-    for k in path:
-        if not isinstance(cur, dict) or k not in cur:
-            return default
-        cur = cur[k]
-    return cur
+def parse_args():
+    p = argparse.ArgumentParser()
+    p.add_argument(
+        "--root_dir",
+        type=Path,
+        required=True,
+        help='Example: "results/model=ViT-S-32/optimizer=experimental/seed=10"',
+    )
+    return p.parse_args()
 
 
-def flatten_dict(d: dict, prefix: str = "hp", sep: str = ".") -> dict:
-    out = {}
-    for k, v in (d or {}).items():
-        key = f"{prefix}{sep}{k}" if prefix else str(k)
-        if isinstance(v, dict):
-            out.update(flatten_dict(v, prefix=key, sep=sep))
-        else:
-            out[key] = v
+def read_json(path: Path):
+    with path.open("r") as f:
+        return json.load(f)
+
+
+def extract_zeroshot_acc1(root_dir: Path) -> dict:
+    zero_shot_dir = root_dir / "eval" / "zero_shot"
+
+    out = {
+        "cifar10_acc1": None,
+        "imagenet1k_acc1": None,
+    }
+
+    cifar_path = zero_shot_dir / f"cifar10_epoch_1.json"
+    if cifar_path.is_file():
+        try:
+            out["cifar10_acc1"] = read_json(cifar_path).get("metrics", {}).get("acc1")
+        except Exception:
+            pass
+
+    imagenet_path = zero_shot_dir / f"imagenet1k_epoch_1.json"
+    if imagenet_path.is_file():
+        try:
+            out["imagenet1k_acc1"] = read_json(imagenet_path).get("metrics", {}).get("acc1")
+        except Exception:
+            pass
+
     return out
 
 
-def extract_imagenet1k_acc1(report: dict):
-    zs = safe_get(report, ["extra", "eval_results", "zero_shot"], default=[])
-    if not isinstance(zs, list):
-        return None
-    for item in zs:
-        if isinstance(item, dict) and item.get("dataset") == "imagenet1k":
-            return item.get("acc1")
-    return None
+def extract_mscoco_retrieval(root_dir: Path) -> dict:
+    retrieval_dir = root_dir / "eval" / "retrieval"
 
-def extract_cifar10_acc1(report: dict):
-    zs = safe_get(report, ["extra", "eval_results", "zero_shot"], default=[])
-    if not isinstance(zs, list):
-        return None
-    for item in zs:
-        if isinstance(item, dict) and item.get("dataset") == "cifar10":
-            return item.get("acc1")
-    return None
+    out = {
+        "mscoco_image_recall@5": None,
+        "mscoco_text_recall@5": None,
+    }
 
+    mscoco_path = retrieval_dir / f"mscoco_captions_epoch_1.json"
+    if mscoco_path.is_file():
+        try:
+            metrics = read_json(mscoco_path).get("metrics", {})
+            out["mscoco_image_recall@5"] = metrics.get("image_retrieval_recall@5")
+            out["mscoco_text_recall@5"] = metrics.get("text_retrieval_recall@5")
+        except Exception:
+            pass
 
-def extract_mscoco_image_retrieval(report: dict):
-    ret = safe_get(report, ["extra", "eval_results", "retrieval"], default=[])
-    if not isinstance(ret, list):
-        return None
-    for item in ret:
-        if isinstance(item, dict) and item.get("dataset") == "mscoco_captions":
-            return item.get("image_retrieval")
-    return None
-
-def extract_mscoco_text_retrieval(report: dict):
-    ret = safe_get(report, ["extra", "eval_results", "retrieval"], default=[])
-    if not isinstance(ret, list):
-        return None
-    for item in ret:
-        if isinstance(item, dict) and item.get("dataset") == "mscoco_captions":
-            return item.get("text_retrieval")
-    return None
+    return out
 
 
-def build_trial_dir_map(root: Path) -> dict[int, Path]:
-    trial_dirs: dict[int, Path] = {}
-    for rp in root.rglob("report.yaml"):
-        trial_id = None
-        for parent in rp.parents:
-            m = re.fullmatch(r"config_(\d+)", parent.name)
-            if m:
-                trial_id = int(m.group(1))
-                trial_dirs[trial_id] = parent
-                break
-    return trial_dirs
+def fetch_downstream_eval_results(path):
+    zero_shot_results = extract_zeroshot_acc1(path)
+    retrieval_results = extract_mscoco_retrieval(path)
+    return {**zero_shot_results, **retrieval_results}
+
+
+def fetch_scale_parameters(config_dir: Path) -> dict:
+    config_path = config_dir / "config.yaml"
+    if not config_path.is_file():
+        return {}
+    with config_path.open("r") as f:
+        return yaml.safe_load(f) or {}
+
+
+def fetch_losses(checkpoints_dir: Path) -> dict:
+    out = {"train_loss": None, "val_loss": None, "test_loss": None}
+
+    epoch1_path = checkpoints_dir / "epoch_1.pt"
+    results_path = checkpoints_dir / "results.jsonl"
+    train_results_path = checkpoints_dir / "train_loss.jsonl"
+
+    if not (epoch1_path.is_file() and results_path.is_file() and train_results_path.is_file()):
+        return out
+
+    try:
+        train_results = read_last_json_line(train_results_path) or {}
+        val_test_results = read_last_json_line(results_path) or {}
+
+        out["train_loss"] = train_results.get("train_loss")
+        out["val_loss"] = val_test_results.get("clip_val_loss")
+        out["test_loss"] = val_test_results.get("clip_test_loss")
+    except Exception:
+        pass
+
+    return out
 
 
 if __name__ == "__main__":
-    root_dir = Path("results/model=ViT-S-32/seed=0")
+    args = parse_args()
+
+    root_dir: Path = args.root_dir
+    train_logs_root = root_dir / "individual_training_logs"
+    configs_dir = root_dir / "configs"
     out_csv = root_dir / "trials_summary.csv"
 
     full_df, _ = neps.status(str(root_dir))
     trial_ids = [int(i) for i in full_df.index.tolist()]
-
-    trial_dir_map = build_trial_dir_map(root_dir)
-
+    completed_trial_ids = []
     rows = []
+
     for trial_id in trial_ids:
-        trial_dir = trial_dir_map.get(trial_id)
-        if trial_dir is None:
-            continue
+        trial_dir = train_logs_root / f"train_trial{trial_id}"
+        checkpoints_dir = trial_dir / "checkpoints"
+        downstream_eval_path = trial_dir / "eval"
+        config_dir = configs_dir / f"config_{trial_id}"
 
-        report_path = trial_dir / "report.yaml"
-        config_path = trial_dir / "config.yaml"
-
-        if not report_path.exists() or not config_path.exists():
-            continue
-
-        report = safe_load_yaml(report_path)
-        cfg = safe_load_yaml(config_path)
-        if report is None or cfg is None:
-            continue
-
-        val_loss = safe_get(report, ["extra", "validation_loss"])
-        test_loss = safe_get(report, ["extra", "test_loss"])
-        train_loss = safe_get(report, ["extra", "train_loss"])
-
-        if val_loss is None or test_loss is None or train_loss is None:
-            continue
+        if (checkpoints_dir / "epoch_1.pt").is_file():
+            completed_trial_ids.append(trial_id)
 
         row = {
             "trial_id": trial_id,
-            "validation_loss": val_loss,
-            "test_loss": test_loss,
-            "train_loss": train_loss,
-            "imagenet1k_acc1": extract_imagenet1k_acc1(report),
-            "cifar10_acc1": extract_cifar10_acc1(report),
-            "mscoco_image_retrieval": extract_mscoco_image_retrieval(report),
+            **fetch_losses(checkpoints_dir),
+            **fetch_downstream_eval_results(downstream_eval_path),
+            **fetch_scale_parameters(config_dir),
         }
-
-        row.update(flatten_dict(cfg, prefix="hp"))
-
         rows.append(row)
 
-    df = pd.DataFrame(rows).sort_values("trial_id")
-    df.to_csv(out_csv, index=False)
+    failed_trial_ids = sorted(set(trial_ids) - set(completed_trial_ids))
+    print("Failed trials:", failed_trial_ids)
 
-    print(f"Wrote: {out_csv}")
-    print(f"Trials in neps.status: {len(trial_ids)}")
-    print(f"Trials with trial_dir found: {len(trial_dir_map)}")
-    print(f"Rows written: {len(df)}")
+    df = pd.DataFrame(rows).set_index("trial_id")
+    df.to_csv(out_csv)
+    print("Summary csv file has been written to:", out_csv)
