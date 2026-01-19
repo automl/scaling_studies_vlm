@@ -22,8 +22,8 @@ __SCALE_SPACE = {
         lower=0.6,
         upper=60,
     ),
-    "vision_width": neps.Integer(
-        lower=256, upper=512
+    "vision_width": neps.Categorical(
+        [256, 320, 384, 448, 512] # head width is set to 64 by default. Emb. dim. needs to be divisible by 64!
     ),
     "text_width": neps.Integer(
         lower=32, upper=64  # assuming number of heads is fixed to 8
