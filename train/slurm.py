@@ -33,7 +33,8 @@ def build_cmd(config: TrainConfig) -> str:
         "--gather-with-grad",
         "--dataset-type webdataset",
         "--precision bf16",
-        "--report-to wandb"
+        "--report-to wandb",
+        "--wandb-project-name open-clip-scan-space",
     ]
 
     for key, value in args.items():
