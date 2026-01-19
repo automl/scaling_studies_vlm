@@ -35,17 +35,17 @@ def infer_local_bs(partition: str,
         f'python probe_max_bs.py '
         f'--partition "{partition}" '
         f'--model "{model_name}" '
-        f'--save_to "{scripts_dir}"'
+        f'--save_to "{scripts_dir}" '
+        f'--trial_id {trial_id}'
     )
 
     batch_size_slurm_manager.build_script(cmd=cmd, save_to=current_script_path)
     batch_size_slurm_manager.submit_without_build(script_path=current_script_path)
 
-    bs_txt_file = scripts_dir / f"config_{trial_id}.txt"
-
+    bs_txt_file = scripts_dir / f"trial_{trial_id}.txt"
     if not bs_txt_file.exists():
         raise FileNotFoundError(
-            f"Batch size output file was not created: {bs_txt_file}"
+            f"Batch size output file was not found: {bs_txt_file}"
         )
 
     raw = bs_txt_file.read_text().strip()

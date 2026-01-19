@@ -118,7 +118,7 @@ def find_max_local_bs(
             save_dir = Path(save_to)
             save_dir.mkdir(parents=True, exist_ok=True)
 
-            out_path = save_dir / f"config_{trial_id}.txt"
+            out_path = save_dir / f"trial_{trial_id}.txt"
             out_path.write_text(str(best) + "\n")
             break
 
