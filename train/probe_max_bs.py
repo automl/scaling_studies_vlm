@@ -1,6 +1,5 @@
 import argparse
 import math
-import time
 from pathlib import Path
 
 import torch
@@ -10,7 +9,7 @@ from torch import optim
 from open_clip_train.precision import get_autocast
 from open_clip_train.scheduler import cosine_lr
 from open_clip_train.train import backward, unwrap_model
-from utils import create_default_model, _cache_key, _write_cached_bs
+from utils import create_default_model
 
 
 def parse_args():
@@ -24,9 +23,14 @@ def parse_args():
         required=False,
     )
     p.add_argument(
-        "--cache_dir",
+        "--save_to",
         default="bs_probe_cache",
-        required=False,
+        required=True,
+    )
+    p.add_argument(
+        "--trial_id",
+        type=int,
+        required=True,
     )
     return p.parse_args()
 
@@ -81,7 +85,7 @@ def train_four_steps(
 
 
 def find_max_local_bs(
-        model, loss_fn, optimizer, scheduler, device, precision, partition, cache_str,model_name,
+        model, loss_fn, optimizer, scheduler, device, precision, save_to, trial_id,
         image_size: int = 224, text_len: int = 77
 ):
     candidates = [1024, 512, 256, 128, 64, 32, 16, 8, 4, 2, 1]
@@ -106,11 +110,16 @@ def find_max_local_bs(
                 texts=texts,
                 precision=precision
             )
+
             best = bs
-            key = _cache_key(partition=partition, model_name=model_name)
-            _write_cached_bs(Path(cache_str), key=key, max_bs=bs)
-            print("best:", best)
-            time.sleep(1)
+            if "train/" in save_to:
+                save_to = save_to.replace("train/", "")
+
+            save_dir = Path(save_to)
+            save_dir.mkdir(parents=True, exist_ok=True)
+
+            out_path = save_dir / f"config_{trial_id}.txt"
+            out_path.write_text(str(best) + "\n")
             break
 
         except RuntimeError as e:
@@ -163,9 +172,8 @@ def main():
         scheduler=scheduler,
         device=device,
         precision=args.precision,
-        partition=args.partition,
-        cache_str=args.cache_dir,
-        model_name=args.model
+        save_to=args.save_to,
+        trial_id=args.trial_id
     )
 
 

@@ -12,28 +12,6 @@ def parse_args(args):
         help="HPO optimizer type."
     )
 
-    # args that override openclip properties
-    parser.add_argument(
-        "--model",
-        type=str,
-        default="ViT-S-32",
-        help="Name of the vision backbone to use.",
-    )
-
-    parser.add_argument(
-        "--train-num-samples",
-        type=int,
-        default=30,
-        help="Number of samples in dataset.",
-    )
-
-    parser.add_argument(
-        "--epochs",
-        type=int,
-        default=1,
-        help="Number of epochs to train model for.",
-    )
-
     parser.add_argument(
         "--seed",
         type=int,

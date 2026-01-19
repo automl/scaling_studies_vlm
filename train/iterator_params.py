@@ -12,20 +12,6 @@ def parse_args(args):
     )
 
     parser.add_argument(
-        "--model",
-        type=str,
-        default="ViT-S-32",
-        help="Name of the vision backbone to use.",
-    )
-
-    parser.add_argument(
-        "--train-num-samples",
-        type=int,
-        default=30,
-        help="Number of samples in dataset.",
-    )
-
-    parser.add_argument(
         "--seed",
         type=int,
         default=0,

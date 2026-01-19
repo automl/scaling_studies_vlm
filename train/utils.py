@@ -4,6 +4,7 @@ import re
 from enum import Enum
 from glob import glob
 from pathlib import Path
+from typing import Union, Dict, Any
 
 import numpy as np
 import pandas as pd
@@ -50,6 +51,61 @@ def create_default_model(model_str) -> torch.nn.Module:
         precision="bf16",
         output_dict=True
     )
+
+
+def get_local_model_str(model_cfg_dir: Union[str, Path]):
+    model_cfg_dir = Path(model_cfg_dir)
+    p = model_cfg_dir.as_posix().replace("train/", "")
+    return f"local-dir:{p}"
+
+
+def build_model_cfg(
+        *,
+        text_width: int,
+        vision_width: int,
+        out_path: Union[str, Path],
+        embed_dim: int = 384,
+        image_size: int = 224,
+        vision_layers: int = 12,
+        patch_size: int = 32,
+        context_length: int = 77,
+        vocab_size: int = 49408,
+        text_heads: int = 8,
+        text_layers: int = 12,
+        **kwargs
+):
+    filename = "open_clip_config.json"
+    if isinstance(out_path, str):
+        out_path = Path(out_path)
+    out_file = out_path / filename
+
+    if out_file.exists():
+        return None
+
+    cfg: Dict[str, Any] = {
+        "model_cfg": {
+            "embed_dim": embed_dim,
+            "vision_cfg": {
+                "image_size": image_size,
+                "layers": vision_layers,
+                "width": vision_width,
+                "patch_size": patch_size,
+            },
+            "text_cfg": {
+                "context_length": context_length,
+                "vocab_size": vocab_size,
+                "width": text_width,
+                "heads": text_heads,
+                "layers": text_layers,
+            },
+        }
+    }
+
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+
+    with out_file.open("w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=2)
+        f.write("\n")
 
 
 def read_last_json_line(path):

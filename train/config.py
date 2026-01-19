@@ -3,7 +3,7 @@ from enum import Enum
 
 from neps.space import Parameter
 
-from train.spaces import (__HP_SPACE)
+from train.spaces import (__HP_SPACE, __SCALE_SPACE)
 
 
 class Optimizer(Enum):
@@ -42,21 +42,24 @@ HPO_CONFIGS = {
         optimizer=Optimizer.Grid,
         evaluations_to_spend=2,
         pipeline_space={
-            **__HP_SPACE
+            **__HP_SPACE,
+            **__SCALE_SPACE
         },
     ),
     "random": NePSConfig(
         optimizer=Optimizer.Random,
         evaluations_to_spend=30,
         pipeline_space={
-            **__HP_SPACE
+            **__HP_SPACE,
+            **__SCALE_SPACE
         },
     ),
     "experimental": NePSConfig(
         optimizer=Optimizer.Random,
-        evaluations_to_spend=10,
+        evaluations_to_spend=1,
         pipeline_space={
-            **__HP_SPACE
+            **__HP_SPACE,
+            **__SCALE_SPACE
         },
     )
 }

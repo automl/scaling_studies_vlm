@@ -26,7 +26,7 @@ def read_json(path: Path):
 
 
 def extract_zeroshot_acc1(root_dir: Path) -> dict:
-    zero_shot_dir = root_dir / "eval" / "zero_shot"
+    zero_shot_dir = root_dir  / "zero_shot"
 
     out = {
         "cifar10_acc1": None,
@@ -51,7 +51,7 @@ def extract_zeroshot_acc1(root_dir: Path) -> dict:
 
 
 def extract_mscoco_retrieval(root_dir: Path) -> dict:
-    retrieval_dir = root_dir / "eval" / "retrieval"
+    retrieval_dir = root_dir / "retrieval"
 
     out = {
         "mscoco_image_recall@5": None,

@@ -288,7 +288,7 @@ echo "Job execution complete."
         else:
             self.script_path.write_text(script)
 
-    def build_downstream_evaluation_script(self, job_name, root, save_to: Path = None):
+    def build_downstream_evaluation_script(self, job_name, root, model, seed, save_to: Path = None):
         if "train/" in root:
             root = root.replace("train/", "")
         script = f"""#!/bin/bash
@@ -310,7 +310,7 @@ cd "${{TRAIN_DIR}}"
 
 export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
 
-python post_hoc_iterator.py --root {root}
+python post_hoc_iterator.py --root {root} --model {model} --seed {seed}
 """
         if save_to:
             save_to.write_text(script)

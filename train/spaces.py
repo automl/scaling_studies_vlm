@@ -18,9 +18,15 @@ __HP_SPACE = {
 }
 
 __SCALE_SPACE = {
-    "samples_seen": neps.Float(
+    "train_num_samples": neps.Float(
         lower=0.6,
         upper=60,
+    ),
+    "vision_width": neps.Integer(
+        lower=256, upper=512
+    ),
+    "text_width": neps.Integer(
+        lower=32, upper=64  # assuming number of heads is fixed to 8
     ),
 
 }
