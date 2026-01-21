@@ -32,7 +32,7 @@ def build_cmd(config: TrainConfig) -> str:
         "--local-loss",
         "--gather-with-grad",
         "--dataset-type webdataset",
-        "--precision bf16",
+        "--precision amp",
         "--report-to wandb",
         "--wandb-project-name open-clip-scan-space",
     ]

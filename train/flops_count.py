@@ -12,7 +12,7 @@ def main():
     parser.add_argument("--model", required=True)
     parser.add_argument("--train_num_samples", type=int, required=True)
     parser.add_argument("--root_dir", type=str, required=True)
-    parser.add_argument("--precision", default="bf16", type=str, required=False)
+    parser.add_argument("--precision", default="amp", type=str, required=False)
     parser.add_argument("--trial_id", type=int, required=True)
     args = parser.parse_args()
 

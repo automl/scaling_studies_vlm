@@ -7,7 +7,6 @@ def parse_args(args):
     parser.add_argument(
         "--hpo-optimizer",
         type=str,
-        choices=["grid", "random", "experimental"],
         default="experimental",
         help="HPO optimizer type."
     )

@@ -48,7 +48,7 @@ def _build_output_name(dataset: str, epoch: int) -> str:
 def create_default_model(model_str) -> torch.nn.Module:
     return create_model(
         model_str,
-        precision="bf16",
+        precision="amp",
         output_dict=True
     )
 

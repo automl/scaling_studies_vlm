@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from enum import Enum
 
+import neps
 from neps.space import Parameter
 
-from train.spaces import (__HP_SPACE, __SCALE_SPACE)
+from train.spaces import (__HP_SPACE, __SCALE_SPACE, __HP_SPACE_LR_CONSTANT, __SCALE_SPACE_CONSTANT_ViT_S_32)
 
 
 class Optimizer(Enum):
@@ -61,7 +62,18 @@ HPO_CONFIGS = {
             **__HP_SPACE,
             **__SCALE_SPACE
         },
-    )
+    ),
+    "random_ViT-S-32_fixed_lr_307e4_samples": NePSConfig(optimizer=Optimizer.Random,
+                                                         evaluations_to_spend=20,
+                                                         pipeline_space={
+                                                             "lr": neps.Constant(
+                                                                 value=1e-3
+                                                             ),
+                                                             "train_num_samples": neps.Constant(value=3.07),
+                                                             # in million
+                                                             **__HP_SPACE_LR_CONSTANT,
+                                                             **__SCALE_SPACE_CONSTANT_ViT_S_32
+                                                         })
 }
 
 

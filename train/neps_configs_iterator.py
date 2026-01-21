@@ -104,6 +104,9 @@ def build_hp_scale_space(row) -> Dict[str, Any]:
     if hp_scale_space.get("text_width") is not None:
         hp_scale_space["text_width"] = int(hp_scale_space["text_width"]) * 8
 
+    if hp_scale_space.get("vision_width") is not None:
+        hp_scale_space["vision_width"] = int(hp_scale_space["vision_width"]) * 64
+
     if hp_scale_space.get("train_num_samples") is not None:
         hp_scale_space["train_num_samples"] = int(float(hp_scale_space["train_num_samples"]) * 1_000_000)
 
@@ -124,7 +127,7 @@ def generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs):
     os.makedirs(evaluation_scripts_path, exist_ok=True)
     os.makedirs(downstream_evaluation_scripts_path, exist_ok=True)
 
-    precision = "bf16"
+    precision = "amp"
 
     build_model_cfg(out_path=model_cfg_path, **hp_scale_space)
     model_cfg = get_local_model_str(model_cfg_path)

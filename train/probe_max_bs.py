@@ -19,7 +19,7 @@ def parse_args():
     p.add_argument(
         "--precision",
         choices=["amp", "amp_bf16", "amp_bfloat16", "bf16", "fp16", "pure_bf16", "pure_fp16", "fp32"],
-        default="bf16",
+        default="amp",
         required=False,
     )
     p.add_argument(
