@@ -397,6 +397,85 @@ python post_hoc_iterator.py --root "${{ROOT_DIR}}"
         else:
             self.script_path.write_text(script)
 
+    def build_array_script(self,
+                           model_root: str,
+                           logs_root: str,
+                           config_txt: str,
+                           array_size: int,
+                           save_to: Path,
+                           batch_size: int,
+                           seed: int
+                           ) -> None:
+
+        cuda_visible = ",".join(str(i) for i in range(self.gpus_per_node))
+
+        script = f"""#!/bin/bash
+#SBATCH --nodes={self.nodes}
+#SBATCH --gres=gpu:{self.gpus_per_node}
+#SBATCH --ntasks-per-node={self.gpus_per_node}
+#SBATCH --cpus-per-task={self.cpus_per_task}
+#SBATCH --wait-all-nodes=1
+#SBATCH --job-name={self.job_name}
+#SBATCH -p {self.partition}
+#SBATCH --array=1-{array_size}
+
+#SBATCH --output array_job_logs/%x-%A_%a.out
+#SBATCH --error array_job_logs/%x-%A_%a.err
+
+{self.conda_env}
+
+echo "Started at $(date)";
+start=`date +%s`
+
+export CUDA_VISIBLE_DEVICES={cuda_visible}
+export MASTER_PORT=$((12000 + SLURM_ARRAY_TASK_ID % 20000))
+
+master_addr=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
+export MASTER_ADDR=$master_addr
+
+PROJECT_ROOT="/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm"
+TRAIN_DIR="${{PROJECT_ROOT}}/train"
+cd "${{TRAIN_DIR}}"
+export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
+
+CONFIG_TXT="{config_txt}"
+
+LINE=$(sed -n "${{SLURM_ARRAY_TASK_ID}}p" "${{CONFIG_TXT}}")
+[ -z "$LINE" ] && echo "No line for task $SLURM_ARRAY_TASK_ID" && exit 1
+
+read -r TRIAL_ID TRAIN_NUM_SAMPLES LR WD WARMUP <<< "$LINE"
+
+srun --cpu-bind=v --accel-bind=gn python -u -m open_clip_train.main \\
+    --train-data "../pre_training_dataset/laion400m/train_data/{{00000000..00012136}}.tar" \\
+    --val-data "../pre_training_dataset/laion400m/validation_data/{{00000000..00000015}}.tar" \\
+    --test-data "../pre_training_dataset/laion400m/test_data/{{00000000..00000015}}.tar" \\
+    --local-loss \\
+    --gather-with-grad \\
+    --dataset-type webdataset \\
+    --precision amp \\
+    --report-to wandb \\
+    --wandb-project-name open-clip-scan-space \\
+    --model "local-dir:{model_root}/config_${{TRIAL_ID}}" \\
+    --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \\
+    --epochs 1 \\
+    --name "train_trial${{TRIAL_ID}}" \\
+    --logs "{logs_root}" \\
+    --seed {seed} \\
+    --batch-size {batch_size} \\
+    --pipeline-id "${{TRIAL_ID}}" \\
+    --lr "${{LR}}" \\
+    --wd "${{WD}}" \\
+    --warmup-fraction "${{WARMUP}}"
+
+end=`date +%s`
+echo "Ended at $(date)";
+echo "Job execution complete."
+"""
+        if save_to:
+            save_to.write_text(script)
+        else:
+            self.script_path.write_text(script)
+
 
 class BatchSizeSlurmManager(SlurmManager):
     """

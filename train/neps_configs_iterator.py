@@ -1,6 +1,8 @@
 import math
 import os
+import re
 import sys
+from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Any
 
@@ -194,6 +196,9 @@ def generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs):
     if not array_job_downstream_eval_script_path.exists():
         slurm.build_array_job_for_downstream_evaluation(root=logs_dir, nr_total_configs=nr_configs,
                                                         save_to=array_job_downstream_eval_script_path)
+    if int(trial_id) == nr_configs:
+        bundle_train_scripts_in_array_jobs(root_dir=root_dir, logs_dir=logs_dir, train_scripts_dir=Path(scripts_dir),
+                                           seed=args.seed)
 
 
 def get_total_compute(model_cfg, train_num_samples, precision, root_dir, trial_id) -> int:
@@ -236,11 +241,133 @@ def get_total_compute(model_cfg, train_num_samples, precision, root_dir, trial_i
     return total_compute
 
 
+def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, seed: int):
+    root_dir = str(root_dir)
+    logs_dir = str(logs_dir)
+    train_scripts_dir = Path(train_scripts_dir)
+
+    if root_dir.startswith("train/"):
+        root_dir = root_dir[len("train/"):]
+    if logs_dir.startswith("train/"):
+        logs_dir = logs_dir[len("train/"):]
+
+    nodes_re = re.compile(r"^#SBATCH\s+--nodes=(\d+)")
+    gpus_re = re.compile(r"^#SBATCH\s+--gres=gpu:(\d+)")
+    part_re = re.compile(r"^#SBATCH\s+-(?:p)\s+(\S+)|^#SBATCH\s+--partition=(\S+)")
+
+    samples_re = re.compile(r"--train-num-samples\s+([0-9]+(?:\.[0-9]+)?)")
+    bs_re = re.compile(r"--batch-size\s+(\d+)")
+    lr_re = re.compile(r"--lr\s+([0-9eE\.\+\-]+)")
+    wd_re = re.compile(r"--wd\s+([0-9eE\.\+\-]+)")
+    warmup_re = re.compile(r"--warmup-fraction\s+([0-9eE\.\+\-]+)")
+
+    trial_info = {}
+
+    for sh in train_scripts_dir.glob("train_trial*.sh"):
+        m = re.search(r"train_trial(\d+)\.sh$", sh.name)
+        if not m:
+            continue
+        trial_id = int(m.group(1))
+
+        nodes = gpus = part = None
+        samples = bs = None
+        lr = wd = warmup = None
+
+        for line in sh.read_text().splitlines():
+            if nodes is None and (m2 := nodes_re.match(line)):
+                nodes = int(m2.group(1))
+            if gpus is None and (m2 := gpus_re.match(line)):
+                gpus = int(m2.group(1))
+            if part is None and (m2 := part_re.match(line)):
+                part = m2.group(1) or m2.group(2)
+
+            if samples is None and (m2 := samples_re.search(line)):
+                samples = float(m2.group(1))
+            if bs is None and (m2 := bs_re.search(line)):
+                bs = int(m2.group(1))
+            if lr is None and (m2 := lr_re.search(line)):
+                lr = float(m2.group(1))
+            if wd is None and (m2 := wd_re.search(line)):
+                wd = float(m2.group(1))
+            if warmup is None and (m2 := warmup_re.search(line)):
+                warmup = float(m2.group(1))
+
+        trial_info[trial_id] = {
+            "nodes": nodes,
+            "gpus": gpus,
+            "partition": part,
+            "train_num_samples": samples,
+            "batch_size": bs,
+            "lr": lr,
+            "wd": wd,
+            "warmup_fraction": warmup,
+        }
+    groups = group_trials(trial_info)
+    group_to_txt = write_group_configs(trial_info, groups, train_scripts_dir)
+    for (part, bs, gpus, nodes), config_txt in group_to_txt.items():
+        array_size = sum(1 for _ in config_txt.open())
+
+        config_txt = str(config_txt).replace("\\", "/")
+
+        if "train/" in config_txt:
+            config_txt = config_txt.replace("train/", "")
+
+        job_name = f"train_p{part}_bs{bs}_g{gpus}_n{nodes}"
+        slurmManager = SlurmManager(partition=part, gpus_per_node=gpus, nodes=nodes, job_name=job_name)
+
+        save_to = Path(train_scripts_dir) / f"{slurmManager.job_name}.sh"
+
+        slurmManager.build_array_script(
+            model_root=root_dir,
+            logs_root=logs_dir,
+            config_txt=config_txt,
+            array_size=array_size,
+            batch_size=bs,
+            seed=seed,
+            save_to=save_to,
+        )
+
+
+def group_trials(trial_info: dict[int, dict]) -> dict[tuple, list[int]]:
+    groups = defaultdict(list)
+    for tid, info in trial_info.items():
+        key = (info["partition"], info["batch_size"], info["gpus"], info["nodes"])
+        groups[key].append(tid)
+    return {k: sorted(v) for k, v in groups.items()}
+
+
+def write_group_configs(
+        trial_info: dict[int, dict],
+        groups: dict[tuple, list[int]],
+        out_dir: str | Path,
+) -> dict[tuple, Path]:
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    out_paths = {}
+    for (part, bs, gpus, nodes), trial_ids in groups.items():
+        safe_part = "".join(c if c.isalnum() or c in "._" else "_" for c in str(part))
+        p = out_dir / f"train_p{safe_part}_bs{bs}_g{gpus}_n{nodes}.txt"
+
+        with p.open("w", encoding="utf-8") as f:
+            for tid in trial_ids:
+                info = trial_info[tid]
+                f.write(
+                    f"{tid} "
+                    f"{info['train_num_samples']} "
+                    f"{info['lr']} "
+                    f"{info['wd']} "
+                    f"{info['warmup_fraction']}\n"
+                )
+        out_paths[(part, bs, gpus, nodes)] = p
+
+    return out_paths
+
+
 if __name__ == "__main__":
     args = iterator_params.parse_args(sys.argv[1:])
 
     root_dir = args.root_dir
-
     full_df, result = neps.status(root_dir)
     nr_configs = len(full_df)
     for trial_id, row in full_df.iterrows():
