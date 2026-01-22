@@ -36,6 +36,7 @@ __HP_SPACE_LR_CONSTANT = {
     "wd": neps.Float(
         lower=1.0e-6,
         upper=1.0e-1,
+        log=True,
     ),
     "warmup_fraction": neps.Float(
         lower=0.0,

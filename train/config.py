@@ -70,7 +70,16 @@ HPO_CONFIGS = {
                                                                  value=1e-3
                                                              ),
                                                              "train_num_samples": neps.Constant(value=3.07),
-                                                             # in million
+                                                             **__HP_SPACE_LR_CONSTANT,
+                                                             **__SCALE_SPACE_CONSTANT_ViT_S_32
+                                                         }),
+    "random_ViT-S-32_fixed_lr_128e5_samples": NePSConfig(optimizer=Optimizer.Random,
+                                                         evaluations_to_spend=20,
+                                                         pipeline_space={
+                                                             "lr": neps.Constant(
+                                                                 value=1e-3
+                                                             ),
+                                                             "train_num_samples": neps.Constant(value=12.8),
                                                              **__HP_SPACE_LR_CONSTANT,
                                                              **__SCALE_SPACE_CONSTANT_ViT_S_32
                                                          })

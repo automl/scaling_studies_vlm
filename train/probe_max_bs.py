@@ -88,7 +88,7 @@ def find_max_local_bs(
         model, loss_fn, optimizer, scheduler, device, precision, save_to, trial_id,
         image_size: int = 224, text_len: int = 77
 ):
-    candidates = [1024, 512, 256, 128, 64, 32, 16, 8, 4, 2, 1]
+    candidates = [2048, 1024, 512, 256, 128, 64, 32, 16, 8, 4, 2, 1]
     best = 0
 
     for bs in candidates:
