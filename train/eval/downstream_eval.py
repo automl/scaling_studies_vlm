@@ -4,8 +4,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Iterable, Optional, List
 
-from clip_benchmark.cli import main_eval
 from eval.openclip_benchmark_parser import get_parser
+from eval.openclip_benchmark_cli import main_eval
 from utils import find_latest_checkpoint, _build_output_name
 
 
