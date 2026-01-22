@@ -3,7 +3,7 @@ import neps
 __HP_SPACE = {
     "lr": neps.Float(
         lower=1.0e-6,
-        upper=1,
+        upper=1.0e-1,
         log=True,
     ),
     "wd": neps.Float(
@@ -20,7 +20,7 @@ __HP_SPACE = {
 __SCALE_SPACE = {
     "train_num_samples": neps.Float(
         lower=0.6,
-        upper=60,
+        upper=60, # in million
     ),
     "vision_width": neps.Integer(
         lower=4, upper=8  # head width is set to 64 by default. Emb. dim. needs to be divisible by 64!
