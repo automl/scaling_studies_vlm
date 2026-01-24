@@ -321,8 +321,84 @@ class TopKRangeBoxplotter:
                 plt.close(fig)
 
 
+@dataclass(frozen=True)
+class HeatmapSpec:
+    x_hp: str = "warmup_fraction"
+    y_hp: str = "wd"
+    metric: str = "val_loss"
+    agg: str = "mean"
+    log_y: bool = True
+
+
+class HyperparamHeatmapAnalyzer:
+    def __init__(self, df: pd.DataFrame):
+        self.df = df.copy()
+
+    def plot(
+            self,
+            spec: HeatmapSpec,
+            out_path: Optional[Path] = None,
+            title: str = "",
+    ) -> None:
+        data = self.df[[spec.x_hp, spec.y_hp, spec.metric]].copy()
+
+        data[spec.x_hp] = pd.to_numeric(data[spec.x_hp], errors="coerce")
+        data[spec.y_hp] = pd.to_numeric(data[spec.y_hp], errors="coerce")
+        data[spec.metric] = pd.to_numeric(data[spec.metric], errors="coerce")
+        data = data.dropna()
+
+        y_col = spec.y_hp
+        y_label = spec.y_hp
+
+        if spec.log_y and spec.y_hp in ("wd", "lr"):
+            data[f"log10_{spec.y_hp}"] = np.log10(
+                np.clip(data[spec.y_hp].to_numpy(float), np.finfo(float).tiny, None)
+            )
+            y_col = f"log10_{spec.y_hp}"
+            y_label = f"log10({spec.y_hp})"
+
+        grid = (
+            data.pivot_table(
+                index=y_col,
+                columns=spec.x_hp,
+                values=spec.metric,
+                aggfunc=spec.agg,
+            )
+            .sort_index()
+            .sort_index(axis=1)
+        )
+
+        Z = grid.to_numpy()
+
+        fig = plt.figure(figsize=(7.5, 5.5), constrained_layout=True)
+        ax = fig.add_subplot(111)
+
+        im = ax.imshow(Z, aspect="auto", origin="lower")
+        fig.colorbar(im, ax=ax, label=spec.metric)
+
+        ax.set_xlabel(spec.x_hp)
+        ax.set_ylabel(y_label)
+
+        if title:
+            ax.set_title(title)
+        else:
+            ax.set_title(f"{spec.metric} heatmap: {spec.y_hp} vs {spec.x_hp}")
+
+        ax.set_xticks(np.arange(grid.shape[1]))
+        ax.set_yticks(np.arange(grid.shape[0]))
+        ax.set_xticklabels([f"{v:.3g}" for v in grid.columns.to_numpy()], rotation=45, ha="right")
+        ax.set_yticklabels([f"{v:.3g}" for v in grid.index.to_numpy()])
+
+        if out_path is None:
+            plt.show()
+        else:
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(out_path, dpi=160, bbox_inches="tight")
+            plt.close(fig)
+
+
 if __name__ == "__main__":
-    df = load_runs_csv(Path("results/model=ViT-S-32/optimizer=experimental/seed=10/trials_summary.csv"))
+    df = load_runs_csv(Path("results/model=ViT-S-32/optimizer=experimental/seed=1/exp.csv"))
     df = add_log_hp(df)
 
     hp_effect = HyperparamEffectAnalyzer(df)
@@ -376,4 +452,27 @@ if __name__ == "__main__":
         k=k,
         out_dir=Path("hp_analysis_out/ranges_topk_per_hp") / "top10_by_mscoco_image_recall@5",
         title_prefix="ViT-S-32 random search",
+    )
+
+    heat = HyperparamHeatmapAnalyzer(df)
+
+    heat.plot(
+        HeatmapSpec(x_hp="warmup_fraction", y_hp="wd", metric="val_loss", log_y=True),
+        out_path=Path("hp_analysis_out/heatmaps") / "wd_vs_warmup_val_loss.png",
+    )
+    heat.plot(
+        HeatmapSpec(x_hp="warmup_fraction", y_hp="wd", metric="test_loss", log_y=True),
+        out_path=Path("hp_analysis_out/heatmaps") / "wd_vs_warmup_test_loss.png",
+    )
+    heat.plot(
+        HeatmapSpec(x_hp="warmup_fraction", y_hp="wd", metric="imagenet1k_acc1", log_y=True),
+        out_path=Path("hp_analysis_out/heatmaps") / "wd_vs_warmup_imagenet1k_acc1.png",
+    )
+    heat.plot(
+        HeatmapSpec(x_hp="warmup_fraction", y_hp="wd", metric="mscoco_image_recall@5", log_y=True),
+        out_path=Path("hp_analysis_out/heatmaps") / "wd_vs_warmup_mscoco_image_recall@5.png",
+    )
+    heat.plot(
+        HeatmapSpec(x_hp="warmup_fraction", y_hp="wd", metric="mscoco_text_recall@5", log_y=True),
+        out_path=Path("hp_analysis_out/heatmaps") / "wd_vs_warmup_mscoco_text_recall@5.png",
     )

@@ -39,8 +39,8 @@ __HP_SPACE_LR_CONSTANT = {
         log=True,
     ),
     "warmup_fraction": neps.Float(
-        lower=0.0,
-        upper=0.5,
+        lower=0.1,
+        upper=0.65,
     ),
 }
 

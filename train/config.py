@@ -67,7 +67,7 @@ HPO_CONFIGS = {
                                                          evaluations_to_spend=20,
                                                          pipeline_space={
                                                              "lr": neps.Constant(
-                                                                 value=1e-3
+                                                                 value=5e-4
                                                              ),
                                                              "train_num_samples": neps.Constant(value=3.07),
                                                              **__HP_SPACE_LR_CONSTANT,
