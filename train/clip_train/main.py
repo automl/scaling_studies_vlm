@@ -486,16 +486,27 @@ def main(args):
 
     start_time = time.time()
 
-    training_loss = None
-
     for epoch in range(start_epoch, args.epochs):
         if is_master(args):
             logging.info(f'Start epoch {epoch}')
 
+        epoch_start = time.time()
         train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args,
                         tb_writer=writer)
 
         completed_epoch = epoch + 1
+
+        epoch_end = time.time()
+        epoch_duration_seconds = epoch_end - epoch_start
+
+        if is_master(args):
+            append_jsonl(
+                os.path.join(args.checkpoint_path, "train_time.jsonl"),
+                {
+                    "epoch": completed_epoch,
+                    "epoch_training_duration_seconds": epoch_duration_seconds,
+                }
+            )
 
         if any(v in data for v in ('val', 'test', 'imagenet-val', 'imagenet-v2')) & args.eval:
             evaluate(model, data, completed_epoch, args, tb_writer=writer, tokenizer=tokenizer)
@@ -623,6 +634,14 @@ def copy_codebase(args):
     copytree(current_code_path, new_code_path, ignore=ignore_patterns('log', 'logs', 'wandb'))
     print("Done copying code.")
     return 1
+
+
+def append_jsonl(path: str, obj: dict) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(obj) + "\n")
+        f.flush()
+        os.fsync(f.fileno())
 
 
 def evaluate_benchmarks(model, root, seed):

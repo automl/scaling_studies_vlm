@@ -77,18 +77,30 @@ HPO_CONFIGS = {
     "random_ViT-S-32_fixed_lr_128e5_samples": NePSConfig(optimizer=Optimizer.Random,
                                                          evaluations_to_spend=20,
                                                          pipeline_space={
+                                                             **__HP_SPACE_LR_CONSTANT,
+                                                             **__SCALE_SPACE_CONSTANT_ViT_S_32,
                                                              "lr": neps.Constant(
                                                                  value=1e-3
                                                              ),
                                                              "train_num_samples": neps.Constant(value=12.8),
-                                                             **__HP_SPACE_LR_CONSTANT,
-                                                             **__SCALE_SPACE_CONSTANT_ViT_S_32
                                                          }),
     "rs_over_optimizer_params_ViT-S-32_307e4_samples": NePSConfig(optimizer=Optimizer.Random,
                                                                   evaluations_to_spend=20,
                                                                   pipeline_space={
                                                                       **__LR_WD_WARMUP_CONSTANT,
                                                                       "train_num_samples": neps.Constant(value=3.07),
+                                                                      **__SCALE_SPACE_CONSTANT_ViT_S_32,
+                                                                      "beta2": neps.Float(lower=0.98, upper=0.999),
+                                                                      "eps": neps.Float(lower=1e-9, upper=1e-6,
+                                                                                        log=True),
+                                                                  }),
+    "rs_over_optimizer_params_ViT-S-32_128e5_samples": NePSConfig(optimizer=Optimizer.Random,
+                                                                  evaluations_to_spend=20,
+                                                                  pipeline_space={
+                                                                      "lr": neps.Constant(value=1e-3),
+                                                                      "warmup_fraction": neps.Constant(value=0.64),
+                                                                      "wd": neps.Constant(value=1e-6),
+                                                                      "train_num_samples": neps.Constant(value=12.8),
                                                                       **__SCALE_SPACE_CONSTANT_ViT_S_32,
                                                                       "beta2": neps.Float(lower=0.98, upper=0.999),
                                                                       "eps": neps.Float(lower=1e-9, upper=1e-6,
