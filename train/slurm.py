@@ -358,7 +358,7 @@ echo "Job execution complete."
         else:
             self.script_path.write_text(script)
 
-    def build_array_job_for_downstream_evaluation(self, root, nr_total_configs, save_to: Path = None):
+    def build_array_job_for_downstream_evaluation(self, root, nr_total_configs, seed, save_to: Path = None):
         if "train/" in root:
             root = root.replace("train/", "")
         script = f"""#!/bin/bash
@@ -389,7 +389,7 @@ ROOT_DIR={root}"/train_trial${{TRIAL_ID}}"
 echo "Running downstream eval for trial ${{TRIAL_ID}}"
 echo "Root dir: ${{ROOT_DIR}}"
 
-python post_hoc_iterator.py --root "${{ROOT_DIR}}"
+python post_hoc_iterator.py --root "${{ROOT_DIR}}" --seed {seed} --model "local-dir:{root}/model_cfg/config_${{TRIAL_ID}}"
 """
 
         if save_to:
@@ -443,7 +443,9 @@ CONFIG_TXT="{config_txt}"
 LINE=$(sed -n "${{SLURM_ARRAY_TASK_ID}}p" "${{CONFIG_TXT}}")
 [ -z "$LINE" ] && echo "No line for task $SLURM_ARRAY_TASK_ID" && exit 1
 
-read -r TRIAL_ID TRAIN_NUM_SAMPLES LR WD WARMUP <<< "$LINE"
+read -r TRIAL_ID TRAIN_NUM_SAMPLES LR WD WARMUP BETA2 EPS <<< "$LINE"
+
+TRAIN_NUM_SAMPLES=${{TRAIN_NUM_SAMPLES%.*}}
 
 srun --cpu-bind=v --accel-bind=gn python -u -m open_clip_train.main \\
     --train-data "../pre_training_dataset/laion400m/train_data/{{00000000..00012136}}.tar" \\
@@ -455,7 +457,7 @@ srun --cpu-bind=v --accel-bind=gn python -u -m open_clip_train.main \\
     --precision amp \\
     --report-to wandb \\
     --wandb-project-name open-clip-scan-space \\
-    --model "local-dir:{model_root}/config_${{TRIAL_ID}}" \\
+    --model "local-dir:{model_root}/model_cfg/config_${{TRIAL_ID}}" \\
     --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \\
     --epochs 1 \\
     --name "train_trial${{TRIAL_ID}}" \\
@@ -465,7 +467,9 @@ srun --cpu-bind=v --accel-bind=gn python -u -m open_clip_train.main \\
     --pipeline-id "${{TRIAL_ID}}" \\
     --lr "${{LR}}" \\
     --wd "${{WD}}" \\
-    --warmup-fraction "${{WARMUP}}"
+    --warmup-fraction "${{WARMUP}}" \\
+    --beta2 "${{BETA2}}" \\
+    --eps "${{EPS}}"
 
 end=`date +%s`
 echo "Ended at $(date)";

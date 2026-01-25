@@ -15,12 +15,14 @@ __HP_SPACE = {
         lower=0.0,
         upper=0.5,
     ),
+    "beta2": neps.Constant(value=0.98),
+    "eps": neps.Constant(value=1.0e-6)
 }
 
 __SCALE_SPACE = {
     "train_num_samples": neps.Float(
         lower=0.6,
-        upper=60, # in million
+        upper=60,  # in million
     ),
     "vision_width": neps.Integer(
         lower=4, upper=8  # head width is set to 64 by default. Emb. dim. needs to be divisible by 64!
@@ -42,6 +44,20 @@ __HP_SPACE_LR_CONSTANT = {
         lower=0.1,
         upper=0.65,
     ),
+}
+
+__LR_WD_WARMUP_CONSTANT = {
+    "lr": neps.Constant(
+        value=5e-4
+    ),
+    "wd": neps.Constant(
+        value=1.0e-6,
+
+    ),
+    "warmup_fraction": neps.Constant(
+        value=0.5,
+    ),
+
 }
 
 __SCALE_SPACE_CONSTANT_ViT_S_32 = {

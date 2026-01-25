@@ -194,7 +194,7 @@ def generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs):
 
     array_job_downstream_eval_script_path = Path(downstream_evaluation_scripts_path + "/" + array_job_eval_script_name)
     if not array_job_downstream_eval_script_path.exists():
-        slurm.build_array_job_for_downstream_evaluation(root=logs_dir, nr_total_configs=nr_configs,
+        slurm.build_array_job_for_downstream_evaluation(root=logs_dir, nr_total_configs=nr_configs, seed=args.seed,
                                                         save_to=array_job_downstream_eval_script_path)
     if int(trial_id) == nr_configs:
         bundle_train_scripts_in_array_jobs(root_dir=root_dir, logs_dir=logs_dir, train_scripts_dir=Path(scripts_dir),
@@ -260,6 +260,8 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, se
     lr_re = re.compile(r"--lr\s+([0-9eE\.\+\-]+)")
     wd_re = re.compile(r"--wd\s+([0-9eE\.\+\-]+)")
     warmup_re = re.compile(r"--warmup-fraction\s+([0-9eE\.\+\-]+)")
+    beta2_re = re.compile(r"--beta2\s+([0-9eE\.\+\-]+)")
+    eps_re = re.compile(r"--eps\s+([0-9eE\.\+\-]+)")
 
     trial_info = {}
 
@@ -271,7 +273,7 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, se
 
         nodes = gpus = part = None
         samples = bs = None
-        lr = wd = warmup = None
+        lr = wd = warmup = beta2 = eps = None
 
         for line in sh.read_text().splitlines():
             if nodes is None and (m2 := nodes_re.match(line)):
@@ -291,6 +293,10 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, se
                 wd = float(m2.group(1))
             if warmup is None and (m2 := warmup_re.search(line)):
                 warmup = float(m2.group(1))
+            if beta2 is None and (m2 := beta2_re.search(line)):
+                beta2 = float(m2.group(1))
+            if eps is None and (m2 := eps_re.search(line)):
+                eps = float(m2.group(1))
 
         trial_info[trial_id] = {
             "nodes": nodes,
@@ -301,6 +307,8 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, se
             "lr": lr,
             "wd": wd,
             "warmup_fraction": warmup,
+            "beta2": beta2,
+            "eps": eps,
         }
     groups = group_trials(trial_info)
     group_to_txt = write_group_configs(trial_info, groups, train_scripts_dir)
@@ -357,7 +365,9 @@ def write_group_configs(
                     f"{info['train_num_samples']} "
                     f"{info['lr']} "
                     f"{info['wd']} "
-                    f"{info['warmup_fraction']}\n"
+                    f"{info['warmup_fraction']} "
+                    f"{info['beta2']} "
+                    f"{info['eps']}\n"
                 )
         out_paths[(part, bs, gpus, nodes)] = p
 

@@ -4,7 +4,8 @@ from enum import Enum
 import neps
 from neps.space import Parameter
 
-from train.spaces import (__HP_SPACE, __SCALE_SPACE, __HP_SPACE_LR_CONSTANT, __SCALE_SPACE_CONSTANT_ViT_S_32)
+from train.spaces import (__HP_SPACE, __SCALE_SPACE, __HP_SPACE_LR_CONSTANT, __SCALE_SPACE_CONSTANT_ViT_S_32,
+                          __LR_WD_WARMUP_CONSTANT)
 
 
 class Optimizer(Enum):
@@ -82,7 +83,17 @@ HPO_CONFIGS = {
                                                              "train_num_samples": neps.Constant(value=12.8),
                                                              **__HP_SPACE_LR_CONSTANT,
                                                              **__SCALE_SPACE_CONSTANT_ViT_S_32
-                                                         })
+                                                         }),
+    "rs_over_optimizer_params_ViT-S-32_307e4_samples": NePSConfig(optimizer=Optimizer.Random,
+                                                                  evaluations_to_spend=20,
+                                                                  pipeline_space={
+                                                                      **__LR_WD_WARMUP_CONSTANT,
+                                                                      "train_num_samples": neps.Constant(value=3.07),
+                                                                      **__SCALE_SPACE_CONSTANT_ViT_S_32,
+                                                                      "beta2": neps.Float(lower=0.98, upper=0.999),
+                                                                      "eps": neps.Float(lower=1e-9, upper=1e-6,
+                                                                                        log=True),
+                                                                  })
 }
 
 
@@ -100,7 +111,6 @@ class TrainConfig:
         seed: random seed for reproducibility.
     """
 
-    # static fields from args
     model: str
     train_num_samples: str
     epochs: int
@@ -117,6 +127,8 @@ class TrainConfig:
     lr: float
     wd: float
     warmup_fraction: float
+    beta2: float = 0.98
+    eps: float = 1e-6
 
     def __post_init__(self):
         if self.logs and "train/" in self.logs:
