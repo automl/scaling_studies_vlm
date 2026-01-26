@@ -3,7 +3,7 @@ from pathlib import Path
 
 import torch
 
-from open_clip_train.profiler import get_model_flops
+from clip_train.profiler import get_model_flops
 from utils import precision_to_dtype, create_default_model
 
 

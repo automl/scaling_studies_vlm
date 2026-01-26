@@ -216,6 +216,10 @@ def group_by_keys_nothrow(data, keys=base_plus_ext, lcase=True, suffixes=None, h
     current_sample = None
     for filesample in data:
         assert isinstance(filesample, dict)
+        if "fname" not in filesample or "data" not in filesample:
+            if handler is not None:
+                handler(KeyError(f"missing keys in filesample: {list(filesample.keys())}"))
+            continue
         fname, value = filesample["fname"], filesample["data"]
         prefix, suffix = keys(fname)
         if prefix is None:

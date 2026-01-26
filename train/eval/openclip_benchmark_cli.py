@@ -18,7 +18,7 @@ from clip_benchmark.model_collection import (get_model_collection_from_file,
                                              model_collection)
 from clip_benchmark.models import load_clip
 
-from open_clip_train.file_utils import pt_load
+from clip_train.file_utils import pt_load
 
 
 def main_eval(base):

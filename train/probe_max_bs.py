@@ -6,9 +6,9 @@ import torch
 from open_clip import get_input_dtype, ClipLoss
 from torch import optim
 
-from open_clip_train.precision import get_autocast
-from open_clip_train.scheduler import cosine_lr
-from open_clip_train.train import backward, unwrap_model
+from clip_train.precision import get_autocast
+from clip_train.scheduler import cosine_lr
+from clip_train.train import backward, unwrap_model
 from utils import create_default_model
 
 

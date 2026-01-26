@@ -16,8 +16,8 @@ import numpy as np
 import torch
 from eval.downstream_eval import ClipBenchmarkEvaluator
 from eval.downstream_eval import ZeroShotDataset, RetrievalDataset
-from open_clip_train.params import parse_args
-from open_clip_train.profiler import get_model_flops
+from clip_train.params import parse_args
+from clip_train.profiler import get_model_flops
 from torch import optim
 from utils import read_last_json_line
 
@@ -37,12 +37,12 @@ except ImportError:
     hvd = None
 
 from open_clip import create_model_and_transforms, trace_model, get_tokenizer, create_loss
-from open_clip_train.data import get_data
-from open_clip_train.distributed import is_master, init_distributed_device, broadcast_object
-from open_clip_train.logger import setup_logging
-from open_clip_train.scheduler import cosine_lr, const_lr, const_lr_cooldown
-from open_clip_train.train import train_one_epoch, evaluate
-from open_clip_train.file_utils import pt_load, check_exists, start_sync_process, remote_sync
+from clip_train.data import get_data
+from clip_train.distributed import is_master, init_distributed_device, broadcast_object
+from clip_train.logger import setup_logging
+from clip_train.scheduler import cosine_lr, const_lr, const_lr_cooldown
+from clip_train.train import train_one_epoch, evaluate
+from clip_train.file_utils import pt_load, check_exists, start_sync_process, remote_sync
 from utils import precision_to_dtype
 
 LATEST_CHECKPOINT_NAME = "epoch_latest.pt"
