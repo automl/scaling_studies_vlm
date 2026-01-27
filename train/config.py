@@ -115,48 +115,48 @@ HPO_CONFIGS = {
         optimizer=lambda p: neps.algorithms.grid_search(p, size_per_numerical_dimension=3),
         evaluations_to_spend=27,
         pipeline_space={
+            **__HP_SPACE,
+            **__SCALE_SPACE,
             "vision_width": neps.HPOConstant(value=256),
             "text_width": neps.HPOConstant(value=256),
             "text_heads": neps.HPOConstant(value=4),
             "train_num_samples": neps.HPOConstant(value=60.0),
-            **__HP_SPACE,
-            **__SCALE_SPACE,
         }
     ),
     "gs_ViT-Micro-32": NePSConfig(
         optimizer=lambda p: neps.algorithms.grid_search(p, size_per_numerical_dimension=3),
         evaluations_to_spend=27,
         pipeline_space={
+            **__HP_SPACE,
+            **__SCALE_SPACE,
             "vision_width": neps.HPOConstant(value=256),
             "text_width": neps.HPOConstant(value=192),
             "text_heads": neps.HPOConstant(value=4),
             "train_num_samples": neps.HPOConstant(value=60.0),
-            **__HP_SPACE,
-            **__SCALE_SPACE,
         }
     ),
     "gs_ViT-XXS-32": NePSConfig(
         optimizer=lambda p: neps.algorithms.grid_search(p, size_per_numerical_dimension=3),
         evaluations_to_spend=27,
         pipeline_space={
+            **__HP_SPACE,
+            **__SCALE_SPACE,
             "vision_width": neps.HPOConstant(value=192),
             "text_width": neps.HPOConstant(value=192),
             "text_heads": neps.HPOConstant(value=4),
             "train_num_samples": neps.HPOConstant(value=60.0),
-            **__HP_SPACE,
-            **__SCALE_SPACE,
         }
     ),
     "gs_ViT-Tiny-32": NePSConfig(
         optimizer=lambda p: neps.algorithms.grid_search(p, size_per_numerical_dimension=3),
         evaluations_to_spend=27,
         pipeline_space={
+            **__HP_SPACE,
+            **__SCALE_SPACE,
             "vision_width": neps.HPOConstant(value=128),
             "text_width": neps.HPOConstant(value=128),
             "text_heads": neps.HPOConstant(value=4),
             "train_num_samples": neps.HPOConstant(value=60.0),
-            **__HP_SPACE,
-            **__SCALE_SPACE,
         }
     ),
 
