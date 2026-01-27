@@ -583,11 +583,20 @@ def main(args):
         # Calculate model compute
         compute = get_model_flops(model, data["train"].dataloader.num_samples, dtype=precision_to_dtype(args.precision))
 
+        # Read training loss over datapoints if available
+        training_loss_over_datapoints = None
+        loss_over_data_path = os.path.join(args.checkpoint_path, "train_loss_over_data_seen.jsonl")
+        if os.path.exists(loss_over_data_path):
+            with open(loss_over_data_path, "r") as f:
+                training_loss_over_datapoints = [json.loads(line) for line in f if line.strip()]
+
         result = {
             "objective_to_minimize": training_loss,
             "cost": compute,
             "info_dict": {
                 "train_loss": training_loss,
+                "training_loss_over_datapoints": training_loss_over_datapoints,
+                "mparameters": sum(p.numel() for p in model.parameters()),
                 "train_duration_seconds": training_duration_seconds,
                 "validation_loss": validation_loss,
                 "validation_duration_seconds": evaluation_results["val_time_sec"] if evaluation_results else None,

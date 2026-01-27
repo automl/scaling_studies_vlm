@@ -247,6 +247,19 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                 log_data['step'] = step  # for backwards compatibility
                 wandb.log(log_data, step=step)
 
+            import json
+            loss_over_data_path = os.path.join(args.checkpoint_path, "train_loss_over_data_seen.jsonl")
+            os.makedirs(os.path.dirname(loss_over_data_path), exist_ok=True)
+            with open(loss_over_data_path, "a", encoding="utf-8") as f:
+                loss_entry = {
+                    "datapoints_seen": num_samples,
+                    "train_loss": losses_m["loss"].avg,
+                    "epoch": epoch
+                }
+                f.write(json.dumps(loss_entry) + "\n")
+                f.flush()
+                os.fsync(f.fileno())
+
             # resetting batch / data time meters per log window
             batch_time_m.reset()
             data_time_m.reset()

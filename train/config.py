@@ -24,14 +24,19 @@ class NePSConfig:
         pipeline_space: The search space for the pipeline.
     """
 
-    optimizer: Optimizer = None
+    optimizer: Optimizer | callable = None
     pipeline_space: dict[str, Parameter] = None
     evaluations_to_spend: int | None = None
+    size_per_numerical_dimension: int = 5
 
     @property
     def run_args(self) -> dict[str, any]:
+        if isinstance(self.optimizer, Optimizer):
+            opt = self.optimizer.value
+        else:
+            opt = lambda pipeline_space: neps.algorithms.grid_search(pipeline_space, size_per_numerical_dimension=self.size_per_numerical_dimension)
         args = {
-            "optimizer": self.optimizer.value,
+            "optimizer": opt,
             "evaluations_to_spend": self.evaluations_to_spend,
             "pipeline_space": self.pipeline_space,
         }
@@ -67,10 +72,10 @@ HPO_CONFIGS = {
     "random_ViT-S-32_fixed_lr_307e4_samples": NePSConfig(optimizer=Optimizer.Random,
                                                          evaluations_to_spend=20,
                                                          pipeline_space={
-                                                             "lr": neps.Constant(
+                                                             "lr": neps.HPOConstant(
                                                                  value=5e-4
                                                              ),
-                                                             "train_num_samples": neps.Constant(value=3.07),
+                                                             "train_num_samples": neps.HPOConstant(value=3.07),
                                                              **__HP_SPACE_LR_CONSTANT,
                                                              **__SCALE_SPACE_CONSTANT_ViT_S_32
                                                          }),
@@ -79,16 +84,16 @@ HPO_CONFIGS = {
                                                          pipeline_space={
                                                              **__HP_SPACE_LR_CONSTANT,
                                                              **__SCALE_SPACE_CONSTANT_ViT_S_32,
-                                                             "lr": neps.Constant(
+                                                             "lr": neps.HPOConstant(
                                                                  value=1e-3
                                                              ),
-                                                             "train_num_samples": neps.Constant(value=12.8),
+                                                             "train_num_samples": neps.HPOConstant(value=12.8),
                                                          }),
     "rs_over_optimizer_params_ViT-S-32_307e4_samples": NePSConfig(optimizer=Optimizer.Random,
                                                                   evaluations_to_spend=20,
                                                                   pipeline_space={
                                                                       **__LR_WD_WARMUP_CONSTANT,
-                                                                      "train_num_samples": neps.Constant(value=3.07),
+                                                                      "train_num_samples": neps.HPOConstant(value=3.07),
                                                                       **__SCALE_SPACE_CONSTANT_ViT_S_32,
                                                                       "beta2": neps.Float(lower=0.98, upper=0.999),
                                                                       "eps": neps.Float(lower=1e-9, upper=1e-6,
@@ -97,15 +102,68 @@ HPO_CONFIGS = {
     "rs_over_optimizer_params_ViT-S-32_128e5_samples": NePSConfig(optimizer=Optimizer.Random,
                                                                   evaluations_to_spend=20,
                                                                   pipeline_space={
-                                                                      "lr": neps.Constant(value=1e-3),
-                                                                      "warmup_fraction": neps.Constant(value=0.64),
-                                                                      "wd": neps.Constant(value=1e-6),
-                                                                      "train_num_samples": neps.Constant(value=12.8),
+                                                                      "lr": neps.HPOConstant(value=1e-3),
+                                                                      "warmup_fraction": neps.HPOConstant(value=0.64),
+                                                                      "wd": neps.HPOConstant(value=1e-6),
+                                                                      "train_num_samples": neps.HPOConstant(value=12.8),
                                                                       **__SCALE_SPACE_CONSTANT_ViT_S_32,
                                                                       "beta2": neps.Float(lower=0.98, upper=0.999),
                                                                       "eps": neps.Float(lower=1e-9, upper=1e-6,
                                                                                         log=True),
-                                                                  })
+                                                                  }),
+    "gs_ViT-XS-32": NePSConfig(
+        optimizer=Optimizer.Grid,
+        evaluations_to_spend=27,
+        pipeline_space={
+            "vision_width": neps.HPOConstant(value=256),
+            "text_width": neps.HPOConstant(value=256),
+            "text_heads": neps.HPOConstant(value=4),
+            "train_num_samples": neps.HPOConstant(value=60.0),
+            **__HP_SPACE_LR_CONSTANT,
+            **__SCALE_SPACE,
+        },
+        size_per_numerical_dimension=3
+    ),
+    "gs_ViT-Micro-32": NePSConfig(
+        optimizer=Optimizer.Grid,
+        evaluations_to_spend=27,
+        pipeline_space={
+            "vision_width": neps.HPOConstant(value=256),
+            "text_width": neps.HPOConstant(value=192),
+            "text_heads": neps.HPOConstant(value=4),
+            "train_num_samples": neps.HPOConstant(value=60.0),
+            **__HP_SPACE_LR_CONSTANT,
+            **__SCALE_SPACE,
+        },
+        size_per_numerical_dimension=3
+    ),
+    "gs_ViT-XXS-32": NePSConfig(
+        optimizer=Optimizer.Grid,
+        evaluations_to_spend=27,
+        pipeline_space={
+            "vision_width": neps.HPOConstant(value=192),
+            "text_width": neps.HPOConstant(value=192),
+            "text_heads": neps.HPOConstant(value=4),
+            "train_num_samples": neps.HPOConstant(value=60.0),
+            **__HP_SPACE_LR_CONSTANT,
+            **__SCALE_SPACE,
+        },
+        size_per_numerical_dimension=3
+    ),
+    "gs_ViT-Tiny-32": NePSConfig(
+        optimizer=Optimizer.Grid,
+        evaluations_to_spend=27,
+        pipeline_space={
+            "vision_width": neps.HPOConstant(value=128),
+            "text_width": neps.HPOConstant(value=128),
+            "text_heads": neps.HPOConstant(value=4),
+            "train_num_samples": neps.HPOConstant(value=60.0),
+            **__HP_SPACE_LR_CONSTANT,
+            **__SCALE_SPACE,
+        },
+        size_per_numerical_dimension=3
+    ),
+
 }
 
 

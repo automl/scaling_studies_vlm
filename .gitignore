@@ -12,6 +12,7 @@ dist/
 venv/
 env/
 .idea
+.vscode/
 
 # Notebooks
 .ipynb_checkpoints/
@@ -32,3 +33,5 @@ Thumbs.db
 
 *.lock
 features/
+
+optimization/
