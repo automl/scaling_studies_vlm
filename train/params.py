@@ -10,6 +10,12 @@ def parse_args(args):
         default="experimental",
         help="HPO optimizer type."
     )
+    parser.add_argument(
+        "--model",
+        type=str,
+        required=True,
+        help="Model type."
+    )
 
     parser.add_argument(
         "--seed",
