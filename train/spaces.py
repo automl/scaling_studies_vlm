@@ -13,7 +13,7 @@ __HP_SPACE = {
     ),
     "warmup_fraction": neps.Float(
         lower=0.0,
-        upper=0.5,
+        upper=0.75,
     ),
     "beta2": neps.Constant(value=0.98),
     "eps": neps.Constant(value=1.0e-6)

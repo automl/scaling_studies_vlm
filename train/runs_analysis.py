@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-HP_COLS = ["lr", "wd", "warmup_fraction"]
+HP_COLS = ["lr", "wd", "warmup_fraction", "beta2", "eps"]
 
 
 def load_runs_csv(csv_path: Path) -> pd.DataFrame:
@@ -16,7 +16,7 @@ def load_runs_csv(csv_path: Path) -> pd.DataFrame:
 
     numeric_cols = [
         "trial_id",
-        "lr", "wd", "warmup_fraction",
+        "lr", "wd", "warmup_fraction", "beta2", "eps",
         "val_loss", "test_loss", "imagenet1k_acc1",
         "mscoco_image_recall@5",
     ]
@@ -29,8 +29,15 @@ def load_runs_csv(csv_path: Path) -> pd.DataFrame:
 
 def add_log_hp(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
-    out["log10_lr"] = np.log10(out["lr"].clip(lower=np.finfo(float).tiny))
-    out["log10_wd"] = np.log10(out["wd"].clip(lower=np.finfo(float).tiny))
+    if "lr" in out.columns:
+        out["log10_lr"] = np.log10(out["lr"].clip(lower=np.finfo(float).tiny))
+
+    if "wd" in out.columns:
+        out["log10_wd"] = np.log10(out["wd"].clip(lower=np.finfo(float).tiny))
+
+    if "eps" in out.columns:
+        out["log10_eps"] = np.log10(out["eps"].clip(lower=np.finfo(float).tiny))
+
     return out
 
 
@@ -40,7 +47,7 @@ class HyperparamEffectAnalyzer:
 
     def available_hps(self) -> list[str]:
         hps: list[str] = []
-        for hp in ["lr", "wd", "warmup_fraction", "grad_clip_norm"]:
+        for hp in ["lr", "wd", "warmup_fraction", "grad_clip_norm", "beta2", "eps"]:
             if hp in self.df.columns:
                 hps.append(hp)
         return hps
@@ -50,14 +57,26 @@ class HyperparamEffectAnalyzer:
             if "log10_lr" not in self.df.columns:
                 raise ValueError("Missing column 'log10_lr'. Call add_log_hp(df) before plotting lr.")
             return "log10_lr", "log10(lr)"
+
         if hp == "wd":
             if "log10_wd" not in self.df.columns:
                 raise ValueError("Missing column 'log10_wd'. Call add_log_hp(df) before plotting wd.")
             return "log10_wd", "log10(wd)"
+
         if hp == "warmup_fraction":
             return "warmup_fraction", "warmup_fraction"
+
         if hp == "grad_clip_norm":
             return "grad_clip_norm", "grad_clip_norm"
+
+        if hp == "beta2":
+            return "beta2", "beta2"
+
+        if hp == "eps":
+            if "log10_eps" in self.df.columns:
+                return "log10_eps", "log10(eps)"
+            return "eps", "eps"
+
         raise ValueError(f"Unknown hp: {hp}. Expected one of {self.available_hps()}.")
 
     def plot_effect_2x2(
@@ -475,4 +494,25 @@ if __name__ == "__main__":
     heat.plot(
         HeatmapSpec(x_hp="warmup_fraction", y_hp="wd", metric="mscoco_text_recall@5", log_y=True),
         out_path=Path("hp_analysis_out/heatmaps") / "wd_vs_warmup_mscoco_text_recall@5.png",
+    )
+
+    heat.plot(
+        HeatmapSpec(x_hp="beta2", y_hp="eps", metric="val_loss", log_y=True),
+        out_path=Path("hp_analysis_out/heatmaps") / "beta2_vs_eps_val_loss.png",
+    )
+    heat.plot(
+        HeatmapSpec(x_hp="beta2", y_hp="eps", metric="test_loss", log_y=True),
+        out_path=Path("hp_analysis_out/heatmaps") / "beta2_vs_eps_test_loss.png",
+    )
+    heat.plot(
+        HeatmapSpec(x_hp="beta2", y_hp="eps", metric="imagenet1k_acc1", log_y=True),
+        out_path=Path("hp_analysis_out/heatmaps") / "beta2_vs_eps_imagenet1k_acc1.png",
+    )
+    heat.plot(
+        HeatmapSpec(x_hp="beta2", y_hp="eps", metric="mscoco_image_recall@5", log_y=True),
+        out_path=Path("hp_analysis_out/heatmaps") / "beta2_vs_eps_mscoco_image_recall@5.png",
+    )
+    heat.plot(
+        HeatmapSpec(x_hp="beta2", y_hp="eps", metric="mscoco_text_recall@5", log_y=True),
+        out_path=Path("hp_analysis_out/heatmaps") / "beta2_vs_eps_mscoco_text_recall@5.png",
     )
