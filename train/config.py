@@ -119,7 +119,7 @@ HPO_CONFIGS = {
             "text_width": neps.HPOConstant(value=256),
             "text_heads": neps.HPOConstant(value=4),
             "train_num_samples": neps.HPOConstant(value=60.0),
-            **__HP_SPACE_LR_CONSTANT,
+            **__HP_SPACE,
             **__SCALE_SPACE,
         }
     ),
@@ -131,7 +131,7 @@ HPO_CONFIGS = {
             "text_width": neps.HPOConstant(value=192),
             "text_heads": neps.HPOConstant(value=4),
             "train_num_samples": neps.HPOConstant(value=60.0),
-            **__HP_SPACE_LR_CONSTANT,
+            **__HP_SPACE,
             **__SCALE_SPACE,
         }
     ),
@@ -143,7 +143,7 @@ HPO_CONFIGS = {
             "text_width": neps.HPOConstant(value=192),
             "text_heads": neps.HPOConstant(value=4),
             "train_num_samples": neps.HPOConstant(value=60.0),
-            **__HP_SPACE_LR_CONSTANT,
+            **__HP_SPACE,
             **__SCALE_SPACE,
         }
     ),
@@ -155,7 +155,7 @@ HPO_CONFIGS = {
             "text_width": neps.HPOConstant(value=128),
             "text_heads": neps.HPOConstant(value=4),
             "train_num_samples": neps.HPOConstant(value=60.0),
-            **__HP_SPACE_LR_CONSTANT,
+            **__HP_SPACE,
             **__SCALE_SPACE,
         }
     ),
