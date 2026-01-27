@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Union
 
 import neps
 from neps.space import Parameter
@@ -24,17 +25,15 @@ class NePSConfig:
         pipeline_space: The search space for the pipeline.
     """
 
-    optimizer: Optimizer | callable = None
-    pipeline_space: dict[str, Parameter] = None
+    optimizer: Union[Optimizer, callable] = None
     evaluations_to_spend: int | None = None
-    size_per_numerical_dimension: int = 5
 
     @property
     def run_args(self) -> dict[str, any]:
         if isinstance(self.optimizer, Optimizer):
             opt = self.optimizer.value
         else:
-            opt = lambda pipeline_space: neps.algorithms.grid_search(pipeline_space, size_per_numerical_dimension=self.size_per_numerical_dimension)
+            opt = self.optimizer
         args = {
             "optimizer": opt,
             "evaluations_to_spend": self.evaluations_to_spend,
@@ -112,7 +111,7 @@ HPO_CONFIGS = {
                                                                                         log=True),
                                                                   }),
     "gs_ViT-XS-32": NePSConfig(
-        optimizer=Optimizer.Grid,
+        optimizer=lambda pipeline_space: neps.algorithms.grid_search(pipeline_space, size_per_numerical_dimension=3),
         evaluations_to_spend=27,
         pipeline_space={
             "vision_width": neps.HPOConstant(value=256),
@@ -121,11 +120,10 @@ HPO_CONFIGS = {
             "train_num_samples": neps.HPOConstant(value=60.0),
             **__HP_SPACE_LR_CONSTANT,
             **__SCALE_SPACE,
-        },
-        size_per_numerical_dimension=3
+        }
     ),
     "gs_ViT-Micro-32": NePSConfig(
-        optimizer=Optimizer.Grid,
+        optimizer=lambda pipeline_space: neps.algorithms.grid_search(pipeline_space, size_per_numerical_dimension=3)
         evaluations_to_spend=27,
         pipeline_space={
             "vision_width": neps.HPOConstant(value=256),
@@ -134,11 +132,10 @@ HPO_CONFIGS = {
             "train_num_samples": neps.HPOConstant(value=60.0),
             **__HP_SPACE_LR_CONSTANT,
             **__SCALE_SPACE,
-        },
-        size_per_numerical_dimension=3
+        }
     ),
     "gs_ViT-XXS-32": NePSConfig(
-        optimizer=Optimizer.Grid,
+        optimizer=lambda pipeline_space: neps.algorithms.grid_search(pipeline_space, size_per_numerical_dimension=3)
         evaluations_to_spend=27,
         pipeline_space={
             "vision_width": neps.HPOConstant(value=192),
@@ -147,11 +144,10 @@ HPO_CONFIGS = {
             "train_num_samples": neps.HPOConstant(value=60.0),
             **__HP_SPACE_LR_CONSTANT,
             **__SCALE_SPACE,
-        },
-        size_per_numerical_dimension=3
+        }
     ),
     "gs_ViT-Tiny-32": NePSConfig(
-        optimizer=Optimizer.Grid,
+        optimizer=lambda pipeline_space: neps.algorithms.grid_search(pipeline_space, size_per_numerical_dimension=3),
         evaluations_to_spend=27,
         pipeline_space={
             "vision_width": neps.HPOConstant(value=128),
@@ -160,8 +156,7 @@ HPO_CONFIGS = {
             "train_num_samples": neps.HPOConstant(value=60.0),
             **__HP_SPACE_LR_CONSTANT,
             **__SCALE_SPACE,
-        },
-        size_per_numerical_dimension=3
+        }
     ),
 
 }
