@@ -19,14 +19,13 @@ from train.spaces import __HP_SPACE, __SCALE_SPACE
 from train.utils import query_bs, build_model_cfg, get_local_model_str, precision_to_dtype, create_default_model
 
 
-def infer_hardware_setup_and_local_bs(root_dir,
-                                      trial_id,
-                                      precision,
-                                      model_name: str,
-                                      global_batch_size: int,
-                                      max_gpus_per_node: int = 4,
-                                      ):
-    local_bs = probe_max_bs(model_name, precision, trial_id, root_dir)
+def infer_hardware_setup_and_local_bs(
+        precision,
+        model_name: str,
+        global_batch_size: int,
+        max_gpus_per_node: int = 4,
+):
+    local_bs = probe_max_bs(model_name, precision)
 
     if local_bs > global_batch_size:
         local_bs = global_batch_size
@@ -99,8 +98,7 @@ def generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs):
     print(f"global_batch_size: {global_batch_size}")
     gpus_per_node, nodes_nr, local_bs = infer_hardware_setup_and_local_bs(model_name=model_cfg,
                                                                           precision=precision,
-                                                                          global_batch_size=global_batch_size,
-                                                                          root_dir=root_dir, trial_id=trial_id)
+                                                                          global_batch_size=global_batch_size)
 
     print(f"local_bs: {local_bs}")
     print(f"gpus_per_node: {gpus_per_node}")
