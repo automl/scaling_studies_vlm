@@ -54,7 +54,7 @@ HPO_CONFIGS = {
         },
     ),
     "random": NePSConfig(
-        optimizer=Optimizer.Random,
+        optimizer=lambda p: neps.algorithms.random_search(p),
         evaluations_to_spend=30,
         pipeline_space={
             **__HP_SPACE,
@@ -62,14 +62,14 @@ HPO_CONFIGS = {
         },
     ),
     "experimental": NePSConfig(
-        optimizer=Optimizer.Random,
+        optimizer=lambda p: neps.algorithms.random_search(p),
         evaluations_to_spend=1,
         pipeline_space={
             **__HP_SPACE,
             **__SCALE_SPACE
         },
     ),
-    "random_ViT-S-32_fixed_lr_307e4_samples": NePSConfig(optimizer=Optimizer.Random,
+    "random_ViT-S-32_fixed_lr_307e4_samples": NePSConfig(optimizer=lambda p: neps.algorithms.random_search(p),
                                                          evaluations_to_spend=20,
                                                          pipeline_space={
                                                              "lr": neps.HPOConstant(
@@ -79,7 +79,7 @@ HPO_CONFIGS = {
                                                              **__HP_SPACE_LR_CONSTANT,
                                                              **__SCALE_SPACE_CONSTANT_ViT_S_32
                                                          }),
-    "random_ViT-S-32_fixed_lr_128e5_samples": NePSConfig(optimizer=Optimizer.Random,
+    "random_ViT-S-32_fixed_lr_128e5_samples": NePSConfig(optimizer=lambda p: neps.algorithms.random_search(p),
                                                          evaluations_to_spend=20,
                                                          pipeline_space={
                                                              **__HP_SPACE_LR_CONSTANT,
@@ -89,7 +89,7 @@ HPO_CONFIGS = {
                                                              ),
                                                              "train_num_samples": neps.HPOConstant(value=12.8),
                                                          }),
-    "rs_over_optimizer_params_ViT-S-32_307e4_samples": NePSConfig(optimizer=Optimizer.Random,
+    "rs_over_optimizer_params_ViT-S-32_307e4_samples": NePSConfig(optimizer=lambda p: neps.algorithms.random_search(p),
                                                                   evaluations_to_spend=20,
                                                                   pipeline_space={
                                                                       **__LR_WD_WARMUP_CONSTANT,
@@ -99,7 +99,7 @@ HPO_CONFIGS = {
                                                                       "eps": neps.Float(lower=1e-9, upper=1e-6,
                                                                                         log=True),
                                                                   }),
-    "rs_over_optimizer_params_ViT-S-32_128e5_samples": NePSConfig(optimizer=Optimizer.Random,
+    "rs_over_optimizer_params_ViT-S-32_128e5_samples": NePSConfig(optimizer=lambda p: neps.algorithms.random_search(p),
                                                                   evaluations_to_spend=20,
                                                                   pipeline_space={
                                                                       "lr": neps.HPOConstant(value=1e-3),

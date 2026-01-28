@@ -13,7 +13,7 @@ def parse_args(args):
     parser.add_argument(
         "--model",
         type=str,
-        required=True,
+        required=False,
         help="Model type."
     )
 
