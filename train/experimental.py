@@ -107,7 +107,7 @@ def worker_proc(rank, args, root_dir):
 if __name__ == "__main__":
     args = params.parse_args(sys.argv[1:])
 
-    root_dir = f"./train/results/model={args.model}/seed={args.seed}"
+    root_dir = f"/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/train/results/model={args.model}/seed={args.seed}"
 
     print("Starting HPO...")
     start = time()

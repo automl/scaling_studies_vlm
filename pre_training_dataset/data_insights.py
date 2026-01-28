@@ -2,21 +2,6 @@ import sys
 
 import torch
 
-try:
-    import wandb
-except ImportError:
-    wandb = None
-
-try:
-    import torch.utils.tensorboard as tensorboard
-except ImportError:
-    tensorboard = None
-
-try:
-    import horovod.torch as hvd
-except ImportError:
-    hvd = None
-
 from open_clip import create_model_and_transforms, get_tokenizer
 
 from train.open_clip_train.distributed import init_distributed_device

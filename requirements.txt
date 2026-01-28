@@ -6,4 +6,4 @@ hf_xet
 tabulate
 fvcore
 open_clip_torch
-neural-pipeline-search==0.14.0
+git+https://github.com/automl/neps@master

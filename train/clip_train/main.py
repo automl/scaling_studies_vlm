@@ -583,6 +583,13 @@ def main(args):
         # Calculate model compute
         compute = get_model_flops(model, data["train"].dataloader.num_samples, dtype=precision_to_dtype(args.precision))
 
+        # Read training loss over datapoints if available
+        training_loss_over_datapoints = None
+        loss_over_data_path = os.path.join(args.checkpoint_path, "train_loss_over_data_seen.jsonl")
+        if os.path.exists(loss_over_data_path):
+            with open(loss_over_data_path, "r") as f:
+                training_loss_over_datapoints = [json.loads(line) for line in f if line.strip()]
+
         total_mparams = round(count_params(model) / 1e6, 2)
         image_mparams = round(count_params(model.visual) / 1e6, 2)
         text_mparams = round(total_mparams - image_mparams, 2)
@@ -600,6 +607,7 @@ def main(args):
             "cost": compute,
             "info_dict": {
                 "train_loss": training_loss,
+                "training_loss_over_datapoints": training_loss_over_datapoints,
                 "train_duration_seconds": training_duration_seconds,
                 "validation_loss": validation_loss,
                 "validation_duration_seconds": evaluation_results["val_time_sec"] if evaluation_results else None,

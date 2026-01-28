@@ -15,8 +15,8 @@ __HP_SPACE = {
         lower=0.0,
         upper=0.75,
     ),
-    "beta2": neps.Constant(value=0.98),
-    "eps": neps.Constant(value=1.0e-6)
+    "beta2": neps.HPOConstant(value=0.98),
+    "eps": neps.HPOConstant(value=1.0e-6)
 }
 
 __SCALE_SPACE = { # 5.844e8 GFLOPs as max. amount of GFLOPs for our config.
@@ -30,7 +30,7 @@ __SCALE_SPACE = { # 5.844e8 GFLOPs as max. amount of GFLOPs for our config.
     "text_width": neps.Integer(
         lower=32, upper=64  # assuming number of heads is fixed to 8
     ),
-    "text_heads": neps.Constant(value=8)
+    "text_heads": neps.HPOConstant(value=8)
 
 }
 
@@ -47,25 +47,25 @@ __HP_SPACE_LR_CONSTANT = {
 }
 
 __LR_WD_WARMUP_CONSTANT = {
-    "lr": neps.Constant(
+    "lr": neps.HPOConstant(
         value=5e-4
     ),
-    "wd": neps.Constant(
+    "wd": neps.HPOConstant(
         value=1.0e-6,
 
     ),
-    "warmup_fraction": neps.Constant(
+    "warmup_fraction": neps.HPOConstant(
         value=0.5,
     ),
 
 }
 
 __SCALE_SPACE_CONSTANT_ViT_S_32 = {
-    "vision_width": neps.Constant(
+    "vision_width": neps.HPOConstant(
         value=6,
     ),
-    "text_width": neps.Constant(
+    "text_width": neps.HPOConstant(
         value=48,
     ),
-    "text_heads": neps.Constant(value=6)
+    "text_heads": neps.HPOConstant(value=6)
 }
