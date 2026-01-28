@@ -14,10 +14,10 @@ from pathlib import Path
 import neps
 import numpy as np
 import torch
-from eval.downstream_eval import ClipBenchmarkEvaluator
-from eval.downstream_eval import ZeroShotDataset, RetrievalDataset
 from clip_train.params import parse_args
 from clip_train.profiler import get_model_flops
+from eval.downstream_eval import ClipBenchmarkEvaluator
+from eval.downstream_eval import ZeroShotDataset, RetrievalDataset
 from torch import optim
 from utils import read_last_json_line
 
@@ -583,6 +583,18 @@ def main(args):
         # Calculate model compute
         compute = get_model_flops(model, data["train"].dataloader.num_samples, dtype=precision_to_dtype(args.precision))
 
+        total_mparams = round(count_params(model) / 1e6, 2)
+        image_mparams = round(count_params(model.visual) / 1e6, 2)
+        text_mparams = round(total_mparams - image_mparams, 2)
+
+        out_path = Path(args.checkpoint_path) / "model_params.txt"
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with out_path.open("w") as f:
+            f.write(f"total_mparams: {total_mparams}\n")
+            f.write(f"image_mparams: {image_mparams}\n")
+            f.write(f"text_mparams: {text_mparams}\n")
+
         result = {
             "objective_to_minimize": training_loss,
             "cost": compute,
@@ -593,7 +605,10 @@ def main(args):
                 "validation_duration_seconds": evaluation_results["val_time_sec"] if evaluation_results else None,
                 "test_loss": test_loss,
                 "test_duration_seconds": test_duration_seconds,
-                "eval_results": downstream_evaluation_results
+                "eval_results": downstream_evaluation_results,
+                "total_mparams": total_mparams,
+                "image_mparams": image_mparams,
+                "text_mparams": text_mparams
             },
         }
 
@@ -654,6 +669,10 @@ def evaluate_benchmarks(model, root, seed):
         "zero_shot": zero_shot_results,
         "retrieval": retrieval_results
     }
+
+
+def count_params(model):
+    return sum(m.numel() for m in model.parameters())
 
 
 if __name__ == "__main__":
