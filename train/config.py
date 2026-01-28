@@ -105,7 +105,16 @@ HPO_CONFIGS = {
                                                                       "beta2": neps.Float(lower=0.98, upper=0.999),
                                                                       "eps": neps.Float(lower=1e-9, upper=1e-6,
                                                                                         log=True),
-                                                                  })
+                                                                  }),
+    "scale_space_only_search": NePSConfig(optimizer=Optimizer.Random, evaluations_to_spend=20,
+                                          pipeline_space={
+                                              "lr": neps.Constant(
+                                                  value=2e-3
+                                              ),
+                                              "warmup_fraction": neps.Constant(value=0.5),
+                                              "wd": neps.Constant(value=1e-6),
+                                              **__SCALE_SPACE
+                                          })
 }
 
 

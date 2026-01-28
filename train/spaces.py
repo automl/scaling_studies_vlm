@@ -19,7 +19,7 @@ __HP_SPACE = {
     "eps": neps.Constant(value=1.0e-6)
 }
 
-__SCALE_SPACE = {
+__SCALE_SPACE = { # 5.844e8 GFLOPs as max. amount of GFLOPs for our config.
     "train_num_samples": neps.Float(
         lower=0.6,
         upper=60,  # in million

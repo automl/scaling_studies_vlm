@@ -32,3 +32,4 @@ Thumbs.db
 
 *.lock
 features/
+*/hp_analysis*
