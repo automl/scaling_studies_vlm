@@ -330,7 +330,7 @@ python post_hoc_iterator.py --root {root} --model {model} --seed {seed}
 
 #SBATCH --array=1-{nr_total_configs}
 
-#SBATCH --job-name=eval_trial
+#SBATCH --job-name=eval_config
 #SBATCH --output=evaluator_logs/%x-%A_%a.out
 #SBATCH --error=evaluator_logs/%x-%A_%a.err
 
@@ -345,8 +345,8 @@ TRAIN_DIR="${{PROJECT_ROOT}}/train"
 cd "${{TRAIN_DIR}}"
 export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
 
-TRIAL_ID="${{SLURM_ARRAY_TASK_ID}}"
-RUN_NAME="train_trial${{TRIAL_ID}}"
+config_ID="${{SLURM_ARRAY_TASK_ID}}"
+RUN_NAME="train_config${{config_ID}}"
 
 {cmd}
 
@@ -362,7 +362,7 @@ echo "Job execution complete."
         if "train/" in root:
             root = root.replace("train/", "")
         script = f"""#!/bin/bash
-#SBATCH --job-name=downstream_eval_trial
+#SBATCH --job-name=downstream_eval_config
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task={self.cpus_per_task}
@@ -381,15 +381,15 @@ TRAIN_DIR="${{PROJECT_ROOT}}/train"
 cd "${{TRAIN_DIR}}"
 export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
 
-TRIAL_ID="${{SLURM_ARRAY_TASK_ID}}"
-RUN_NAME="train_trial${{TRIAL_ID}}"
+config_ID="${{SLURM_ARRAY_TASK_ID}}"
+RUN_NAME="train_config${{config_ID}}"
 
-ROOT_DIR={root}"/train_trial${{TRIAL_ID}}"
+ROOT_DIR={root}"/train_config${{config_ID}}"
 
-echo "Running downstream eval for trial ${{TRIAL_ID}}"
+echo "Running downstream eval for config ${{config_ID}}"
 echo "Root dir: ${{ROOT_DIR}}"
 
-python post_hoc_iterator.py --root "${{ROOT_DIR}}" --seed {seed} --model "local-dir:{root}/model_cfg/config_${{TRIAL_ID}}"
+python post_hoc_iterator.py --root "${{ROOT_DIR}}" --seed {seed} --model "local-dir:{root}/model_cfg/config_${{config_ID}}"
 """
 
         if save_to:
@@ -443,7 +443,7 @@ CONFIG_TXT="{config_txt}"
 LINE=$(sed -n "${{SLURM_ARRAY_TASK_ID}}p" "${{CONFIG_TXT}}")
 [ -z "$LINE" ] && echo "No line for task $SLURM_ARRAY_TASK_ID" && exit 1
 
-read -r TRIAL_ID TRAIN_NUM_SAMPLES LR WD WARMUP BETA2 EPS <<< "$LINE"
+read -r config_ID TRAIN_NUM_SAMPLES LR WD WARMUP BETA2 EPS <<< "$LINE"
 
 TRAIN_NUM_SAMPLES=${{TRAIN_NUM_SAMPLES%.*}}
 
@@ -457,14 +457,14 @@ srun --cpu-bind=v --accel-bind=gn python -u -m open_clip_train.main \\
     --precision amp \\
     --report-to wandb \\
     --wandb-project-name open-clip-scan-space \\
-    --model "local-dir:{model_root}/model_cfg/config_${{TRIAL_ID}}" \\
+    --model "local-dir:{model_root}/model_cfg/config_${{config_ID}}" \\
     --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \\
     --epochs 1 \\
-    --name "train_trial${{TRIAL_ID}}" \\
+    --name "train_config${{config_ID}}" \\
     --logs "{logs_root}" \\
     --seed {seed} \\
     --batch-size {batch_size} \\
-    --pipeline-id "${{TRIAL_ID}}" \\
+    --pipeline-id "${{config_ID}}" \\
     --lr "${{LR}}" \\
     --wd "${{WD}}" \\
     --warmup-fraction "${{WARMUP}}" \\
