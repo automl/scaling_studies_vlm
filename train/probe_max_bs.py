@@ -1,4 +1,5 @@
 import argparse
+import gc
 import math
 from pathlib import Path
 
@@ -6,15 +7,14 @@ import torch
 from open_clip import get_input_dtype, ClipLoss
 from torch import optim
 
-from clip_train.precision import get_autocast
-from clip_train.scheduler import cosine_lr
-from clip_train.train import backward, unwrap_model
-from utils import create_default_model
+from train.clip_train.precision import get_autocast
+from train.clip_train.scheduler import cosine_lr
+from train.clip_train.train import backward, unwrap_model
+from train.utils import create_default_model
 
 
 def parse_args():
     p = argparse.ArgumentParser()
-    p.add_argument("--partition", required=True)
     p.add_argument("--model", required=True)
     p.add_argument(
         "--precision",
@@ -25,12 +25,12 @@ def parse_args():
     p.add_argument(
         "--save_to",
         default="bs_probe_cache",
-        required=True,
+        required=False,
     )
     p.add_argument(
         "--trial_id",
         type=int,
-        required=True,
+        required=False,
     )
     return p.parse_args()
 
@@ -90,6 +90,7 @@ def find_max_local_bs(
 ):
     candidates = [2048, 1024, 512, 256, 128, 64, 32, 16, 8, 4, 2, 1]
     best = 0
+    images = texts = None
 
     for bs in candidates:
         try:
@@ -112,32 +113,52 @@ def find_max_local_bs(
             )
 
             best = bs
-            if "train/" in save_to:
-                save_to = save_to.replace("train/", "")
+            if save_to and trial_id is not None:
 
-            save_dir = Path(save_to)
-            save_dir.mkdir(parents=True, exist_ok=True)
+                if "train/" in save_to:
+                    save_to = save_to.replace("train/", "")
 
-            out_path = save_dir / f"trial_{trial_id}.txt"
-            out_path.write_text(str(best) + "\n")
-            break
+                save_dir = Path(save_to)
+                save_dir.mkdir(parents=True, exist_ok=True)
+
+                out_path = save_dir / f"trial_{trial_id}.txt"
+                out_path.write_text(str(best) + "\n")
+                break
 
         except RuntimeError as e:
             if "out of memory" in str(e).lower():
                 print(f"batch size {bs} causes out of memory error: {e}")
                 optimizer.zero_grad(set_to_none=True)
-                if torch.cuda.is_available():
-                    torch.cuda.empty_cache()
+                _cuda_cleanup(images, texts)
+
                 continue
             raise
+        finally:
+            _cuda_cleanup(images, texts)
     return best
+
+
+def _cuda_cleanup(*tensors):
+    for t in tensors:
+        try:
+            del t
+        except Exception:
+            pass
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+        torch.cuda.empty_cache()
 
 
 def main():
     args = parse_args()
+    probe_max_bs(args.model, args.precision, args.save_to, args.trial_id)
+
+
+def probe_max_bs(model_str, precision, trial_id=None, save_to=None):
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model = create_default_model(args.model)
+    model = create_default_model(model_str)
     model = model.to(device=device)
 
     exclude = lambda n, p: p.ndim < 2 or "bn" in n or "ln" in n or "bias" in n or 'logit_scale' in n
@@ -165,15 +186,15 @@ def main():
         cache_labels=True,
     )
 
-    find_max_local_bs(
+    return find_max_local_bs(
         model=model,
         loss_fn=loss,
         optimizer=optimizer,
         scheduler=scheduler,
         device=device,
-        precision=args.precision,
-        save_to=args.save_to,
-        trial_id=args.trial_id
+        precision=precision,
+        save_to=save_to,
+        trial_id=trial_id
     )
 
 

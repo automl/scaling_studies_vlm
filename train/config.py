@@ -63,7 +63,7 @@ HPO_CONFIGS = {
     ),
     "experimental": NePSConfig(
         optimizer=Optimizer.Random,
-        evaluations_to_spend=1,
+        evaluations_to_spend=10,
         pipeline_space={
             **__HP_SPACE,
             **__SCALE_SPACE

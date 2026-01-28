@@ -147,7 +147,7 @@ def monotonic_bs(total_compute, batch_size, buffer_gflops=5.0):
     return ranges
 
 
-def load_ranges(path="train/bs_ranges.json"):
+def load_ranges(path="bs_ranges.json"):
     with open(path, "r", encoding="utf-8") as f:
         ranges = json.load(f)
 

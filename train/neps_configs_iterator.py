@@ -1,3 +1,4 @@
+import gc
 import math
 import os
 import re
@@ -7,67 +8,25 @@ from pathlib import Path
 from typing import Dict, Any
 
 import neps
+import torch
 
 from train import iterator_params
+from train.clip_train.profiler import get_model_flops
 from train.config import TrainConfig, EvalConfig
-from train.slurm import SlurmManager, build_srun_cmd, BatchSizeSlurmManager, build_eval_cmd, eval_array_job_cmd, \
-    FLOPsSlurmManager
+from train.probe_max_bs import probe_max_bs
+from train.slurm import SlurmManager, build_srun_cmd, build_eval_cmd, eval_array_job_cmd
 from train.spaces import __HP_SPACE, __SCALE_SPACE
-from train.utils import query_bs, build_model_cfg, get_local_model_str
-
-
-def infer_local_bs(partition: str,
-                   model_name: str,
-                   root_dir: str,
-                   trial_id: int
-                   ) -> int:
-    job_name = f"trial{trial_id}_max_local_bs_probe"
-
-    scripts_dir = Path(root_dir + "/bs_probing_scripts")
-    scripts_dir.mkdir(parents=True, exist_ok=True)
-
-    current_script_path = scripts_dir / f"trial{trial_id}.sh"
-
-    batch_size_slurm_manager = BatchSizeSlurmManager(partition=partition, job_name=job_name)
-
-    if "train/" in model_name:
-        model_name = model_name.replace("train/", "")
-
-    cmd = (
-        f'python probe_max_bs.py '
-        f'--partition "{partition}" '
-        f'--model "{model_name}" '
-        f'--save_to "{scripts_dir}" '
-        f'--trial_id {trial_id}'
-    )
-
-    batch_size_slurm_manager.build_script(cmd=cmd, save_to=current_script_path)
-    batch_size_slurm_manager.submit_without_build(script_path=current_script_path)
-
-    bs_txt_file = scripts_dir / f"trial_{trial_id}.txt"
-    if not bs_txt_file.exists():
-        raise FileNotFoundError(
-            f"Batch size output file was not found: {bs_txt_file}"
-        )
-
-    raw = bs_txt_file.read_text().strip()
-
-    try:
-        best_bs = int(raw)
-    except ValueError:
-        best_bs = int(float(raw))
-
-    return best_bs
+from train.utils import query_bs, build_model_cfg, get_local_model_str, precision_to_dtype, create_default_model
 
 
 def infer_hardware_setup_and_local_bs(root_dir,
                                       trial_id,
+                                      precision,
                                       model_name: str,
-                                      partition: str,
                                       global_batch_size: int,
                                       max_gpus_per_node: int = 4,
                                       ):
-    local_bs = infer_local_bs(partition=partition, model_name=model_name, root_dir=root_dir, trial_id=trial_id)
+    local_bs = probe_max_bs(model_name, precision, trial_id, root_dir)
 
     if local_bs > global_batch_size:
         local_bs = global_batch_size
@@ -134,12 +93,12 @@ def generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs):
     build_model_cfg(out_path=model_cfg_path, **hp_scale_space)
     model_cfg = get_local_model_str(model_cfg_path)
 
-    total_compute = get_total_compute(model_cfg, hp_scale_space.get("train_num_samples"), precision, root_dir, trial_id)
+    total_compute = get_total_compute(model_cfg, hp_scale_space.get("train_num_samples"), precision)
     print(f"total_compute: {total_compute}")
     global_batch_size = query_bs(total_compute)
     print(f"global_batch_size: {global_batch_size}")
     gpus_per_node, nodes_nr, local_bs = infer_hardware_setup_and_local_bs(model_name=model_cfg,
-                                                                          partition=args.partition,
+                                                                          precision=precision,
                                                                           global_batch_size=global_batch_size,
                                                                           root_dir=root_dir, trial_id=trial_id)
 
@@ -201,44 +160,22 @@ def generate_scripts_per_config(trial_id, row, root_dir, args, nr_configs):
                                            seed=args.seed)
 
 
-def get_total_compute(model_cfg, train_num_samples, precision, root_dir, trial_id) -> int:
-    flops_scripts_path = Path(root_dir + "/" + "flops_scripts")
-    os.makedirs(flops_scripts_path, exist_ok=True)
-    current_script_path = flops_scripts_path / f"trial{trial_id}.sh"
-    job_name = f"trial{trial_id}_total_compute"
-
-    cmd_parts = [
-        f'--model {model_cfg}',
-        f'--train_num_samples {str(train_num_samples)}',
-        f'--precision {precision}',
-        f'--root_dir {str(flops_scripts_path)}',
-        f'--trial_id {trial_id}',
-    ]
-
-    cmd = (
-            "python flops_count.py \\\n    "
-            + " \\\n    ".join(cmd_parts)
-    )
-
-    flops_slurm_manager = FLOPsSlurmManager(partition=args.partition, job_name=job_name)
-    flops_slurm_manager.build_script(cmd, save_to=current_script_path)
-    flops_slurm_manager.submit_without_build(script_path=current_script_path)
-
-    flops_txt_path = flops_scripts_path / f"trial_{trial_id}.txt"
-    if not flops_txt_path.exists():
-        raise FileNotFoundError(
-            f"FLOPs output file was not created: {flops_txt_path}\n"
-            f"Slurm script: {current_script_path}"
-        )
-
-    raw = flops_txt_path.read_text().strip()
-
+def get_total_compute(model_str, train_num_samples, precision) -> int:
+    model = create_default_model(model_str)
+    if torch.cuda.is_available():
+        model = model.cuda()
     try:
-        total_compute = int(raw)
-    except ValueError:
-        total_compute = int(float(raw))
-
-    return total_compute
+        return get_model_flops(
+            model,
+            train_num_samples,
+            dtype=precision_to_dtype(precision),
+        )
+    finally:
+        del model
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
+            torch.cuda.empty_cache()
 
 
 def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, seed: int):
