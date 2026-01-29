@@ -23,8 +23,7 @@ def infer_hardware_setup_and_local_bs(
         global_batch_size: int,
         max_gpus_per_node: int = 4,
 ):
-    # local_bs = probe_max_bs(model_name, precision)
-    local_bs = 30
+    local_bs = probe_max_bs(model_name, precision)
 
     if local_bs > global_batch_size:
         local_bs = global_batch_size
@@ -111,7 +110,6 @@ def compute_batch_and_resources(
 
 
 def get_total_compute(model_str, train_num_samples, precision) -> int:
-    return 10
     model = create_default_model(model_str)
     if torch.cuda.is_available():
         model = model.cuda()
