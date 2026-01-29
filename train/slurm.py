@@ -68,12 +68,11 @@ def eval_cmd(config: EvalConfig) -> str:
     return cmd_parts
 
 
-def eval_array_job_cmd(model_name, seed, logs_dir):
+def eval_array_job_cmd(seed, logs_dir):
     cmd_parts = eval_cmd_parts.copy()
     if "train/" in logs_dir:
         logs_dir = logs_dir.replace("train/", "")
 
-    cmd_parts.append(f"--model {model_name}")
     cmd_parts.append(f"--seed {seed}")
     cmd_parts.append(f"--logs {logs_dir}")
 
@@ -318,13 +317,15 @@ python post_hoc_iterator.py --root {root} --model {model} --seed {seed}
         else:
             self.script_path.write_text(script)
 
-    def build_array_job_for_evaluation(self, cmd: str, nr_total_configs, save_to: Path = None):
+    def build_array_job_for_evaluation(self, cmd: str, models_cfg_dir, nr_total_configs, save_to: Path = None):
+        model_name = f'local-dir:{models_cfg_dir}/config_${{SLURM_ARRAY_TASK_ID}}'
+
         cmd = cmd.strip()
-        cmd = f'{cmd} \\\n    --name "${{RUN_NAME}}"'
+        cmd = f'{cmd} \\\n    --model "{model_name}" \\\n    --name "${{RUN_NAME}}"'
 
         script = f"""#!/bin/bash
-#SBATCH --nodes=1
-#SBATCH --gres=gpu:1
+#SBATCH --nodes={self.nodes}
+#SBATCH --gres=gpu:{self.gpus_per_node}
 #SBATCH --cpus-per-task={self.cpus_per_task}
 #SBATCH -p {self.partition}
 
@@ -345,8 +346,8 @@ TRAIN_DIR="${{PROJECT_ROOT}}/train"
 cd "${{TRAIN_DIR}}"
 export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
 
-config_ID="${{SLURM_ARRAY_TASK_ID}}"
-RUN_NAME="train_config${{config_ID}}"
+CONFIG_ID="${{SLURM_ARRAY_TASK_ID}}"
+RUN_NAME="train_config${{CONFIG_ID}}"
 
 {cmd}
 
@@ -358,9 +359,10 @@ echo "Job execution complete."
         else:
             self.script_path.write_text(script)
 
-    def build_array_job_for_downstream_evaluation(self, root, nr_total_configs, seed, save_to: Path = None):
+    def build_array_job_for_downstream_evaluation(self, root, models_cfg_dir, nr_total_configs, seed, save_to: Path = None):
         if "train/" in root:
             root = root.replace("train/", "")
+        model_name = f'"local-dir:{models_cfg_dir}/config_${{SLURM_ARRAY_TASK_ID}}"'
         script = f"""#!/bin/bash
 #SBATCH --job-name=downstream_eval_config
 #SBATCH --nodes=1
@@ -389,7 +391,7 @@ ROOT_DIR={root}"/train_config${{config_ID}}"
 echo "Running downstream eval for config ${{config_ID}}"
 echo "Root dir: ${{ROOT_DIR}}"
 
-python post_hoc_iterator.py --root "${{ROOT_DIR}}" --seed {seed} --model "local-dir:{root}/model_cfg/config_${{config_ID}}"
+python post_hoc_iterator.py --root "${{ROOT_DIR}}" --seed {seed} --model {model_name}
 """
 
         if save_to:
