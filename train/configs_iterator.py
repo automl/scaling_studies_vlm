@@ -127,7 +127,7 @@ def get_total_compute(model_str, train_num_samples, precision) -> int:
             torch.cuda.empty_cache()
 
 
-def generate_scripts_per_config(config_id, row, root_dir, args, nr_configs):
+def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_name):
     precision = "amp"
     scan_space = build_scan_space(row)
 
@@ -160,6 +160,7 @@ def generate_scripts_per_config(config_id, row, root_dir, args, nr_configs):
         slurmManager=slurm,
         logs_dir=logs_dir,
         train_scripts_dir=scripts_dir,
+        wandb_project_name=wandb_project_name
     )
 
     generate_eval_script(
@@ -183,7 +184,7 @@ def generate_scripts_per_config(config_id, row, root_dir, args, nr_configs):
 
 def generate_train_script(model_cfg, local_bs, config_id, logs_dir, train_scripts_dir,
                           hp_space_train_num_samples, seed,
-                          slurmManager):
+                          slurmManager, wandb_project_name):
     config = TrainConfig(
         model=model_cfg,
         seed=seed,
@@ -196,7 +197,7 @@ def generate_train_script(model_cfg, local_bs, config_id, logs_dir, train_script
         **hp_space_train_num_samples,
     )
 
-    cmd = build_srun_cmd(config)
+    cmd = build_srun_cmd(config, wandb_project_name)
 
     script_name = slurmManager.job_name + ".sh"
     script_path = Path(train_scripts_dir + "/" + script_name)
@@ -251,6 +252,6 @@ if __name__ == "__main__":
     nr_configs = len(full_df)
     for config_id, row in full_df.iterrows():
         try:
-            generate_scripts_per_config(config_id, row, root_dir, args, nr_configs)
+            generate_scripts_per_config(config_id, row, root_dir, args, args.wandb_project_name)
         except Exception as e:
             print(e)

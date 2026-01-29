@@ -22,7 +22,7 @@ eval_cmd_parts = [
 ]
 
 
-def build_cmd(config: TrainConfig) -> str:
+def build_cmd(config: TrainConfig, wandb_project_name) -> str:
     args = asdict(config)
 
     cmd_parts = [
@@ -34,7 +34,7 @@ def build_cmd(config: TrainConfig) -> str:
         "--dataset-type webdataset",
         "--precision amp",
         "--report-to wandb",
-        "--wandb-project-name open-clip-scan-space",
+        f'--wandb-project-name "{wandb_project_name}"',
     ]
 
     for key, value in args.items():
@@ -92,8 +92,8 @@ def build_eval_cmd(config: EvalConfig) -> str:
     )
 
 
-def build_srun_cmd(config: TrainConfig) -> str:
-    cmd_parts = build_cmd(config)
+def build_srun_cmd(config: TrainConfig, wandb_project_name) -> str:
+    cmd_parts = build_cmd(config, wandb_project_name)
 
     return (
             "srun --cpu-bind=v --accel-bind=gn "

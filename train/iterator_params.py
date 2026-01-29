@@ -7,8 +7,15 @@ def parse_args(args):
     parser.add_argument(
         "--root_dir",
         type=str,
-        default="",
         help="NePs root directory to iterate over.",
+        required=True,
+    )
+
+    parser.add_argument(
+        "--wandb_project_name",
+        type=str,
+        default="scan-space",
+        help="Wandb project name.",
     )
 
     parser.add_argument(
