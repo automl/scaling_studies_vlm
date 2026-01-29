@@ -127,7 +127,7 @@ def get_total_compute(model_str, train_num_samples, precision) -> int:
             torch.cuda.empty_cache()
 
 
-def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_name):
+def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_name, workspace_dir):
     precision = "amp"
     scan_space = build_scan_space(row)
 
@@ -149,7 +149,7 @@ def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_na
 
     slurm = SlurmManager(job_name=job_name, partition=args.partition, nodes=nodes_nr,
                          gpus_per_node=gpus_per_node,
-                         root_dir=root_dir)
+                         root_dir=root_dir, workspace_dir=workspace_dir)
 
     generate_train_script(
         config_id=config_id,
@@ -252,6 +252,6 @@ if __name__ == "__main__":
     nr_configs = len(full_df)
     for config_id, row in full_df.iterrows():
         try:
-            generate_scripts_per_config(config_id, row, root_dir, args, args.wandb_project_name)
+            generate_scripts_per_config(config_id, row, root_dir, args, args.wandb_project_name, args.workspace_dir)
         except Exception as e:
             print(e)

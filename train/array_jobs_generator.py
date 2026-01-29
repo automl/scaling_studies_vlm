@@ -68,7 +68,7 @@ def generate_downstream_eval_array_script(
     )
 
 
-def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs: int):
+def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs: int, workspace_dir: str):
     logs_dir, evaluation_scripts_dir, downstream_evaluation_scripts_dir, models_cfg_dir, train_scripts_dir = create_directories(
         root_dir)
 
@@ -78,6 +78,7 @@ def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs:
         nodes=1,
         gpus_per_node=1,
         root_dir=root_dir,
+        workspace_dir=workspace_dir
     )
 
     generate_eval_array_script(
@@ -247,4 +248,5 @@ if __name__ == "__main__":
         seed=args.seed,
         partition=args.partition,
         nr_configs=nr_configs,
+        workspace_dir=args.workspace_dir
     )

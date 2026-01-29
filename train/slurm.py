@@ -122,6 +122,7 @@ class SlurmManager:
             cpus_per_task: int = 8,
             mem_gb: int = 32,
             root_dir: Path | str = ".",
+            workspace_dir: str = ".",
     ) -> None:
         """
         Manager to create and submit Slurm batch jobs.
@@ -143,6 +144,7 @@ class SlurmManager:
         self.cpus_per_task = cpus_per_task
         self.mem_gb = mem_gb
         self.script_path = Path(root_dir) / "train.sh"
+        self.workspace_dir = workspace_dir
 
     def build_script(
             self,
@@ -187,7 +189,7 @@ export MASTER_PORT=12802
 master_addr=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
 export MASTER_ADDR=$master_addr
 
-PROJECT_ROOT="/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm"
+PROJECT_ROOT="{self.workspace_dir}"
 TRAIN_DIR="${{PROJECT_ROOT}}/train"
 
 cd "${{TRAIN_DIR}}"
@@ -271,7 +273,7 @@ echo "Job execution complete."
 
 echo "Started at $(date)";
 
-PROJECT_ROOT="/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm"
+PROJECT_ROOT="{self.workspace_dir}"
 TRAIN_DIR="${{PROJECT_ROOT}}/train"
 
 cd "${{TRAIN_DIR}}"
@@ -303,7 +305,7 @@ echo "Job execution complete."
 
 {self.conda_env}
 
-PROJECT_ROOT="/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm"
+PROJECT_ROOT="{self.workspace_dir}"
 TRAIN_DIR="${{PROJECT_ROOT}}/train"
 
 cd "${{TRAIN_DIR}}"
@@ -340,7 +342,7 @@ python post_hoc_iterator.py --root {root} --model {model} --seed {seed}
 echo "Started at $(date)"
 echo "Array task id: ${{SLURM_ARRAY_TASK_ID}}"
 
-PROJECT_ROOT="/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm"
+PROJECT_ROOT="{self.workspace_dir}"
 TRAIN_DIR="${{PROJECT_ROOT}}/train"
 
 cd "${{TRAIN_DIR}}"
@@ -359,7 +361,8 @@ echo "Job execution complete."
         else:
             self.script_path.write_text(script)
 
-    def build_array_job_for_downstream_evaluation(self, root, models_cfg_dir, nr_total_configs, seed, save_to: Path = None):
+    def build_array_job_for_downstream_evaluation(self, root, models_cfg_dir, nr_total_configs, seed,
+                                                  save_to: Path = None):
         if "train/" in root:
             root = root.replace("train/", "")
         model_name = f'"local-dir:{models_cfg_dir}/config_${{SLURM_ARRAY_TASK_ID}}"'
@@ -377,7 +380,7 @@ echo "Job execution complete."
 
 {self.conda_env}
 
-PROJECT_ROOT="/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm"
+PROJECT_ROOT="{self.workspace_dir}"
 TRAIN_DIR="${{PROJECT_ROOT}}/train"
 
 cd "${{TRAIN_DIR}}"
@@ -435,7 +438,7 @@ export MASTER_PORT=$((12000 + SLURM_ARRAY_TASK_ID % 20000))
 master_addr=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
 export MASTER_ADDR=$master_addr
 
-PROJECT_ROOT="/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm"
+PROJECT_ROOT="{self.workspace_dir}"
 TRAIN_DIR="${{PROJECT_ROOT}}/train"
 cd "${{TRAIN_DIR}}"
 export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
