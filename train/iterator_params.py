@@ -40,5 +40,19 @@ def parse_args(args):
         help="which partition to use for training",
     )
 
+    parser.add_argument(
+        "--worker_id",
+        type=int,
+        default=0,
+        help="Seed for reproducibility.",
+    )
+
+    parser.add_argument(
+        "--num_workers",
+        type=int,
+        default=4,  # match juwels
+        help="Number of GPUs that will be used to generate scripts.",
+    )
+
     args = parser.parse_args(args)
     return args

@@ -23,7 +23,8 @@ def infer_hardware_setup_and_local_bs(
         global_batch_size: int,
         max_gpus_per_node: int = 4,
 ):
-    local_bs = probe_max_bs(model_name, precision)
+    # local_bs = probe_max_bs(model_name, precision)
+    local_bs = 30
 
     if local_bs > global_batch_size:
         local_bs = global_batch_size
@@ -110,6 +111,7 @@ def compute_batch_and_resources(
 
 
 def get_total_compute(model_str, train_num_samples, precision) -> int:
+    return 10
     model = create_default_model(model_str)
     if torch.cuda.is_available():
         model = model.cuda()
@@ -250,8 +252,7 @@ if __name__ == "__main__":
     root_dir = args.root_dir
     full_df, result = neps.status(root_dir)
     nr_configs = len(full_df)
-    for config_id, row in full_df.iterrows():
-        try:
-            generate_scripts_per_config(config_id, row, root_dir, args, args.wandb_project_name, args.workspace_dir)
-        except Exception as e:
-            print(e)
+    for i, (config_id, row) in enumerate(full_df.iterrows()):
+        if i % args.num_workers != args.worker_id:
+            continue
+        generate_scripts_per_config(config_id, row, root_dir, args, args.wandb_project_name, args.workspace_dir)
