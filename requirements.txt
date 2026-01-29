@@ -7,3 +7,4 @@ tabulate
 fvcore
 open_clip_torch
 git+https://github.com/automl/neps@master
+tenacity==9.1.2
