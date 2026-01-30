@@ -83,6 +83,17 @@ def fetch_scale_parameters(config_dir: Path) -> dict:
     with config_path.open("r") as f:
         return yaml.safe_load(f) or {}
 
+def fetch_total_compute_and_nparams(config_dir: Path) -> dict:
+    config_path = config_dir / "report.yaml"
+    if not config_path.is_file():
+        return {}
+    with config_path.open("r") as f:
+        data = yaml.safe_load(f) or {}
+
+    return {
+        "Total compute(GLOPs)": data.get("cost"),
+        "mparams": data.get("extra", {}).get("mparameters"),
+    }
 
 def fetch_losses(checkpoints_dir: Path) -> dict:
     out = {"train_loss": None, "val_loss": None, "test_loss": None}
@@ -134,6 +145,7 @@ if __name__ == "__main__":
             **fetch_losses(checkpoints_dir),
             **fetch_downstream_eval_results(downstream_eval_path),
             **fetch_scale_parameters(config_dir),
+            **fetch_total_compute_and_nparams(config_dir)
         }
         rows.append(row)
 
