@@ -1,6 +1,7 @@
 import argparse
 import gc
 import math
+import os
 
 import torch
 from open_clip import get_input_dtype, ClipLoss
@@ -253,12 +254,17 @@ def print_vram(prefix=""):
     free = total - reserved
 
     print(
+        f"PID={os.getpid()} "
+        f"CUDA_VISIBLE_DEVICES={os.environ.get('CUDA_VISIBLE_DEVICES')} "
+        f"PCI_BUS_ID={props.pci_bus_id} "
+        f"GPU={props.name} "
         f"{prefix} VRAM | "
         f"total: {total:.2f} GB | "
         f"allocated: {allocated:.2f} GB | "
         f"reserved: {reserved:.2f} GB | "
         f"free (est.): {free:.2f} GB"
     )
+
 
 
 if __name__ == "__main__":

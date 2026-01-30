@@ -1,15 +1,31 @@
 #!/bin/bash
 #SBATCH --nodes=1
-#SBATCH --gres=gpu:4
-#SBATCH --ntasks-per-node=4
-#SBATCH -p testdlc2_l40s
+#SBATCH --gres=gpu:2
+#SBATCH --ntasks-per-node=2
+#SBATCH -p testdlc2_gpu-l40s
 #SBATCH --job-name=individual_scripts_builder
 
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+#SBATCH --output configs_iterator_logs/%x-%A.out   # STDOUT  %x and %A will be replaced by the job name and job id, respectively. short: -o logs/%x-%A-job_name.out
+#SBATCH --error configs_iterator_logs/%x-%A.err    # STDERR  short: -e logs/%x-%A-job_name.out
 
-srun --gpus-per-task=1 --cpu-bind=cores python -u configs_iterator.py \
-    --root_dir results/optimizer=experimental/seed=2 \
-    --seed 2 \
-    --partition testdlc2_l40s \
-    --worker_id $SLURM_PROCID \
-    --num_workers $SLURM_NTASKS
+source ~/miniconda3/bin/activate
+conda activate test_scaling_laws
+
+echo "Started at $(date)";
+
+# Running the job
+start=`date +%s`
+srun -n $SLURM_NTASKS --gpus-per-task=1 \
+     --gpu-bind=single:1 bash -lc '
+python -u configs_iterator.py \
+  --root_dir results/optimizer=experimental/seed=0 \
+  --seed 0 \
+  --worker_id $SLURM_PROCID \
+  --num_workers $SLURM_NTASKS
+'
+
+end=`date +%s`
+runtime=$((end-start))
+
+echo "Ended at $(date)";
+echo Job execution complete.

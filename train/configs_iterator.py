@@ -253,4 +253,9 @@ if __name__ == "__main__":
     for i, (config_id, row) in enumerate(full_df.iterrows()):
         if i % args.num_workers != args.worker_id:
             continue
+        print(
+            f"[worker {args.worker_id}/{args.num_workers}] "
+            f"processing index {i} | config_id={config_id} | "
+            f"total_configs={nr_configs}"
+        )
         generate_scripts_per_config(config_id, row, root_dir, args, args.wandb_project_name, args.workspace_dir)
