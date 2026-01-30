@@ -8,13 +8,13 @@ from typing import Dict, Any, Tuple
 import neps
 import torch
 
-from train import iterator_params
-from train.clip_train.profiler import get_model_flops
-from train.config import TrainConfig, EvalConfig
-from train.probe_max_bs import probe_max_bs
-from train.slurm import SlurmManager, build_srun_cmd, build_eval_cmd
-from train.spaces import __HP_SPACE, __SCALE_SPACE
-from train.utils import query_bs, build_model_cfg, get_local_model_str, precision_to_dtype, create_default_model
+import iterator_params
+from clip_train.profiler import get_model_flops
+from config import TrainConfig, EvalConfig
+from probe_max_bs import probe_max_bs
+from slurm import SlurmManager, build_srun_cmd, build_eval_cmd
+from spaces import __HP_SPACE, __SCALE_SPACE
+from utils import query_bs, build_model_cfg, get_local_model_str, precision_to_dtype, create_default_model
 
 
 def infer_hardware_setup_and_local_bs(

@@ -3,7 +3,7 @@ from dataclasses import asdict
 from enum import Enum
 from pathlib import Path
 
-from train.config import TrainConfig, EvalConfig
+from config import TrainConfig, EvalConfig
 
 
 class DatasetShards(str, Enum):

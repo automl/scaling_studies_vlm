@@ -5,7 +5,7 @@ from typing import Union
 import neps
 from neps.space import Parameter
 
-from train.spaces import (__HP_SPACE, __SCALE_SPACE, __HP_SPACE_LR_CONSTANT, __SCALE_SPACE_CONSTANT_ViT_S_32,
+from spaces import (__HP_SPACE, __SCALE_SPACE, __HP_SPACE_LR_CONSTANT, __SCALE_SPACE_CONSTANT_ViT_S_32,
                           __LR_WD_WARMUP_CONSTANT)
 
 

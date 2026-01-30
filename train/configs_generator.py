@@ -5,8 +5,8 @@ from time import time
 
 import neps
 
-from train import params
-from train.config import HPO_CONFIGS
+import params
+from config import HPO_CONFIGS
 
 
 def main(args, root_dir):
