@@ -19,16 +19,21 @@ __HP_SPACE = {
     "eps": neps.HPOConstant(value=1.0e-6)
 }
 
-__SCALE_SPACE = { # 5.844e8 GFLOPs as max. amount of GFLOPs for our config.
+__SCALE_SPACE = {  # 5.844e8 GFLOPs as max. amount of GFLOPs for our config.
     "train_num_samples": neps.Float(
-        lower=0.6,
-        upper=60,  # in million
+        # inverse mapping from uniform distribution to either warped log distribution or uniform distribution with ranges 0.6-60m
+        lower=0.0,
+        upper=1.0,
     ),
     "vision_width": neps.Integer(
-        lower=4, upper=8  # head width is set to 64 by default. Emb. dim. needs to be divisible by 64!
+        lower=4, upper=8,  # head width is set to 64 by default. Emb. dim. needs to be divisible by 64!
+        prior=4,
+        prior_confidence="medium"
     ),
     "text_width": neps.Integer(
-        lower=32, upper=64  # assuming number of heads is fixed to 8
+        lower=32, upper=64,  # assuming number of heads is fixed to 8
+        prior=32,
+        prior_confidence="high"
     ),
     "text_heads": neps.HPOConstant(value=8)
 

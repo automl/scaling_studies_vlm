@@ -14,7 +14,8 @@ from config import TrainConfig, EvalConfig
 from probe_max_bs import probe_max_bs
 from slurm import SlurmManager, build_srun_cmd, build_eval_cmd
 from spaces import __HP_SPACE, __SCALE_SPACE
-from utils import query_bs, build_model_cfg, get_local_model_str, precision_to_dtype, create_default_model
+from utils import query_bs, build_model_cfg, get_local_model_str, precision_to_dtype, create_default_model, \
+    sample_warped_log_uniform, map_uniform_to_range
 
 
 def infer_hardware_setup_and_local_bs(
@@ -52,7 +53,7 @@ def get_hp_space_train_num_samples_from_scan_space(scan_space):
     return hp_only
 
 
-def build_scan_space(row) -> Dict[str, Any]:
+def build_scan_space(row, bias_scale_sampling) -> Dict[str, Any]:
     scan_space = {
         col.replace("config.", ""): val
         for col, val in row.items()
@@ -66,6 +67,11 @@ def build_scan_space(row) -> Dict[str, Any]:
         scan_space["vision_width"] = int(scan_space["vision_width"]) * 64
 
     if scan_space.get("train_num_samples") is not None:
+        if bias_scale_sampling:
+            scan_space["train_num_samples"] = sample_warped_log_uniform(scan_space["train_num_samples"])
+        else:
+            scan_space["train_num_samples"] = map_uniform_to_range(scan_space["train_num_samples"])
+
         scan_space["train_num_samples"] = int(float(scan_space["train_num_samples"]) * 1_000_000)
 
     return scan_space
@@ -127,9 +133,9 @@ def get_total_compute(model_str, train_num_samples, precision) -> int:
             torch.cuda.empty_cache()
 
 
-def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_name, workspace_dir):
+def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_name, workspace_dir, bias_scale_sampling):
     precision = "amp"
-    scan_space = build_scan_space(row)
+    scan_space = build_scan_space(row, bias_scale_sampling)
 
     logs_dir, scripts_dir, evaluation_scripts_path, downstream_evaluation_scripts_path, model_cfg_path = create_directories(
         root_dir, config_id)
@@ -258,4 +264,5 @@ if __name__ == "__main__":
             f"processing index {i} | config_id={config_id} | "
             f"total_configs={nr_configs}"
         )
-        generate_scripts_per_config(config_id, row, root_dir, args, args.wandb_project_name, args.workspace_dir)
+        generate_scripts_per_config(config_id, row, root_dir, args, args.wandb_project_name, args.workspace_dir,
+                                    args.bias_scale_sampling)

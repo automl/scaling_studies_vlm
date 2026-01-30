@@ -117,6 +117,23 @@ def read_last_json_line(path):
     return json.loads(last)
 
 
+def sample_warped_log_uniform(
+        x,
+        alpha: float = 1.0,
+):
+    """
+    alpha = 1.0  -> standard log-uniform
+    alpha > 1.0  -> bias toward smaller values
+    alpha < 1.0  -> bias toward larger values
+    """
+
+    return 0.6 * (60 / 0.6) ** (x ** alpha)
+
+
+def map_uniform_to_range(u, lower=0.6, upper=60.0):
+    return lower + u * (upper - lower)
+
+
 ####################################################################
 # methods for batch size heuristics
 ####################################################################

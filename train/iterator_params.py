@@ -54,5 +54,12 @@ def parse_args(args):
         help="Number of GPUs that will be used to generate scripts.",
     )
 
+    parser.add_argument(
+        "--bias_scale_sampling",
+        default=False,
+        action="store_true",
+        help="Whether to bias sampling for scale space, towards smaller spaces."
+    )
+
     args = parser.parse_args(args)
     return args
