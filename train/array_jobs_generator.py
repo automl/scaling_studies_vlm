@@ -5,8 +5,8 @@ from pathlib import Path
 
 import neps
 
-from train import iterator_params
-from train.slurm import eval_array_job_cmd, SlurmManager
+import iterator_params
+from slurm import eval_array_job_cmd, SlurmManager
 
 
 def create_directories(root_dir: str):
