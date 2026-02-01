@@ -17,7 +17,6 @@ from clip_benchmark.metrics import (captioning, image_caption_selection,
 from clip_benchmark.model_collection import (get_model_collection_from_file,
                                              model_collection)
 from clip_benchmark.models import load_clip
-
 from clip_train.file_utils import pt_load
 
 
@@ -176,6 +175,26 @@ def run(args):
 
         print(f"Loaded state dict from:{args.pretrained}")
         model.load_state_dict(sd, strict=True)
+
+        if torch.cuda.is_available():
+            device = f"cuda:{torch.cuda.current_device()}"
+            gpu_name = torch.cuda.get_device_name(torch.cuda.current_device())
+        else:
+            device = "cpu"
+            gpu_name = None
+
+        checkpoint_dir = os.path.dirname(args.pretrained)
+
+        results_path = os.path.join(checkpoint_dir, "eval_gpu_info.jsonl")
+
+        record = {
+            "checkpoint_path": args.pretrained,
+            "gpu_name": gpu_name,
+        }
+
+        with open(results_path, "a") as f:
+            f.write(json.dumps(record))
+            f.write("\n")
 
         model.eval()
 
