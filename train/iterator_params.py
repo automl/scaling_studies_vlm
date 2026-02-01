@@ -61,5 +61,12 @@ def parse_args(args):
         help="Whether to bias sampling for scale space, towards smaller spaces."
     )
 
+    parser.add_argument(
+        "--alpha",
+        type=float,
+        default=1.0,
+        help="parameter for biased scale sampling, check utils.py sample_warped_log_uniform() method for a brief description",
+    )
+
     args = parser.parse_args(args)
     return args

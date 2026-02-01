@@ -100,10 +100,10 @@ def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs:
     )
 
     bundle_train_scripts_in_array_jobs(root_dir=root_dir, logs_dir=logs_dir, train_scripts_dir=train_scripts_dir,
-                                       seed=args.seed)
+                                       seed=args.seed, workspace_dir=workspace_dir)
 
 
-def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, seed: int):
+def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir,workspace_dir, seed: int):
     root_dir = str(root_dir)
     logs_dir = str(logs_dir)
     train_scripts_dir = Path(train_scripts_dir)
@@ -183,7 +183,7 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, se
             config_txt = config_txt.replace("train/", "")
 
         job_name = f"train_p{part}_bs{bs}_g{gpus}_n{nodes}"
-        slurmManager = SlurmManager(partition=part, gpus_per_node=gpus, nodes=nodes, job_name=job_name)
+        slurmManager = SlurmManager(partition=part, gpus_per_node=gpus, nodes=nodes, job_name=job_name, workspace_dir=workspace_dir)
 
         save_to = Path(train_scripts_dir) / f"{slurmManager.job_name}.sh"
 

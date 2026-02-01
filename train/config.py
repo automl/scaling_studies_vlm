@@ -131,6 +131,17 @@ HPO_CONFIGS = {
             "wd": neps.HPOConstant(value=1e-6),
             **__SCALE_SPACE
         }),
+    "scale_space_only_search_biased_scale_space_alpha_0_5": NePSConfig(
+        optimizer=lambda p: neps.algorithms.random_search(p, use_priors=True),
+        evaluations_to_spend=40,
+        pipeline_space={
+            "lr": neps.HPOConstant(
+                value=2e-3
+            ),
+            "warmup_fraction": neps.HPOConstant(value=0.5),
+            "wd": neps.HPOConstant(value=1e-6),
+            **__SCALE_SPACE
+        }),
     "gs_ViT-XS-32": NePSConfig(
         optimizer=lambda p: neps.algorithms.grid_search(p, size_per_numerical_dimension=3),
         evaluations_to_spend=27,

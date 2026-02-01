@@ -53,7 +53,7 @@ def get_hp_space_train_num_samples_from_scan_space(scan_space):
     return hp_only
 
 
-def build_scan_space(row, bias_scale_sampling) -> Dict[str, Any]:
+def build_scan_space(row, bias_scale_sampling, alpha) -> Dict[str, Any]:
     scan_space = {
         col.replace("config.", ""): val
         for col, val in row.items()
@@ -68,7 +68,7 @@ def build_scan_space(row, bias_scale_sampling) -> Dict[str, Any]:
 
     if scan_space.get("train_num_samples") is not None:
         if bias_scale_sampling:
-            scan_space["train_num_samples"] = sample_warped_log_uniform(scan_space["train_num_samples"])
+            scan_space["train_num_samples"] = sample_warped_log_uniform(scan_space["train_num_samples"], alpha)
         else:
             scan_space["train_num_samples"] = map_uniform_to_range(scan_space["train_num_samples"])
 
@@ -133,9 +133,10 @@ def get_total_compute(model_str, train_num_samples, precision) -> int:
             torch.cuda.empty_cache()
 
 
-def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_name, workspace_dir, bias_scale_sampling):
+def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_name, workspace_dir, bias_scale_sampling,
+                                alpha):
     precision = "amp"
-    scan_space = build_scan_space(row, bias_scale_sampling)
+    scan_space = build_scan_space(row, bias_scale_sampling, alpha)
 
     logs_dir, scripts_dir, evaluation_scripts_path, downstream_evaluation_scripts_path, model_cfg_path = create_directories(
         root_dir, config_id)
@@ -265,4 +266,4 @@ if __name__ == "__main__":
             f"total_configs={nr_configs}"
         )
         generate_scripts_per_config(config_id, row, root_dir, args, args.wandb_project_name, args.workspace_dir,
-                                    args.bias_scale_sampling)
+                                    args.bias_scale_sampling, args.alpha)
