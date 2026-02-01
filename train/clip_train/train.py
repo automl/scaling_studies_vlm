@@ -270,7 +270,8 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
 
         record = {
             "epoch": epoch,
-            "train_loss": train_loss
+            "train_loss": train_loss,
+            "GPU_trained_on": args.gpu_name
         }
 
         with open(log_path, "a") as f:
@@ -389,6 +390,8 @@ def evaluate(model, data, epoch, args, tb_writer=None, tokenizer=None):
         if tb_writer is not None:
             for name, val in log_data.items():
                 tb_writer.add_scalar(name, val, epoch)
+
+    metrics["gpu_name"] = args.gpu_name
 
     with open(os.path.join(args.checkpoint_path, "results.jsonl"), "a+") as f:
         f.write(json.dumps(metrics))
