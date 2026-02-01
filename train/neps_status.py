@@ -124,7 +124,7 @@ if __name__ == "__main__":
     root_dir: Path = args.root_dir
     train_logs_root = root_dir / "individual_training_logs"
     configs_dir = root_dir / "configs"
-    out_csv = root_dir / "trials_summary.csv"
+    out_csv = root_dir / "configs_summary.csv"
 
     full_df, _ = neps.status(str(root_dir))
     trial_ids = [int(i) for i in full_df.index.tolist()]
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     rows = []
 
     for trial_id in trial_ids:
-        trial_dir = train_logs_root / f"train_trial{trial_id}"
+        trial_dir = train_logs_root / f"train_config{trial_id}"
         checkpoints_dir = trial_dir / "checkpoints"
         downstream_eval_path = trial_dir / "eval"
         config_dir = configs_dir / f"config_{trial_id}"
@@ -141,7 +141,7 @@ if __name__ == "__main__":
             completed_trial_ids.append(trial_id)
 
         row = {
-            "trial_id": trial_id,
+            "config_id": trial_id,
             **fetch_losses(checkpoints_dir),
             **fetch_downstream_eval_results(downstream_eval_path),
             **fetch_scale_parameters(config_dir),
@@ -152,6 +152,6 @@ if __name__ == "__main__":
     failed_trial_ids = sorted(set(trial_ids) - set(completed_trial_ids))
     print("Failed trials:", failed_trial_ids)
 
-    df = pd.DataFrame(rows).set_index("trial_id")
+    df = pd.DataFrame(rows).set_index("config_id")
     df.to_csv(out_csv)
     print("Summary csv file has been written to:", out_csv)

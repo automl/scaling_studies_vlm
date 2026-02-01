@@ -78,7 +78,7 @@ def eval_array_job_cmd(seed, logs_dir):
 
     return (
             "srun --cpu-bind=v --accel-bind=gn "
-            "python -u -m open_clip_train.main \\\n    "
+            "python -u -m clip_train.main \\\n    "
             + " \\\n    ".join(cmd_parts)
     )
 
@@ -87,7 +87,7 @@ def build_eval_cmd(config: EvalConfig) -> str:
     cmd_parts = eval_cmd(config)
     return (
             "srun --cpu-bind=v --accel-bind=gn "
-            "python -u -m open_clip_train.main \\\n    "
+            "python -u -m clip_train.main \\\n    "
             + " \\\n    ".join(cmd_parts)
     )
 
@@ -97,7 +97,7 @@ def build_srun_cmd(config: TrainConfig, wandb_project_name) -> str:
 
     return (
             "srun --cpu-bind=v --accel-bind=gn "
-            "python -u -m open_clip_train.main \\\n    "
+            "python -u -m clip_train.main \\\n    "
             + " \\\n    ".join(cmd_parts)
     )
 
@@ -107,7 +107,7 @@ def build_torchrun_cmd(config: TrainConfig, nproc_per_node) -> str:
 
     return (
             f"torchrun --nproc_per_node {nproc_per_node} "
-            "-m open_clip_train.main -- "
+            "-m clip_train.main -- "
             + " ".join(cmd_parts)
     )
 
@@ -452,7 +452,7 @@ read -r config_ID TRAIN_NUM_SAMPLES LR WD WARMUP BETA2 EPS <<< "$LINE"
 
 TRAIN_NUM_SAMPLES=${{TRAIN_NUM_SAMPLES%.*}}
 
-srun --cpu-bind=v --accel-bind=gn python -u -m open_clip_train.main \\
+srun --cpu-bind=v --accel-bind=gn python -u -m clip_train.main \\
     --train-data "../pre_training_dataset/laion400m/train_data/{{00000000..00012136}}.tar" \\
     --val-data "../pre_training_dataset/laion400m/validation_data/{{00000000..00000015}}.tar" \\
     --test-data "../pre_training_dataset/laion400m/test_data/{{00000000..00000015}}.tar" \\
