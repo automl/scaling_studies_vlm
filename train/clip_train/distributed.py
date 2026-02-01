@@ -109,6 +109,7 @@ def init_distributed_device(args):
     args.rank = result['global_rank']
     args.local_rank = result['local_rank']
     args.distributed = result['distributed']
+    args.gpu_name = result['gpu_name']
     device = torch.device(args.device)
     return device
 
@@ -186,12 +187,18 @@ def init_distributed_device_so(
         device = f'{device_type}:{local_rank}'
         set_device(device)
 
+    gpu_name = None
+    if device_type == "cuda" and torch.cuda.is_available():
+        props = torch.cuda.get_device_properties(local_rank)
+        gpu_name = props.name
+
     return dict(
         device=device,
         global_rank=global_rank,
         local_rank=local_rank,
         world_size=world_size,
         distributed=distributed,
+        gpu_name=gpu_name
     )
 
 
