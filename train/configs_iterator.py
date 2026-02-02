@@ -12,7 +12,6 @@ import iterator_params
 from clip_train.profiler import get_model_flops
 from probe_max_bs import probe_max_bs
 from slurm import SlurmManager, build_srun_cmd, build_eval_cmd
-from spaces import __HP_SPACE, __SCALE_SPACE
 from utils import query_bs, build_model_cfg, get_local_model_str, precision_to_dtype, create_default_model, \
     sample_warped_log_uniform, map_uniform_to_range
 
@@ -41,8 +40,8 @@ def infer_hardware_setup_and_local_bs(
 
 
 def get_hp_space_train_num_samples_from_scan_space(scan_space):
-    HP_KEYS = set(__HP_SPACE.keys())
-    SCALE_KEYS = set(__SCALE_SPACE.keys())
+    HP_KEYS = ["lr", "wd", "warmup_fraction", "beta2", "eps"]
+    SCALE_KEYS = ["train_num_samples", "vision_width", "text_width", "text_heads"]
 
     hp_only = {k: v for k, v in scan_space.items() if k in HP_KEYS}
     scale_only = {k: v for k, v in scan_space.items() if k in SCALE_KEYS}
@@ -59,6 +58,7 @@ def build_scan_space(row, bias_scale_sampling, alpha) -> Dict[str, Any]:
         if col.startswith("config.")
     }
     return normalize_scan_space(scan_space, bias_scale_sampling, alpha)
+
 
 def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, alpha: float) -> Dict[str, Any]:
     """Normalize scan space values by applying scaling factors and transformations."""
@@ -77,16 +77,6 @@ def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, 
         scan_space["train_num_samples"] = int(float(scan_space["train_num_samples"]) * 1_000_000)
 
     return scan_space
-
-
-def build_scan_space(row, bias_scale_sampling) -> Dict[str, Any]:
-    scan_space = {
-        col.replace("config.", ""): val
-        for col, val in row.items()
-        if col.startswith("config.")
-    }
-
-    return normalize_scan_space(scan_space, bias_scale_sampling)
 
 
 def create_directories(root_dir, config_id):
@@ -205,7 +195,7 @@ def generate_train_script(model_cfg, local_bs, config_id, logs_dir, train_script
                           hp_space_train_num_samples, seed,
                           slurmManager, wandb_project_name):
     from config import TrainConfig
-    
+
     config = TrainConfig(
         model=model_cfg,
         seed=seed,
@@ -234,7 +224,7 @@ def generate_eval_script(
         eval_scripts_dir,
 ):
     from config import EvalConfig
-    
+
     run_name = f"train_config{config_id}"
 
     eval_cfg = EvalConfig(
