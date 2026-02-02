@@ -23,6 +23,7 @@ class ScanPipeline(neps.PipelineSpace):
         lower=0.0,
         upper=0.75,
     )
+    beta1 = 0.9
     beta2 = 0.98
     eps = 1e-6
 

@@ -103,7 +103,7 @@ def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs:
                                        seed=args.seed, workspace_dir=workspace_dir)
 
 
-def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir,workspace_dir, seed: int):
+def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, workspace_dir, seed: int):
     root_dir = str(root_dir)
     logs_dir = str(logs_dir)
     train_scripts_dir = Path(train_scripts_dir)
@@ -122,6 +122,7 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir,wor
     lr_re = re.compile(r"--lr\s+([0-9eE\.\+\-]+)")
     wd_re = re.compile(r"--wd\s+([0-9eE\.\+\-]+)")
     warmup_re = re.compile(r"--warmup-fraction\s+([0-9eE\.\+\-]+)")
+    beta1_re = re.compile(r"--beta1\s+([0-9eE\.\+\-]+)")
     beta2_re = re.compile(r"--beta2\s+([0-9eE\.\+\-]+)")
     eps_re = re.compile(r"--eps\s+([0-9eE\.\+\-]+)")
 
@@ -135,7 +136,7 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir,wor
 
         nodes = gpus = part = None
         samples = bs = None
-        lr = wd = warmup = beta2 = eps = None
+        lr = wd = warmup = beta2 = beta1 = eps = None
 
         for line in sh.read_text().splitlines():
             if nodes is None and (m2 := nodes_re.match(line)):
@@ -155,6 +156,8 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir,wor
                 wd = float(m2.group(1))
             if warmup is None and (m2 := warmup_re.search(line)):
                 warmup = float(m2.group(1))
+            if beta1 is None and (m2 := beta1_re.search(line)):
+                beta1 = float(m2.group(1))
             if beta2 is None and (m2 := beta2_re.search(line)):
                 beta2 = float(m2.group(1))
             if eps is None and (m2 := eps_re.search(line)):
@@ -169,6 +172,7 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir,wor
             "lr": lr,
             "wd": wd,
             "warmup_fraction": warmup,
+            "beta1": beta1,
             "beta2": beta2,
             "eps": eps,
         }
@@ -183,7 +187,8 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir,wor
             config_txt = config_txt.replace("train/", "")
 
         job_name = f"train_p{part}_bs{bs}_g{gpus}_n{nodes}"
-        slurmManager = SlurmManager(partition=part, gpus_per_node=gpus, nodes=nodes, job_name=job_name, workspace_dir=workspace_dir)
+        slurmManager = SlurmManager(partition=part, gpus_per_node=gpus, nodes=nodes, job_name=job_name,
+                                    workspace_dir=workspace_dir)
 
         save_to = Path(train_scripts_dir) / f"{slurmManager.job_name}.sh"
 
@@ -228,6 +233,7 @@ def write_group_configs(
                     f"{info['lr']} "
                     f"{info['wd']} "
                     f"{info['warmup_fraction']} "
+                    f"{info['beta1']} "
                     f"{info['beta2']} "
                     f"{info['eps']}\n"
                 )

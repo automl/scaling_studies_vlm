@@ -192,6 +192,7 @@ class TrainConfig:
     lr: float
     wd: float
     warmup_fraction: float
+    beta1: float = 0.9
     beta2: float = 0.98
     eps: float = 1e-6
 

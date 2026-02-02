@@ -40,7 +40,7 @@ def infer_hardware_setup_and_local_bs(
 
 
 def get_hp_space_train_num_samples_from_scan_space(scan_space):
-    HP_KEYS = ["lr", "wd", "warmup_fraction", "beta2", "eps"]
+    HP_KEYS = ["lr", "wd", "warmup_fraction", "beta1", "beta2", "eps"]
     SCALE_KEYS = ["train_num_samples", "vision_width", "text_width", "text_heads"]
 
     hp_only = {k: v for k, v in scan_space.items() if k in HP_KEYS}

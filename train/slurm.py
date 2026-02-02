@@ -450,7 +450,7 @@ CONFIG_TXT="{config_txt}"
 LINE=$(sed -n "${{SLURM_ARRAY_TASK_ID}}p" "${{CONFIG_TXT}}")
 [ -z "$LINE" ] && echo "No line for task $SLURM_ARRAY_TASK_ID" && exit 1
 
-read -r config_ID TRAIN_NUM_SAMPLES LR WD WARMUP BETA2 EPS <<< "$LINE"
+read -r config_ID TRAIN_NUM_SAMPLES LR WD WARMUP BETA1 BETA2 EPS <<< "$LINE"
 
 TRAIN_NUM_SAMPLES=${{TRAIN_NUM_SAMPLES%.*}}
 
@@ -475,6 +475,7 @@ srun --cpu-bind=v --accel-bind=gn python -u -m clip_train.main \\
     --lr "${{LR}}" \\
     --wd "${{WD}}" \\
     --warmup-fraction "${{WARMUP}}" \\
+    --beta1 "${{BETA1}}" \\
     --beta2 "${{BETA2}}" \\
     --eps "${{EPS}}"
 
