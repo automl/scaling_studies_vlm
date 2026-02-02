@@ -4,7 +4,7 @@ from typing import Union
 
 import neps
 from neps.space import Parameter
-
+from chinchilla import chinchilla_optimizer, ChichillaPipeline
 from spaces import (__HP_SPACE, __SCALE_SPACE, __HP_SPACE_LR_CONSTANT, __SCALE_SPACE_CONSTANT_ViT_S_32,
                     __LR_WD_WARMUP_CONSTANT)
 
@@ -29,14 +29,14 @@ class NePSConfig:
     pipeline_space: dict[str, Parameter] = None
     evaluations_to_spend: int | None = None
 
+    def __post_init__(self):
+        if isinstance(self.optimizer, Optimizer):
+            self.optimizer = self.optimizer.value
+
     @property
     def run_args(self) -> dict[str, any]:
-        if isinstance(self.optimizer, Optimizer):
-            opt = self.optimizer.value
-        else:
-            opt = self.optimizer
         args = {
-            "optimizer": opt,
+            "optimizer": self.optimizer,
             "evaluations_to_spend": self.evaluations_to_spend,
             "pipeline_space": self.pipeline_space,
         }
@@ -143,52 +143,44 @@ HPO_CONFIGS = {
             **__SCALE_SPACE
         }),
     "gs_ViT-XS-32": NePSConfig(
-        optimizer=lambda p: neps.algorithms.grid_search(p, size_per_numerical_dimension=3),
-        evaluations_to_spend=27,
-        pipeline_space={
-            **__HP_SPACE,
-            **__SCALE_SPACE,
-            "vision_width": neps.HPOConstant(value=256),
-            "text_width": neps.HPOConstant(value=256),
-            "text_heads": neps.HPOConstant(value=4),
-            "train_num_samples": neps.HPOConstant(value=60.0),
-        }
+        optimizer=chinchilla_optimizer,
+        evaluations_to_spend=100,
+        pipeline_space=ChichillaPipeline.with_overrides(
+            wd=1.0e-6,
+            vision_width=256/64,
+            text_width=256/8,
+            text_heads=4,
+        )
     ),
     "gs_ViT-Micro-32": NePSConfig(
-        optimizer=lambda p: neps.algorithms.grid_search(p, size_per_numerical_dimension=3),
+        optimizer=chinchilla_optimizer,
         evaluations_to_spend=27,
-        pipeline_space={
-            **__HP_SPACE,
-            **__SCALE_SPACE,
-            "vision_width": neps.HPOConstant(value=256),
-            "text_width": neps.HPOConstant(value=192),
-            "text_heads": neps.HPOConstant(value=4),
-            "train_num_samples": neps.HPOConstant(value=60.0),
-        }
+        pipeline_space=ChichillaPipeline.with_overrides(
+            wd=1.0e-6,
+            vision_width=256/64,
+            text_width=192/8,
+            text_heads=4,
+        )
     ),
     "gs_ViT-XXS-32": NePSConfig(
-        optimizer=lambda p: neps.algorithms.grid_search(p, size_per_numerical_dimension=3),
-        evaluations_to_spend=27,
-        pipeline_space={
-            **__HP_SPACE,
-            **__SCALE_SPACE,
-            "vision_width": neps.HPOConstant(value=192),
-            "text_width": neps.HPOConstant(value=192),
-            "text_heads": neps.HPOConstant(value=4),
-            "train_num_samples": neps.HPOConstant(value=60.0),
-        }
+        optimizer=chinchilla_optimizer,
+        evaluations_to_spend=100,
+        pipeline_space=ChichillaPipeline.with_overrides(
+            wd=1.0e-6,
+            vision_width=192/64,
+            text_width=192/8,
+            text_heads=4,
+        )
     ),
     "gs_ViT-Tiny-32": NePSConfig(
-        optimizer=lambda p: neps.algorithms.grid_search(p, size_per_numerical_dimension=3),
-        evaluations_to_spend=27,
-        pipeline_space={
-            **__HP_SPACE,
-            **__SCALE_SPACE,
-            "vision_width": neps.HPOConstant(value=128),
-            "text_width": neps.HPOConstant(value=128),
-            "text_heads": neps.HPOConstant(value=4),
-            "train_num_samples": neps.HPOConstant(value=60.0),
-        }
+        optimizer=chinchilla_optimizer,
+        evaluations_to_spend=0,
+        pipeline_space=ChichillaPipeline.with_overrides(
+            wd=1.0e-6,
+            vision_width=128/64,
+            text_width=128/8,
+            text_heads=4,
+        )
     ),
 }
 

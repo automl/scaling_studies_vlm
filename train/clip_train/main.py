@@ -616,7 +616,10 @@ def main(args):
                 "eval_results": downstream_evaluation_results,
                 "total_mparams": total_mparams,
                 "image_mparams": image_mparams,
-                "text_mparams": text_mparams
+                "text_mparams": text_mparams,
+                "n_param": total_mparams,
+                "flops": compute,
+                "n_data": data["train"].dataloader.num_samples * args.epochs,
             },
         }
 

@@ -2,8 +2,10 @@ import subprocess
 from dataclasses import asdict
 from enum import Enum
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from config import TrainConfig, EvalConfig
+if TYPE_CHECKING:
+    from config import TrainConfig, EvalConfig
 
 
 class DatasetShards(str, Enum):
@@ -22,7 +24,7 @@ eval_cmd_parts = [
 ]
 
 
-def build_cmd(config: TrainConfig, wandb_project_name) -> str:
+def build_cmd(config: "TrainConfig", wandb_project_name) -> str:
     args = asdict(config)
 
     cmd_parts = [
@@ -50,7 +52,7 @@ def build_cmd(config: TrainConfig, wandb_project_name) -> str:
     return cmd_parts
 
 
-def eval_cmd(config: EvalConfig) -> str:
+def eval_cmd(config: "EvalConfig") -> str:
     args = asdict(config)
 
     cmd_parts = eval_cmd_parts.copy()
@@ -83,7 +85,7 @@ def eval_array_job_cmd(seed, logs_dir):
     )
 
 
-def build_eval_cmd(config: EvalConfig) -> str:
+def build_eval_cmd(config: "EvalConfig") -> str:
     cmd_parts = eval_cmd(config)
     return (
             "srun --cpu-bind=v --accel-bind=gn "
@@ -92,7 +94,7 @@ def build_eval_cmd(config: EvalConfig) -> str:
     )
 
 
-def build_srun_cmd(config: TrainConfig, wandb_project_name) -> str:
+def build_srun_cmd(config: "TrainConfig", wandb_project_name) -> str:
     cmd_parts = build_cmd(config, wandb_project_name)
 
     return (
@@ -102,7 +104,7 @@ def build_srun_cmd(config: TrainConfig, wandb_project_name) -> str:
     )
 
 
-def build_torchrun_cmd(config: TrainConfig, nproc_per_node) -> str:
+def build_torchrun_cmd(config: "TrainConfig", nproc_per_node) -> str:
     cmd_parts = build_cmd(config)
 
     return (

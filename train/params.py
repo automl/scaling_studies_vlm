@@ -16,6 +16,11 @@ def parse_args(args):
         required=False,
         help="Model type."
     )
+    parser.add_argument(
+        "--sampling-only",
+        default=False,
+        action="store_true",
+        help="Whether to use sampling only.")
 
     parser.add_argument(
         "--seed",

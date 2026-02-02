@@ -10,7 +10,6 @@ import torch
 
 import iterator_params
 from clip_train.profiler import get_model_flops
-from config import TrainConfig, EvalConfig
 from probe_max_bs import probe_max_bs
 from slurm import SlurmManager, build_srun_cmd, build_eval_cmd
 from spaces import __HP_SPACE, __SCALE_SPACE
@@ -59,7 +58,10 @@ def build_scan_space(row, bias_scale_sampling, alpha) -> Dict[str, Any]:
         for col, val in row.items()
         if col.startswith("config.")
     }
+    return normalize_scan_space(scan_space, bias_scale_sampling, alpha)
 
+def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, alpha: float) -> Dict[str, Any]:
+    """Normalize scan space values by applying scaling factors and transformations."""
     if scan_space.get("text_width") is not None:
         scan_space["text_width"] = int(scan_space["text_width"]) * 8
 
@@ -75,6 +77,16 @@ def build_scan_space(row, bias_scale_sampling, alpha) -> Dict[str, Any]:
         scan_space["train_num_samples"] = int(float(scan_space["train_num_samples"]) * 1_000_000)
 
     return scan_space
+
+
+def build_scan_space(row, bias_scale_sampling) -> Dict[str, Any]:
+    scan_space = {
+        col.replace("config.", ""): val
+        for col, val in row.items()
+        if col.startswith("config.")
+    }
+
+    return normalize_scan_space(scan_space, bias_scale_sampling)
 
 
 def create_directories(root_dir, config_id):
@@ -192,6 +204,8 @@ def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_na
 def generate_train_script(model_cfg, local_bs, config_id, logs_dir, train_scripts_dir,
                           hp_space_train_num_samples, seed,
                           slurmManager, wandb_project_name):
+    from config import TrainConfig
+    
     config = TrainConfig(
         model=model_cfg,
         seed=seed,
@@ -219,6 +233,8 @@ def generate_eval_script(
         logs_dir,
         eval_scripts_dir,
 ):
+    from config import EvalConfig
+    
     run_name = f"train_config{config_id}"
 
     eval_cfg = EvalConfig(

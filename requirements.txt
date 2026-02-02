@@ -6,5 +6,5 @@ hf_xet
 tabulate
 fvcore
 open_clip_torch
-git+https://github.com/automl/neps@master
+git+https://github.com/automl/neps@scaling-neps
 tenacity==9.1.2

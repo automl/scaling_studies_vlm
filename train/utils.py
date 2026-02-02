@@ -1,6 +1,7 @@
 import bisect
 import json
 import re
+import tempfile
 from enum import Enum
 from glob import glob
 from pathlib import Path
@@ -108,6 +109,54 @@ def build_model_cfg(
         f.write("\n")
 
 
+def build_model_cfg_temp(
+        *,
+        text_width: int,
+        vision_width: int,
+        embed_dim: int = 384,
+        image_size: int = 224,
+        vision_layers: int = 12,
+        patch_size: int = 32,
+        context_length: int = 77,
+        vocab_size: int = 49408,
+        text_heads: int = 8,
+        text_layers: int = 12,
+        **kwargs
+) -> str:
+    """
+    Creates a model config and writes it to a temporary directory.
+    Returns the path to the temporary directory (for use with get_local_model_str).
+    """
+    cfg: Dict[str, Any] = {
+        "model_cfg": {
+            "embed_dim": embed_dim,
+            "vision_cfg": {
+                "image_size": image_size,
+                "layers": vision_layers,
+                "width": vision_width,
+                "patch_size": patch_size,
+            },
+            "text_cfg": {
+                "context_length": context_length,
+                "vocab_size": vocab_size,
+                "width": text_width,
+                "heads": text_heads,
+                "layers": text_layers,
+            },
+        }
+    }
+
+    temp_dir = tempfile.mkdtemp()
+    config_file = Path(temp_dir) / "open_clip_config.json"
+    
+    with config_file.open("w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=2)
+        f.write("\n")
+    
+    return temp_dir
+
+
+
 def read_last_json_line(path):
     last = None
     with open(path, "r") as f:
@@ -115,7 +164,6 @@ def read_last_json_line(path):
             if line.strip():
                 last = line
     return json.loads(last)
-
 
 def sample_warped_log_uniform(
         x,
