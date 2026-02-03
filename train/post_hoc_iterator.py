@@ -29,5 +29,5 @@ if __name__ == "__main__":
     args = parse_args()
 
     evaluator = ClipBenchmarkEvaluator(root=args.root, model=args.model, default_seed=args.seed)
-    zero_shot_results = evaluator.zero_shot_eval([ZeroShotDataset.CIFAR10, ZeroShotDataset.IMAGENET])
-    retrieval_results = evaluator.zero_shot_retrieval([RetrievalDataset.MS_COCO])
+    zero_shot_results = evaluator.zero_shot_eval([ZeroShotDataset.CIFAR10])
+    # retrieval_results = evaluator.zero_shot_retrieval([RetrievalDataset.MS_COCO])

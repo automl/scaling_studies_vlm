@@ -2,6 +2,7 @@
 import json
 import os
 import random
+import time
 from copy import copy
 from itertools import product
 
@@ -177,10 +178,8 @@ def run(args):
         model.load_state_dict(sd, strict=True)
 
         if torch.cuda.is_available():
-            device = f"cuda:{torch.cuda.current_device()}"
             gpu_name = torch.cuda.get_device_name(torch.cuda.current_device())
         else:
-            device = "cpu"
             gpu_name = None
 
         checkpoint_dir = os.path.dirname(args.pretrained)
@@ -236,6 +235,8 @@ def run(args):
                 shuffle=False, num_workers=args.num_workers,
                 collate_fn=collate_fn
             )
+
+    start_time = time.perf_counter()
     if task == "zeroshot_classification":
         zeroshot_templates = dataset.templates if hasattr(dataset, "templates") else None
         if args.verbose:
@@ -341,6 +342,13 @@ def run(args):
         raise ValueError(
             "Unsupported task: {}. task should be `zeroshot_classification`, `zeroshot_retrieval`, `linear_probe`, or `captioning`".format(
                 task))
+    eval_time_sec = time.perf_counter() - start_time
+
+    if torch.cuda.is_available():
+        gpu_name = torch.cuda.get_device_name(torch.cuda.current_device())
+    else:
+        gpu_name = None
+
     dump = {
         "dataset": args.dataset,
         "model": args.model,
@@ -348,6 +356,9 @@ def run(args):
         "task": task,
         "metrics": metrics,
         "language": args.language,
+        "eval_time_sec": round(eval_time_sec, 3),
+        "gpu_name": gpu_name,
+
     }
     if hasattr(dataset, "classes") and dataset.classes and args.dump_classnames:
         dump["classnames"] = dataset.classes
