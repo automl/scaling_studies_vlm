@@ -93,7 +93,7 @@ def fetch_total_compute_and_nparams(config_dir: Path) -> dict:
 
     return {
         "total_compute(GLOPs)": data.get("cost"),
-        "params": data.get("extra", {}).get("mparameters"),
+        "mparams": data.get("extra", {}).get("mparameters"),
     }
 
 
