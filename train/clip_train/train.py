@@ -271,7 +271,8 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
         record = {
             "epoch": epoch,
             "train_loss": train_loss,
-            "GPU_trained_on": args.gpu_name
+            "GPU_trained_on": args.gpu_name,
+            "world_size": args.world_size
         }
 
         with open(log_path, "a") as f:

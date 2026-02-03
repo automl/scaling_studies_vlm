@@ -26,7 +26,7 @@ def read_json(path: Path):
 
 
 def extract_zeroshot_acc1(root_dir: Path) -> dict:
-    zero_shot_dir = root_dir  / "zero_shot"
+    zero_shot_dir = root_dir / "zero_shot"
 
     out = {
         "cifar10_acc1": None,
@@ -83,6 +83,7 @@ def fetch_scale_parameters(config_dir: Path) -> dict:
     with config_path.open("r") as f:
         return yaml.safe_load(f) or {}
 
+
 def fetch_total_compute_and_nparams(config_dir: Path) -> dict:
     config_path = config_dir / "report.yaml"
     if not config_path.is_file():
@@ -91,9 +92,10 @@ def fetch_total_compute_and_nparams(config_dir: Path) -> dict:
         data = yaml.safe_load(f) or {}
 
     return {
-        "Total compute(GLOPs)": data.get("cost"),
-        "mparams": data.get("extra", {}).get("mparameters"),
+        "total_compute(GLOPs)": data.get("cost"),
+        "params": data.get("extra", {}).get("mparameters"),
     }
+
 
 def fetch_losses(checkpoints_dir: Path) -> dict:
     out = {"train_loss": None, "val_loss": None, "test_loss": None}
@@ -112,6 +114,28 @@ def fetch_losses(checkpoints_dir: Path) -> dict:
         out["train_loss"] = train_results.get("train_loss")
         out["val_loss"] = val_test_results.get("clip_val_loss")
         out["test_loss"] = val_test_results.get("clip_test_loss")
+
+    except Exception:
+        pass
+
+    return out
+
+
+def fetch_gpu_names_and_world_size(checkpoints_dir: Path) -> dict:
+    out = {"train_gpu": None, "val_test_gpu": None, "downstream_gpu": None}
+    results_path = checkpoints_dir / "results.jsonl"
+    train_results_path = checkpoints_dir / "train_loss.jsonl"
+    downstream_eval_results_path = checkpoints_dir / "eval_gpu_info.jsonl"
+
+    try:
+        train_results = read_last_json_line(train_results_path) or {}
+        val_test_results = read_last_json_line(results_path) or {}
+        downstream_eval_results = read_last_json_line(downstream_eval_results_path) or {}
+        out["train_gpu"] = train_results.get("GPU_trained_on")
+        out["val_test_gpu"] = val_test_results.get("gpu_name")
+        out["downstream_gpu"] = downstream_eval_results.get("gpu_name")
+        out["train_world_size"] = train_results.get("world_size")
+
     except Exception:
         pass
 
