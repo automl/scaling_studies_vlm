@@ -92,9 +92,15 @@ def fetch_total_compute_and_nparams(config_dir: Path) -> dict:
         data = yaml.safe_load(f) or {}
 
     return {
-        "total_compute(GLOPs)": data.get("cost"),
-        "mparams": data.get("extra", {}).get("mparameters"),
+        "Total compute(GLOPs)": data.get("cost"),
+        "mparams": data.get("extra", {}).get("total_mparams"),
+        "vision_mparams": data.get("extra", {}).get("image_mparams"),
+        "text_mparams": data.get("extra", {}).get("text_mparams")
     }
+
+
+def fetch_training_gpu_used_gpu_training_time(checkpoints_dir: Path) -> dict:
+    out = {"train_gpu_name": None, "world_size": None, "train_duration(s)": None}
 
 
 def fetch_losses(checkpoints_dir: Path) -> dict:
@@ -170,6 +176,8 @@ if __name__ == "__main__":
             **fetch_downstream_eval_results(downstream_eval_path),
             **fetch_scale_parameters(config_dir),
             **fetch_total_compute_and_nparams(config_dir)
+            # fetch gpu used during training, world size, training time
+            # fetch gpu used during evaluations, time it took
         }
         rows.append(row)
 
