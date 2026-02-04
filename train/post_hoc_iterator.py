@@ -39,9 +39,13 @@ def parse_args():
 def enrich_neps_state(neps_root, pipeline_id: int, eval_dict: dict):
     config_dir = neps_root / f"configs/config_{pipeline_id}"
     report_path = config_dir / "report.yaml"
+    train_report_path = config_dir / "report_train.yaml"
 
     with open(report_path, "r") as f:
         state = yaml.safe_load(f) or {}
+
+    with open(train_report_path, "w") as f:
+        yaml.safe_dump(state, f, sort_keys=False)
 
     info = state.setdefault("info_dict", {})
     info["downstream_results"] = eval_dict
