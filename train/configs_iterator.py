@@ -254,7 +254,7 @@ def generate_downstream_eval_script(
     downstream_eval_script_path = Path(downstream_eval_scripts_dir + "/" + downstream_eval_job_name + ".sh")
     slurmManager.build_downstream_evaluation_script(job_name=downstream_eval_job_name,
                                                     root=logs_dir + "/" + run_name,
-                                                    save_to=downstream_eval_script_path, model=model_cfg, seed=seed)
+                                                    save_to=downstream_eval_script_path, model=model_cfg, seed=seed, config_id=config_id)
 
 
 if __name__ == "__main__":
