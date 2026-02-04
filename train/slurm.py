@@ -3,6 +3,7 @@ from dataclasses import asdict
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING
+import json
 
 if TYPE_CHECKING:
     from config import TrainConfig, EvalConfig
@@ -66,7 +67,11 @@ def build_cmd(config: "TrainConfig", wandb_project_name, cluster) -> str:
                 cmd_parts.append(f"--{cli_key}")
             continue
 
-        cmd_parts.append(f"--{cli_key} {value}")
+        if isinstance(value, dict):
+            json_value = json.dumps(value)
+            cmd_parts.append(f"--{cli_key} '{json_value}'")
+        else:
+            cmd_parts.append(f"--{cli_key} {value}")
 
     return cmd_parts
 

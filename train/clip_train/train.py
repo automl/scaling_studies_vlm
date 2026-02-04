@@ -20,6 +20,62 @@ from clip_train.zero_shot import zero_shot_eval
 from clip_train.precision import get_autocast
 
 
+def _save_intermediate_checkpoints(model, args, num_samples, training_loss, compute, batch_size, optimizer):
+    """
+    Check if num_samples matches any target value in config_id_to_train_num_samples.
+    If yes (within batch_size tolerance), save checkpoint and call save_pipeline_results.
+    """
+    saved_any = False
+
+    n_params = round(sum(m.numel() for m in model.parameters()) / 1e6, 2)
+    
+    for config_id_str, target_samples in args.config_id_to_train_num_samples.items():
+        # Check if current samples are close to target (within batch_size)
+        if abs(num_samples - target_samples) < batch_size:
+            config_id = int(config_id_str)
+            log_base_path = os.path.join(args.logs, f"train_config{config_id}")
+            os.makedirs(log_base_path, exist_ok=True)
+            checkpoint_path = os.path.join(log_base_path, "checkpoints")
+            os.makedirs(checkpoint_path, exist_ok=True)
+            
+            # Save checkpoint
+            checkpoint_dict = {
+                'epoch': 1,
+                'name': f"train_config{config_id}",
+                'state_dict': model.state_dict() if not hasattr(model, 'module') else model.module.state_dict(),
+                'optimizer': optimizer.state_dict(),
+            }
+            torch.save(
+                    checkpoint_dict,
+                    os.path.join(checkpoint_path, f"epoch_1.pt"),
+                )
+            logging.info(f"Saved intermediate checkpoint at {num_samples} samples (target: {target_samples}): {checkpoint_path}")
+            
+            try:
+                from neps import save_pipeline_results
+
+                result = {
+                    "objective_to_minimize": training_loss,
+                    "cost": compute,
+                    "info_dict": {
+                        "n_param": n_params,
+                        "flops": compute,
+                        "n_data": num_samples,
+                    },
+                }
+                save_pipeline_results(
+                    user_result=result,
+                    pipeline_id=config_id,
+                    root_directory=Path(args.logs).parent,
+                )
+                logging.info(f"Called save_pipeline_results for config_id={config_id}")
+            except Exception as e:
+                logging.warning(f"Could not call save_pipeline_results: {e}")
+            
+            saved_any = True
+    
+    return saved_any
+
 class AverageMeter(object):
     """Computes and stores the average and current value"""
 
@@ -260,6 +316,12 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                 f.flush()
                 os.fsync(f.fileno())
 
+            if epoch == 0 and hasattr(args, 'config_id_to_train_num_samples') and args.config_id_to_train_num_samples:
+                from clip_train.profiler import get_model_flops
+                from utils import precision_to_dtype
+                compute = get_model_flops(model, data["train"].dataloader.num_samples, dtype=precision_to_dtype(args.precision))
+                _save_intermediate_checkpoints(model, args, num_samples, losses_m["loss"].avg, compute, batch_size=args.batch_size, optimizer=optimizer)
+
             # resetting batch / data time meters per log window
             batch_time_m.reset()
             data_time_m.reset()
@@ -271,9 +333,14 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
         record = {
             "epoch": epoch,
             "train_loss": train_loss,
-            "GPU_trained_on": args.gpu_name,
-            "world_size": args.world_size
         }
+        try:
+            record["GPU_trained_on"] = args.gpu_name
+            record["world_size"] = args.world_size
+
+        except AttributeError:
+            pass
+
 
         with open(log_path, "a") as f:
             f.write(json.dumps(record) + "\n")
@@ -391,8 +458,10 @@ def evaluate(model, data, epoch, args, tb_writer=None, tokenizer=None):
         if tb_writer is not None:
             for name, val in log_data.items():
                 tb_writer.add_scalar(name, val, epoch)
-
-    metrics["gpu_name"] = args.gpu_name
+    try:
+        metrics["gpu_name"] = args.gpu_name
+    except AttributeError:
+        pass
 
     with open(os.path.join(args.checkpoint_path, "results.jsonl"), "a+") as f:
         f.write(json.dumps(metrics))

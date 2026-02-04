@@ -15,11 +15,12 @@ echo "Started at $(date)";
 
 # Running the job
 start=`date +%s`
+cd /work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/train/
 srun -n $SLURM_NTASKS --gpus-per-task=1 \
      --gpu-bind=single:1 bash -lc '
 python -u configs_iterator.py \
-  --root_dir results/optimizer=experimental/seed=0 \
-  --seed 0 \
+  --root_dir results/optimizer=gs_ViT-Tiny-32/seed=42 \
+  --seed 42 \
   --worker_id $SLURM_PROCID \
   --num_workers $SLURM_NTASKS
 '

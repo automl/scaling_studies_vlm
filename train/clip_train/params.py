@@ -1,6 +1,6 @@
 import argparse
 import ast
-
+import json
 
 def get_default_params(model_name):
     # Params from paper (https://arxiv.org/pdf/2103.00020.pdf)
@@ -493,6 +493,13 @@ def parse_args(args):
         "--pipeline-id",
         type=int,
         default=None,
+        help="NePs pipeline id.",
+    )
+
+    parser.add_argument(
+        "--config-id-to-train-num-samples",
+        type=json.loads,
+        default='{}',
         help="NePs pipeline id.",
     )
 

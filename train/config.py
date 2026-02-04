@@ -5,7 +5,8 @@ from typing import Union
 import neps
 from neps.space import Parameter
 
-from chinchilla import chinchilla_optimizer, ChichillaPipeline, chinchilla_rs_optimizer
+from chinchilla import chinchilla_optimizer, ChichillaPipeline, chinchilla_rs_optimizer, chinchilla_optimizer_fine_grained_dp, \
+chinchilla_optimizer_fine_grained_dp
 from spaces import (__SCALE_SPACE_CONSTANT_ViT_S_32,
                     ScanPipeline)
 
@@ -141,7 +142,7 @@ HPO_CONFIGS = {
     ),
     "gs_ViT-XXS-32": NePSConfig(
         optimizer=chinchilla_optimizer,
-        evaluations_to_spend=100,
+        evaluations_to_spend=0,
         pipeline_space=ChichillaPipeline.with_overrides(
             wd=1.0e-6,
             vision_width=192 / 64,
@@ -150,7 +151,7 @@ HPO_CONFIGS = {
         )
     ),
     "gs_ViT-Tiny-32": NePSConfig(
-        optimizer=chinchilla_optimizer,
+        optimizer=chinchilla_optimizer_fine_grained_dp,
         evaluations_to_spend=0,
         pipeline_space=ChichillaPipeline.with_overrides(
             wd=1.0e-6,

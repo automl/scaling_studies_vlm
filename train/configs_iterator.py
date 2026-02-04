@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Dict, Any, Tuple
 
 import neps
+import pandas as pd
 import torch
 
 import iterator_params
@@ -14,6 +15,27 @@ from probe_max_bs import probe_max_bs
 from slurm import SlurmManager, build_srun_cmd, build_eval_cmd
 from utils import query_bs, build_model_cfg, get_local_model_str, precision_to_dtype, create_default_model, \
     sample_warped_log_uniform
+
+
+def group_configs_by_all_except_train_num_samples(df: pd.DataFrame, bias_scale_sampling: bool, alpha: float) -> Dict:
+    """
+    Convert all rows to scan_space dicts, then group by all keys except train_num_samples.
+    Returns a Dict where each group key (frozenset) maps to a list of (config_id, scan_space) tuples.
+    """
+    groups = {}
+    
+    for config_id, row in df.iterrows():
+        scan_space = build_scan_space(row, bias_scale_sampling, alpha, normalize_train_num_samples=False)
+        
+        # Create a hashable key from all keys except train_num_samples
+        group_key = frozenset((k, v) for k, v in scan_space.items() if k != 'train_num_samples')
+        
+        if group_key not in groups:
+            groups[group_key] = []
+        
+        groups[group_key].append((config_id, scan_space))
+    
+    return groups
 
 
 def infer_hardware_setup_and_local_bs(
@@ -51,16 +73,16 @@ def get_hp_space_train_num_samples_from_scan_space(scan_space):
     return hp_only
 
 
-def build_scan_space(row, bias_scale_sampling, alpha) -> Dict[str, Any]:
+def build_scan_space(row, bias_scale_sampling, alpha, normalize_train_num_samples=True) -> Dict[str, Any]:
     scan_space = {
         col.replace("config.", ""): val
         for col, val in row.items()
         if col.startswith("config.")
     }
-    return normalize_scan_space(scan_space, bias_scale_sampling, alpha)
+    return normalize_scan_space(scan_space, bias_scale_sampling, alpha, normalize_train_num_samples=normalize_train_num_samples)
 
 
-def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, alpha: float) -> Dict[str, Any]:
+def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, alpha: float, normalize_train_num_samples: bool = True) -> Dict[str, Any]:
     """Normalize scan space values by applying scaling factors and transformations."""
     if scan_space.get("text_width") is not None:
         scan_space["text_heads"] = int(scan_space["text_width"])
@@ -71,9 +93,10 @@ def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, 
         scan_space["vision_width"] = int(scan_space["vision_width"]) * 64
 
     if scan_space.get("train_num_samples") is not None:
-        if bias_scale_sampling:
-            scan_space["train_num_samples"] = sample_warped_log_uniform(scan_space["train_num_samples"], alpha)
-        scan_space["train_num_samples"] = int(float(scan_space["train_num_samples"]) * 1_000_000)
+        if normalize_train_num_samples:
+            if bias_scale_sampling:
+                scan_space["train_num_samples"] = sample_warped_log_uniform(scan_space["train_num_samples"], alpha)
+            scan_space["train_num_samples"] = int(float(scan_space["train_num_samples"]) * 1_000_000)
 
     return scan_space
 
@@ -135,9 +158,8 @@ def get_total_compute(model_str, train_num_samples, precision) -> int:
 
 
 def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_name, workspace_dir, bias_scale_sampling,
-                                alpha, cluster):
+                                alpha, cluster, config_id_to_train_num_samples=None):
     precision = "amp"
-    scan_space = build_scan_space(row, bias_scale_sampling, alpha)
 
     logs_dir, scripts_dir, evaluation_scripts_path, downstream_evaluation_scripts_path, model_cfg_path = create_directories(
         root_dir, config_id)
@@ -169,7 +191,8 @@ def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_na
         logs_dir=logs_dir,
         train_scripts_dir=scripts_dir,
         wandb_project_name=wandb_project_name,
-        cluster=cluster
+        cluster=cluster,
+        config_id_to_train_num_samples=config_id_to_train_num_samples,
     )
 
     generate_eval_script(
@@ -194,7 +217,7 @@ def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_na
 
 def generate_train_script(model_cfg, local_bs, config_id, logs_dir, train_scripts_dir,
                           hp_space_train_num_samples, seed,
-                          slurmManager, wandb_project_name, cluster):
+                          slurmManager, wandb_project_name, cluster, config_id_to_train_num_samples):
     from config import TrainConfig
 
     config = TrainConfig(
@@ -206,6 +229,7 @@ def generate_train_script(model_cfg, local_bs, config_id, logs_dir, train_script
         sync_neps=False,
         pipeline_id=config_id,
         logs=logs_dir,
+        config_id_to_train_num_samples=config_id_to_train_num_samples,
         **hp_space_train_num_samples,
     )
 
@@ -266,14 +290,39 @@ if __name__ == "__main__":
 
     root_dir = args.root_dir
     full_df, result = neps.status(root_dir)
-    nr_configs = len(full_df)
-    for i, (config_id, row) in enumerate(full_df.iterrows()):
-        if i % args.num_workers != args.worker_id:
-            continue
-        print(
-            f"[worker {args.worker_id}/{args.num_workers}] "
-            f"processing index {i} | config_id={config_id} | "
-            f"total_configs={nr_configs}"
-        )
-        generate_scripts_per_config(config_id, row, root_dir, args, args.wandb_project_name, args.workspace_dir,
-                                    args.bias_scale_sampling, args.alpha, args.cluster)
+    if not args.group_by_train_num_samples:
+        nr_configs = len(full_df)
+        for i, (config_id, row) in enumerate(full_df.iterrows()):
+            if i % args.num_workers != args.worker_id:
+                continue
+            print(
+                f"[worker {args.worker_id}/{args.num_workers}] "
+                f"processing index {i} | config_id={config_id} | "
+                f"total_configs={nr_configs}"
+            )
+            generate_scripts_per_config(config_id, row, root_dir, args, args.wandb_project_name, args.workspace_dir,
+                                        args.bias_scale_sampling, args.alpha, args.cluster)
+    else:    
+    # Group configs by all parameters except train_num_samples
+        grouped = group_configs_by_all_except_train_num_samples(full_df, args.bias_scale_sampling, args.alpha)
+        
+        total_groups = len(grouped)
+        for group_idx, (group_key, configs_in_group) in enumerate(grouped.items()):
+            
+            print(f"[worker {args.worker_id}/{args.num_workers}] "
+                f"processing group {group_idx} | total_groups={total_groups}")
+            print(f"Group config (all keys except train_num_samples): {dict(group_key)}")
+            print(f"Number of configs in group: {len(configs_in_group)}")
+            
+            _config_id_to_train_num_samples = {
+                cfg_id: scan_space['train_num_samples'] for cfg_id, scan_space in configs_in_group}
+
+            config_id_with_max_data = max(_config_id_to_train_num_samples, key=_config_id_to_train_num_samples.get)
+
+            for config_id, scan_space in configs_in_group:
+                if config_id == config_id_with_max_data:
+                    config_id_to_train_num_samples = _config_id_to_train_num_samples
+                else:
+                    config_id_to_train_num_samples = None
+                generate_scripts_per_config(config_id, scan_space, root_dir, args,
+                                                args.wandb_project_name, args.workspace_dir, config_id_to_train_num_samples)

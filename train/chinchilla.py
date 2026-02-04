@@ -12,7 +12,7 @@ from utils import get_local_model_str, create_default_model, build_model_cfg_tem
 class ChichillaPipeline(neps.PipelineSpace):
     lr = neps.Float(
         lower=1.0e-4,
-        upper=1.0e-1,
+        upper=1.0e-2,
         log=True,
     )
     wd = neps.Float(
@@ -26,10 +26,10 @@ class ChichillaPipeline(neps.PipelineSpace):
     )
     beta2 = 0.98
     eps = 1.0e-6
-    train_num_samples = neps.Float(
+    train_num_samples = neps.Integer(
         # inverse mapping from uniform distribution to either warped log distribution or uniform distribution with ranges 0.6-60m
-        lower=0.0,
-        upper=1.0,
+        lower=60_000,
+        upper=60_000_000,
     )
     vision_width = neps.Integer(
         lower=4, upper=8,  # head width is set to 64 by default. Emb. dim. needs to be divisible by 64!
@@ -71,7 +71,7 @@ class ChichillaPipeline(neps.PipelineSpace):
 
 def flop_estimator(**kwargs) -> float:
     # create the model config path temporarily
-    configs_denormalized = normalize_scan_space(kwargs, bias_scale_sampling=False)
+    configs_denormalized = normalize_scan_space(kwargs, bias_scale_sampling=False, alpha=0, normalize_train_num_samples=False)
     model_cfg_dir = build_model_cfg_temp(**configs_denormalized)
     model_cfg = get_local_model_str(model_cfg_dir)
     return get_total_compute(
@@ -82,12 +82,12 @@ def flop_estimator(**kwargs) -> float:
 
 
 def seen_datapoints_estimator(**kwargs) -> int:
-    configs_denormalized = normalize_scan_space(kwargs, bias_scale_sampling=False)
+    configs_denormalized = normalize_scan_space(kwargs, bias_scale_sampling=False, alpha=0, normalize_train_num_samples=False)
     return configs_denormalized["epochs"] * configs_denormalized["train_num_samples"]
 
 
 def parameters_estimator(**kwargs) -> int:
-    configs_denormalized = normalize_scan_space(kwargs, bias_scale_sampling=False)
+    configs_denormalized = normalize_scan_space(kwargs, bias_scale_sampling=False, alpha=0, normalize_train_num_samples=False)
     model_cfg_dir = build_model_cfg_temp(**configs_denormalized)
     model_cfg = get_local_model_str(model_cfg_dir)
     model = create_default_model(model_cfg)
@@ -125,6 +125,18 @@ chinchilla_rs_optimizer = lambda space: chinchilla_guided_scaling(space,
                                                                   seen_datapoints_estimator=None,
                                                                   flops_estimator=None,
                                                                   base_optimizer=random_search(space, use_priors=True))
+
+
+chinchilla_optimizer_fine_grained_dp = lambda space: chinchilla_guided_scaling(
+    space,
+    params_estimator=parameters_estimator,
+    seen_datapoints_estimator=seen_datapoints_estimator,
+    flops_estimator=flop_estimator,
+    base_optimizer=grid_search(
+        space,
+        size_per_numerical_dimension=dict(train_num_samples=100, warmup_fraction=3, lr=3),
+    )
+)
 
 if __name__ == "__main__":
     # test run
