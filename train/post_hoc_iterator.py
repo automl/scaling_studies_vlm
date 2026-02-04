@@ -47,7 +47,7 @@ def enrich_neps_state(neps_root, pipeline_id: int, eval_dict: dict):
     with open(train_report_path, "w") as f:
         yaml.safe_dump(state, f, sort_keys=False)
 
-    info = state.setdefault("info_dict", {})
+    info = state.setdefault("extra", {})
     info["downstream_results"] = eval_dict
 
     neps.save_pipeline_results(

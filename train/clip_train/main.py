@@ -14,6 +14,7 @@ from pathlib import Path
 import neps
 import numpy as np
 import torch
+import yaml
 from clip_train.params import parse_args
 from clip_train.profiler import get_model_flops
 from eval.downstream_eval import ClipBenchmarkEvaluator
@@ -479,7 +480,36 @@ def main(args):
             from open_clip.utils import convert_int8_model_to_inference_mode
             convert_int8_model_to_inference_mode(model)
         # Evaluate.
-        evaluate(model, data, start_epoch, args, tb_writer=writer, tokenizer=tokenizer)
+        metrics = evaluate(model, data, start_epoch, args, tb_writer=writer, tokenizer=tokenizer)
+
+        neps_dir = Path(args.logs).parent
+
+        config_dir = neps_dir / f"configs/config_{args.pipeline_id}"
+        report_path = config_dir / "report.yaml"
+        train_report_path = config_dir / "report_train.yaml"
+
+        with open(report_path, "r") as f:
+            state = yaml.safe_load(f) or {}
+
+        eval_results = {
+            "validation_loss": metrics["clip_val_loss"],
+            "validation_duration_seconds": metrics["val_time_sec"],
+            "test_loss": metrics["clip_test_loss"],
+            "test_duration_seconds": metrics["test_time_sec"]
+        }
+
+        with open(train_report_path, "w") as f:
+            yaml.safe_dump(state, f, sort_keys=False)
+
+        info = state.setdefault("extra", {})
+        info["eval_results"] = eval_results
+
+        neps.save_pipeline_results(
+            user_result=state,
+            pipeline_id=str(args.pipeline_id),
+            root_directory=neps_dir,
+        )
+
         return
 
     loss = create_loss(args)
