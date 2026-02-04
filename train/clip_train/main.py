@@ -498,11 +498,13 @@ def main(args):
             "test_duration_seconds": metrics["test_time_sec"]
         }
 
+        info_dict = state.pop("extra", {}) or {}
+        state["info_dict"] = info_dict
+
         with open(train_report_path, "w") as f:
             yaml.safe_dump(state, f, sort_keys=False)
 
-        info = state.setdefault("extra", {})
-        info["eval_results"] = eval_results
+        info_dict["eval_results"] = eval_results
 
         neps.save_pipeline_results(
             user_result=state,

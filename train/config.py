@@ -216,6 +216,7 @@ class EvalConfig:
     seed: int
     name: str
     logs: str
+    pipeline_id: int
 
     def __post_init__(self):
         if self.logs and "train/" in self.logs:

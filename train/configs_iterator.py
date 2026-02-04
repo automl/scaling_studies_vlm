@@ -232,6 +232,7 @@ def generate_eval_script(
         seed=seed,
         logs=str(logs_dir),
         name=run_name,
+        pipeline_id=config_id,
     )
     eval_cmd = build_eval_cmd(eval_cfg)
     job_name = f"eval_config{config_id}"

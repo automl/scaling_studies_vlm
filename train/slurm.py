@@ -325,7 +325,7 @@ python post_hoc_iterator.py --root {root} --model {model} --seed {seed} --pipeli
         model_name = f'local-dir:{models_cfg_dir}/config_${{SLURM_ARRAY_TASK_ID}}'
 
         cmd = cmd.strip()
-        cmd = f'{cmd} \\\n    --model "{model_name}" \\\n    --name "${{RUN_NAME}}"'
+        cmd = f'{cmd} \\\n    --model "{model_name}" \\\n    --name "${{RUN_NAME}}" \\\n    --pipeline_id "${{SLURM_ARRAY_TASK_ID}}"'
 
         script = f"""#!/bin/bash
 #SBATCH --nodes={self.nodes}
