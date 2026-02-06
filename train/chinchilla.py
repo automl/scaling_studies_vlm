@@ -1,14 +1,13 @@
 import gc
-import math
-import os
 import sys
 
 import neps
 import torch
 
 import iterator_params
-from utils import get_local_model_str, create_default_model, build_model_cfg_temp
 from configs_iterator import normalize_scan_space, get_total_compute
+from utils import get_local_model_str, create_default_model, build_model_cfg_temp
+
 
 class ChichillaPipeline(neps.PipelineSpace):
     lr = neps.Float(
@@ -43,7 +42,7 @@ class ChichillaPipeline(neps.PipelineSpace):
         prior_confidence="high"
     )
     text_heads = 8
-    
+
     epochs = 1
 
     batch_size = 512
@@ -51,9 +50,10 @@ class ChichillaPipeline(neps.PipelineSpace):
     @classmethod
     def with_overrides(cls, **overrides):
         """Create an instance with field overrides."""
+
         class CustomPipeline(cls):
             pass
-        
+
         # Copy all class attributes from parent first
         for attr_name in dir(cls):
             if not attr_name.startswith('_') and attr_name != 'with_overrides':
@@ -61,11 +61,11 @@ class ChichillaPipeline(neps.PipelineSpace):
                 # Skip methods
                 if not callable(attr_value):
                     setattr(CustomPipeline, attr_name, attr_value)
-        
+
         # Apply overrides
         for key, value in overrides.items():
             setattr(CustomPipeline, key, value)
-        
+
         return CustomPipeline()
 
 
@@ -106,7 +106,9 @@ def parameters_estimator(**kwargs) -> int:
 def evaluate_pipeline(pipeline_id, pipeline_directory, previous_pipeline_directory, **kwargs):
     return None
 
-from neps.optimizers.algorithms import chinchilla_guided_scaling, grid_search
+
+from neps.optimizers.algorithms import chinchilla_guided_scaling, grid_search, random_search
+
 chinchilla_optimizer = lambda space: chinchilla_guided_scaling(
     space,
     params_estimator=parameters_estimator,
@@ -117,6 +119,12 @@ chinchilla_optimizer = lambda space: chinchilla_guided_scaling(
         size_per_numerical_dimension=3,
     )
 )
+
+chinchilla_rs_optimizer = lambda space: chinchilla_guided_scaling(space,
+                                                                  params_estimator=None,
+                                                                  seen_datapoints_estimator=None,
+                                                                  flops_estimator=None,
+                                                                  base_optimizer=random_search(space, use_priors=True))
 
 if __name__ == "__main__":
     # test run

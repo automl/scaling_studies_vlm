@@ -5,7 +5,7 @@ from typing import Union
 import neps
 from neps.space import Parameter
 
-from chinchilla import chinchilla_optimizer, ChichillaPipeline
+from chinchilla import chinchilla_optimizer, ChichillaPipeline, chinchilla_rs_optimizer
 from spaces import (__SCALE_SPACE_CONSTANT_ViT_S_32,
                     ScanPipeline)
 
@@ -57,7 +57,7 @@ HPO_CONFIGS = {
         pipeline_space=ScanPipeline.with_overrides()
     ),
     "experimental": NePSConfig(
-        optimizer=lambda p: neps.algorithms.random_search(p, use_priors=True),
+        optimizer=chinchilla_rs_optimizer,
         evaluations_to_spend=20,
         pipeline_space=ScanPipeline.with_overrides()
     ),
