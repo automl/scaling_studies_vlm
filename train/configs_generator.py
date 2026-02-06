@@ -4,6 +4,8 @@ import sys
 from time import time
 
 import neps
+import neps.optimizers
+import neps.optimizers.chinchilla_guided_scaling
 
 import params
 from config import HPO_CONFIGS
@@ -23,12 +25,13 @@ def worker_proc(rank, args, root_dir):
 
 
 if __name__ == "__main__":
-    from chinchilla import chinchilla_optimizer_fine_grained_dp
     args = params.parse_args(sys.argv[1:])
 
+    from neps.optimizers.algorithms import chinchilla_guided_scaling, random_search
     root_dir = f"/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/train/results/optimizer={args.hpo_optimizer}/seed={args.seed}"
 
-    neps.extrapolate(root_directory=root_dir, max_target_flops=10_000_000, optimizer=chinchilla_optimizer_fine_grained_dp)
+    neps.extrapolate(root_directory=root_dir, max_target_flops=10_000_000, optimizer=lambda space: chinchilla_guided_scaling(space, base_optimizer=random_search(space, use_priors=True)))
+    
     # print("Starting HPO...")
     # start = time()
 
