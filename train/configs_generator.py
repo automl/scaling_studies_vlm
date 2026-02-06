@@ -30,23 +30,22 @@ if __name__ == "__main__":
     from neps.optimizers.algorithms import chinchilla_guided_scaling, random_search
     root_dir = f"/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/train/results/optimizer={args.hpo_optimizer}/seed={args.seed}"
 
-    neps.extrapolate(root_directory=root_dir, max_target_flops=10_000_000, optimizer=lambda space: chinchilla_guided_scaling(space, base_optimizer=random_search(space, use_priors=True)))
     
-    # print("Starting HPO...")
-    # start = time()
+    print("Starting HPO...")
+    start = time()
 
-    # processes = []
-    # for rank in range(args.num_neps_workers):
-    #     p = mp.Process(target=worker_proc, args=(rank, args, root_dir))
-    #     p.start()
-    #     processes.append(p)
+    processes = []
+    for rank in range(args.num_neps_workers):
+        p = mp.Process(target=worker_proc, args=(rank, args, root_dir))
+        p.start()
+        processes.append(p)
 
-    # for p in processes:
-    #     p.join()
+    for p in processes:
+        p.join()
 
-    # end = time()
-    # elapsed = end - start
+    end = time()
+    elapsed = end - start
 
-    # # with open(os.path.join(root_dir, "time.txt"), "w+", encoding="utf-8") as f:
-    # #     f.write(f"{elapsed}")
-    # print(f"Finished HPO in {elapsed:.2f} seconds")
+    # with open(os.path.join(root_dir, "time.txt"), "w+", encoding="utf-8") as f:
+    #     f.write(f"{elapsed}")
+    print(f"Finished HPO in {elapsed:.2f} seconds")

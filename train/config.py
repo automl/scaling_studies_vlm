@@ -6,7 +6,7 @@ import neps
 from neps.space import Parameter
 
 from chinchilla import chinchilla_optimizer, ChichillaPipeline, chinchilla_rs_optimizer, chinchilla_optimizer_fine_grained_dp, \
-chinchilla_optimizer_fine_grained_dp
+chinchilla_optimizer_fine_grained_dp, chinchilla_optimizer_aproach1
 from spaces import (__SCALE_SPACE_CONSTANT_ViT_S_32,
                     ScanPipeline)
 
@@ -160,7 +160,29 @@ HPO_CONFIGS = {
             text_heads=4,
         )
     ),
+        "scale_space_only_minimal_capacity_probe": NePSConfig(
+        optimizer=chinchilla_optimizer_aproach1,
+        evaluations_to_spend=100,
+        pipeline_space=
+        ScanPipeline.with_overrides(
+            lr=2e-3,
+            warmup_fraction=0.5, 
+            wd=1.0e-6,
+            train_num_samples = neps.Integer(
+                lower=1_000_000,
+                upper=8_000_000,
+            ),
+            vision_width = neps.Integer(
+                lower=1, upper=4,
+            ),
+            text_width = neps.Integer(
+                lower=1, upper=4,
+            ),
+            text_heads = 0,
+            ),
+    ),
 }
+
 
 
 @dataclass

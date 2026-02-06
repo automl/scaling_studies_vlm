@@ -138,6 +138,17 @@ chinchilla_optimizer_fine_grained_dp = lambda space: chinchilla_guided_scaling(
     )
 )
 
+chinchilla_optimizer_aproach1 = lambda space: chinchilla_guided_scaling(
+    space,
+    params_estimator=parameters_estimator,
+    seen_datapoints_estimator=seen_datapoints_estimator,
+    flops_estimator=flop_estimator,
+    base_optimizer=grid_search(
+        space,
+        size_per_numerical_dimension=dict(train_num_samples=4, vision_width=4, text_width=4),
+    )
+)
+
 if __name__ == "__main__":
     # test run
     args = iterator_params.parse_args(sys.argv[1:])
