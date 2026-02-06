@@ -29,9 +29,8 @@ class ScanPipeline(neps.PipelineSpace):
 
     # scale space
     train_num_samples = neps.Float(
-        # inverse mapping from uniform distribution to either warped log distribution or uniform distribution with ranges 0.6-60m
-        lower=0.0,
-        upper=1.0,
+        lower=0.6,
+        upper=60.0,
     )
     vision_width = neps.Integer(
         lower=1, upper=8,  # head width is set to 64 by default. Emb. dim. needs to be divisible by 64!

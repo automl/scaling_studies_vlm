@@ -13,7 +13,7 @@ from clip_train.profiler import get_model_flops
 from probe_max_bs import probe_max_bs
 from slurm import SlurmManager, build_srun_cmd, build_eval_cmd
 from utils import query_bs, build_model_cfg, get_local_model_str, precision_to_dtype, create_default_model, \
-    sample_warped_log_uniform, map_uniform_to_range
+    sample_warped_log_uniform
 
 
 def infer_hardware_setup_and_local_bs(
@@ -63,8 +63,9 @@ def build_scan_space(row, bias_scale_sampling, alpha) -> Dict[str, Any]:
 def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, alpha: float) -> Dict[str, Any]:
     """Normalize scan space values by applying scaling factors and transformations."""
     if scan_space.get("text_width") is not None:
-        scan_space["text_width"] = int(scan_space["text_width"]) * 64
         scan_space["text_heads"] = int(scan_space["text_width"])
+        scan_space["text_width"] = int(scan_space["text_width"]) * 64
+
 
     if scan_space.get("vision_width") is not None:
         scan_space["vision_width"] = int(scan_space["vision_width"]) * 64
@@ -72,8 +73,6 @@ def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, 
     if scan_space.get("train_num_samples") is not None:
         if bias_scale_sampling:
             scan_space["train_num_samples"] = sample_warped_log_uniform(scan_space["train_num_samples"], alpha)
-        else:
-            scan_space["train_num_samples"] = map_uniform_to_range(scan_space["train_num_samples"])
         scan_space["train_num_samples"] = int(float(scan_space["train_num_samples"]) * 1_000_000)
 
     return scan_space

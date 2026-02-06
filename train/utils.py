@@ -148,13 +148,12 @@ def build_model_cfg_temp(
 
     temp_dir = tempfile.mkdtemp()
     config_file = Path(temp_dir) / "open_clip_config.json"
-    
+
     with config_file.open("w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2)
         f.write("\n")
-    
-    return temp_dir
 
+    return temp_dir
 
 
 def read_last_json_line(path):
@@ -165,21 +164,17 @@ def read_last_json_line(path):
                 last = line
     return json.loads(last)
 
+
 def sample_warped_log_uniform(
-        x,
-        alpha: float = 1.0,
+        x, low: float = 0.6, high: float = 60, alpha: float = 1.0,
 ):
     """
     alpha = 1.0  -> standard log-uniform
     alpha > 1.0  -> bias toward smaller values
     alpha < 1.0  -> bias toward larger values
     """
-
-    return 0.6 * (60 / 0.6) ** (x ** alpha)
-
-
-def map_uniform_to_range(u, lower=0.6, upper=60.0):
-    return lower + u * (upper - lower)
+    x = (x - low) / (high - low)  # map to [0,1]
+    return low * (high / low) ** (x ** alpha)  # apply inverse warped log uniform transform
 
 
 ####################################################################

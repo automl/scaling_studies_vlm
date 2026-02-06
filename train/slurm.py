@@ -28,7 +28,11 @@ CLUSTER_DATASET_SHARDS: dict[str, dict[DatasetShards, str]] = {
 }
 
 
-def build_eval_cmd(cluster: str) -> list[str]:
+def shards(shard: DatasetShards, cluster: str) -> str:
+    return CLUSTER_DATASET_SHARDS[cluster][shard]
+
+
+def build_eval_cmd_defaults(cluster: str) -> list[str]:
     return [
         f'--val-data "{shards(DatasetShards.LAION400M_VAL, cluster)}"',
         f'--test-data "{shards(DatasetShards.LAION400M_TEST, cluster)}"',
@@ -37,10 +41,6 @@ def build_eval_cmd(cluster: str) -> list[str]:
         "--resume latest",
         "--epochs 1",
     ]
-
-
-def shards(shard: DatasetShards, cluster: str) -> str:
-    return CLUSTER_DATASET_SHARDS[cluster][shard]
 
 
 def build_cmd(config: "TrainConfig", wandb_project_name, cluster) -> str:
@@ -74,7 +74,7 @@ def build_cmd(config: "TrainConfig", wandb_project_name, cluster) -> str:
 def eval_cmd(config: "EvalConfig", cluster) -> str:
     args = asdict(config)
 
-    cmd_parts = build_cmd(cluster)
+    cmd_parts = build_eval_cmd_defaults(cluster)
 
     for key, value in args.items():
         cli_key = key.replace("_", "-")
@@ -90,7 +90,7 @@ def eval_cmd(config: "EvalConfig", cluster) -> str:
 
 
 def eval_array_job_cmd(seed, logs_dir, cluster):
-    cmd_parts = build_eval_cmd(cluster)
+    cmd_parts = build_eval_cmd_defaults(cluster)
     if "train/" in logs_dir:
         logs_dir = logs_dir.replace("train/", "")
 
