@@ -32,12 +32,13 @@ def generate_eval_array_script(
         nr_configs: int,
         seed: int,
         slurm: SlurmManager,
+        cluster: str
 ):
     out_path = evaluation_scripts_dir / "array_job.sh"
     if out_path.exists():
         return
 
-    array_cmd = eval_array_job_cmd(seed, str(logs_dir))
+    array_cmd = eval_array_job_cmd(seed, str(logs_dir), cluster)
     slurm.build_array_job_for_evaluation(
         cmd=array_cmd,
         models_cfg_dir=models_cfg_dir,
@@ -68,7 +69,7 @@ def generate_downstream_eval_array_script(
     )
 
 
-def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs: int, workspace_dir: str):
+def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs: int, workspace_dir: str, cluster: str):
     logs_dir, evaluation_scripts_dir, downstream_evaluation_scripts_dir, models_cfg_dir, train_scripts_dir = create_directories(
         root_dir)
 
@@ -88,6 +89,7 @@ def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs:
         models_cfg_dir=models_cfg_dir,
         seed=seed,
         slurm=slurm,
+        cluster=cluster
     )
 
     generate_downstream_eval_array_script(
@@ -100,10 +102,10 @@ def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs:
     )
 
     bundle_train_scripts_in_array_jobs(root_dir=root_dir, logs_dir=logs_dir, train_scripts_dir=train_scripts_dir,
-                                       seed=args.seed, workspace_dir=workspace_dir)
+                                       seed=args.seed, workspace_dir=workspace_dir, cluster=cluster)
 
 
-def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, workspace_dir, seed: int):
+def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, workspace_dir, seed: int, cluster: str):
     root_dir = str(root_dir)
     logs_dir = str(logs_dir)
     train_scripts_dir = Path(train_scripts_dir)
@@ -200,6 +202,7 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
             batch_size=bs,
             seed=seed,
             save_to=save_to,
+            cluster=cluster
         )
 
 
@@ -254,5 +257,6 @@ if __name__ == "__main__":
         seed=args.seed,
         partition=args.partition,
         nr_configs=nr_configs,
-        workspace_dir=args.workspace_dir
+        workspace_dir=args.workspace_dir,
+        cluster=args.cluster,
     )

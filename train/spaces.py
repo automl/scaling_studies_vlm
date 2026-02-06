@@ -34,16 +34,15 @@ class ScanPipeline(neps.PipelineSpace):
         upper=1.0,
     )
     vision_width = neps.Integer(
-        lower=4, upper=8,  # head width is set to 64 by default. Emb. dim. needs to be divisible by 64!
-        prior=4,
+        lower=1, upper=8,  # head width is set to 64 by default. Emb. dim. needs to be divisible by 64!
+        prior=3,
         prior_confidence="medium"
     )
     text_width = neps.Integer(
-        lower=32, upper=64,  # assuming number of heads is fixed to 8
-        prior=32,
-        prior_confidence="high"
+        lower=1, upper=8,
+        prior=3,
+        prior_confidence="medium"
     )
-    text_heads = 8
 
     @classmethod
     def with_overrides(cls, **overrides):

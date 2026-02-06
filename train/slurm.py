@@ -9,28 +9,47 @@ if TYPE_CHECKING:
 
 
 class DatasetShards(str, Enum):
-    LAION400M_TRAIN_DATA = "../pre_training_dataset/laion400m/train_data/{00000000..00012136}.tar",
-    LAION400M_VALIDATION_DATA = "../pre_training_dataset/laion400m/validation_data/{00000000..00000015}.tar"
-    LAION400M_TEST_DATA = "../pre_training_dataset/laion400m/test_data/{00000000..00000015}.tar"
+    LAION400M_TRAIN = "LAION400M_TRAIN"
+    LAION400M_VAL = "LAION400M_VAL"
+    LAION400M_TEST = "LAION400M_TEST"
 
 
-eval_cmd_parts = [
-    f'--val-data "{DatasetShards.LAION400M_VALIDATION_DATA.value}"',
-    f'--test-data "{DatasetShards.LAION400M_TEST_DATA.value}"',
-    "--dataset-type webdataset",
-    "--precision fp32",
-    "--resume latest",
-    "--epochs 1",
-]
+CLUSTER_DATASET_SHARDS: dict[str, dict[DatasetShards, str]] = {
+    "meta": {
+        DatasetShards.LAION400M_TRAIN: "../pre_training_dataset/laion400m/train_data/{00000000..00012136}.tar",
+        DatasetShards.LAION400M_VAL: "../pre_training_dataset/laion400m/validation_data/{00000000..00000015}.tar",
+        DatasetShards.LAION400M_TEST: "../pre_training_dataset/laion400m/test_data/{00000000..00000015}.tar",
+    },
+    "juwels": {  # TODO splits to be defined. Check for laion400m again.
+        DatasetShards.LAION400M_TRAIN: "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-safe",
+        DatasetShards.LAION400M_VAL: "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-safe",
+        DatasetShards.LAION400M_TEST: "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-safe",
+    },
+}
 
 
-def build_cmd(config: "TrainConfig", wandb_project_name) -> str:
+def build_eval_cmd(cluster: str) -> list[str]:
+    return [
+        f'--val-data "{shards(DatasetShards.LAION400M_VAL, cluster)}"',
+        f'--test-data "{shards(DatasetShards.LAION400M_TEST, cluster)}"',
+        "--dataset-type webdataset",
+        "--precision fp32",
+        "--resume latest",
+        "--epochs 1",
+    ]
+
+
+def shards(shard: DatasetShards, cluster: str) -> str:
+    return CLUSTER_DATASET_SHARDS[cluster][shard]
+
+
+def build_cmd(config: "TrainConfig", wandb_project_name, cluster) -> str:
     args = asdict(config)
 
     cmd_parts = [
-        f'--train-data "{DatasetShards.LAION400M_TRAIN_DATA.value}"',
-        f'--val-data "{DatasetShards.LAION400M_VALIDATION_DATA.value}"',
-        f'--test-data "{DatasetShards.LAION400M_TEST_DATA.value}"',
+        f'--train-data "{shards(DatasetShards.LAION400M_TRAIN, cluster)}"',
+        f'--val-data "{shards(DatasetShards.LAION400M_VAL, cluster)}"',
+        f'--test-data "{shards(DatasetShards.LAION400M_TEST, cluster)}"',
         "--local-loss",
         "--gather-with-grad",
         "--dataset-type webdataset",
@@ -52,10 +71,10 @@ def build_cmd(config: "TrainConfig", wandb_project_name) -> str:
     return cmd_parts
 
 
-def eval_cmd(config: "EvalConfig") -> str:
+def eval_cmd(config: "EvalConfig", cluster) -> str:
     args = asdict(config)
 
-    cmd_parts = eval_cmd_parts.copy()
+    cmd_parts = build_cmd(cluster)
 
     for key, value in args.items():
         cli_key = key.replace("_", "-")
@@ -70,8 +89,8 @@ def eval_cmd(config: "EvalConfig") -> str:
     return cmd_parts
 
 
-def eval_array_job_cmd(seed, logs_dir):
-    cmd_parts = eval_cmd_parts.copy()
+def eval_array_job_cmd(seed, logs_dir, cluster):
+    cmd_parts = build_eval_cmd(cluster)
     if "train/" in logs_dir:
         logs_dir = logs_dir.replace("train/", "")
 
@@ -85,8 +104,8 @@ def eval_array_job_cmd(seed, logs_dir):
     )
 
 
-def build_eval_cmd(config: "EvalConfig") -> str:
-    cmd_parts = eval_cmd(config)
+def build_eval_cmd(config: "EvalConfig", cluster) -> str:
+    cmd_parts = eval_cmd(config, cluster)
     return (
             "srun --cpu-bind=v --accel-bind=gn "
             "python -u -m clip_train.main \\\n    "
@@ -94,8 +113,8 @@ def build_eval_cmd(config: "EvalConfig") -> str:
     )
 
 
-def build_srun_cmd(config: "TrainConfig", wandb_project_name) -> str:
-    cmd_parts = build_cmd(config, wandb_project_name)
+def build_srun_cmd(config: "TrainConfig", wandb_project_name, cluster) -> str:
+    cmd_parts = build_cmd(config, wandb_project_name, cluster)
 
     return (
             "srun --cpu-bind=v --accel-bind=gn "
@@ -411,10 +430,15 @@ python post_hoc_iterator.py --root "${{ROOT_DIR}}" --seed {seed} --model {model_
                            array_size: int,
                            save_to: Path,
                            batch_size: int,
-                           seed: int
+                           seed: int,
+                           cluster: str
                            ) -> None:
 
         cuda_visible = ",".join(str(i) for i in range(self.gpus_per_node))
+
+        train_data = shards(DatasetShards.LAION400M_TRAIN, cluster)
+        val_data = shards(DatasetShards.LAION400M_VAL, cluster)
+        test_data = shards(DatasetShards.LAION400M_TEST, cluster)
 
         script = f"""#!/bin/bash
 #SBATCH --nodes={self.nodes}
@@ -455,9 +479,9 @@ read -r config_ID TRAIN_NUM_SAMPLES LR WD WARMUP BETA1 BETA2 EPS <<< "$LINE"
 TRAIN_NUM_SAMPLES=${{TRAIN_NUM_SAMPLES%.*}}
 
 srun --cpu-bind=v --accel-bind=gn python -u -m clip_train.main \\
-    --train-data "../pre_training_dataset/laion400m/train_data/{{00000000..00012136}}.tar" \\
-    --val-data "../pre_training_dataset/laion400m/validation_data/{{00000000..00000015}}.tar" \\
-    --test-data "../pre_training_dataset/laion400m/test_data/{{00000000..00000015}}.tar" \\
+    --train-data "{train_data}" \\
+    --val-data "{val_data}" \\
+    --test-data "{test_data}" \\
     --local-loss \\
     --gather-with-grad \\
     --dataset-type webdataset \\

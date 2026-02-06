@@ -63,7 +63,8 @@ def build_scan_space(row, bias_scale_sampling, alpha) -> Dict[str, Any]:
 def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, alpha: float) -> Dict[str, Any]:
     """Normalize scan space values by applying scaling factors and transformations."""
     if scan_space.get("text_width") is not None:
-        scan_space["text_width"] = int(scan_space["text_width"]) * 8
+        scan_space["text_width"] = int(scan_space["text_width"]) * 64
+        scan_space["text_heads"] = int(scan_space["text_width"])
 
     if scan_space.get("vision_width") is not None:
         scan_space["vision_width"] = int(scan_space["vision_width"]) * 64
@@ -73,7 +74,6 @@ def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, 
             scan_space["train_num_samples"] = sample_warped_log_uniform(scan_space["train_num_samples"], alpha)
         else:
             scan_space["train_num_samples"] = map_uniform_to_range(scan_space["train_num_samples"])
-
         scan_space["train_num_samples"] = int(float(scan_space["train_num_samples"]) * 1_000_000)
 
     return scan_space
@@ -136,7 +136,7 @@ def get_total_compute(model_str, train_num_samples, precision) -> int:
 
 
 def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_name, workspace_dir, bias_scale_sampling,
-                                alpha):
+                                alpha, cluster):
     precision = "amp"
     scan_space = build_scan_space(row, bias_scale_sampling, alpha)
 
@@ -169,7 +169,8 @@ def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_na
         slurmManager=slurm,
         logs_dir=logs_dir,
         train_scripts_dir=scripts_dir,
-        wandb_project_name=wandb_project_name
+        wandb_project_name=wandb_project_name,
+        cluster=cluster
     )
 
     generate_eval_script(
@@ -179,6 +180,7 @@ def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_na
         slurmManager=slurm,
         logs_dir=logs_dir,
         eval_scripts_dir=evaluation_scripts_path,
+        cluster=cluster
     )
 
     generate_downstream_eval_script(
@@ -193,7 +195,7 @@ def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_na
 
 def generate_train_script(model_cfg, local_bs, config_id, logs_dir, train_scripts_dir,
                           hp_space_train_num_samples, seed,
-                          slurmManager, wandb_project_name):
+                          slurmManager, wandb_project_name, cluster):
     from config import TrainConfig
 
     config = TrainConfig(
@@ -208,7 +210,7 @@ def generate_train_script(model_cfg, local_bs, config_id, logs_dir, train_script
         **hp_space_train_num_samples,
     )
 
-    cmd = build_srun_cmd(config, wandb_project_name)
+    cmd = build_srun_cmd(config, wandb_project_name, cluster)
 
     script_name = slurmManager.job_name + ".sh"
     script_path = Path(train_scripts_dir + "/" + script_name)
@@ -222,6 +224,7 @@ def generate_eval_script(
         slurmManager,
         logs_dir,
         eval_scripts_dir,
+        cluster
 ):
     from config import EvalConfig
 
@@ -234,7 +237,7 @@ def generate_eval_script(
         name=run_name,
         pipeline_id=config_id,
     )
-    eval_cmd = build_eval_cmd(eval_cfg)
+    eval_cmd = build_eval_cmd(eval_cfg, cluster)
     job_name = f"eval_config{config_id}"
 
     eval_script_path = Path(eval_scripts_dir + "/" + f"{job_name}.sh")
@@ -255,7 +258,8 @@ def generate_downstream_eval_script(
     downstream_eval_script_path = Path(downstream_eval_scripts_dir + "/" + downstream_eval_job_name + ".sh")
     slurmManager.build_downstream_evaluation_script(job_name=downstream_eval_job_name,
                                                     root=logs_dir + "/" + run_name,
-                                                    save_to=downstream_eval_script_path, model=model_cfg, seed=seed, config_id=config_id)
+                                                    save_to=downstream_eval_script_path, model=model_cfg, seed=seed,
+                                                    config_id=config_id)
 
 
 if __name__ == "__main__":
@@ -273,4 +277,4 @@ if __name__ == "__main__":
             f"total_configs={nr_configs}"
         )
         generate_scripts_per_config(config_id, row, root_dir, args, args.wandb_project_name, args.workspace_dir,
-                                    args.bias_scale_sampling, args.alpha)
+                                    args.bias_scale_sampling, args.alpha, args.cluster)

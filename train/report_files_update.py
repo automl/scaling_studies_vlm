@@ -28,8 +28,18 @@ def create_yaml_file(checkpoint_path, n_data, total_mparams, image_mparams, text
     test_loss = evaluation_results.get("clip_test_loss", None)
     test_duration_seconds = evaluation_results.get("test_time_sec", None)
 
+    eval_path = Path(checkpoint_path).resolve().parent / "eval"
+    in_ak1_file = eval_path / "zero_shot" / "imagenet1k_epoch_1.json"
+    mscoco_file = eval_path / "retrieval" / "mscoco_captions_epoch_1.json"
+
+    with open(in_ak1_file) as f:
+        in_acc1 = float(json.load(f)["metrics"]["acc1"])
+
+    with open(mscoco_file) as f:
+        mscoco_text_retrieval = float(json.load(f)["metrics"]["text_retrieval_recall@5"])
+
     result = {
-        "objective_to_minimize": validation_loss,
+        "objective_to_minimize": 1.0 - mscoco_text_retrieval,
         "cost": compute,
         "extra": {
             "train_loss": training_loss,

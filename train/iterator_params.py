@@ -19,6 +19,14 @@ def parse_args(args):
     )
 
     parser.add_argument(
+        "--cluster",
+        type=str,
+        choices=["meta", "juwels"],
+        required=True,
+        help="Cluster the jobs will be running on. Necessary for data paths.",
+    )
+
+    parser.add_argument(
         "--wandb_project_name",
         type=str,
         default="scan-space",
@@ -44,7 +52,7 @@ def parse_args(args):
         "--worker_id",
         type=int,
         default=0,
-        help="Seed for reproducibility.",
+        help="worker id.",
     )
 
     parser.add_argument(
