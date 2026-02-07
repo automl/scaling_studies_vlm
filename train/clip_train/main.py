@@ -623,7 +623,10 @@ def main(args):
                 training_loss_over_datapoints = [json.loads(line) for line in f if line.strip()]
 
         total_mparams = round(count_params(model) / 1e6, 2)
-        image_mparams = round(count_params(model.visual) / 1e6, 2)
+        if args.world_size > 1:
+            image_mparams = round(count_params(model.module.visual) / 1e6, 2)
+        else:
+            image_mparams = round(count_params(model.visual) / 1e6, 2)
         text_mparams = round(total_mparams - image_mparams, 2)
 
         out_path = Path(args.checkpoint_path) / "model_params.txt"

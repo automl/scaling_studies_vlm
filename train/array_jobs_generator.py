@@ -201,6 +201,16 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
                                                                 cluster=cluster, wandb_project_name=wandb_project_name,
                                                                 save_to=save_to)
 
+        elif gpus == 2 and nodes == 1:
+            num_lines = sum(1 for _ in Path(config_txt).open())
+            pack = 2
+            packed_array_size = math.ceil(num_lines / pack)
+
+            slurmManager.build_array_script_for_two_gpu_runs(
+                array_size=packed_array_size, seed=seed, batch_size=bs,
+                config_txt=config_txt, log_dir=logs_dir, cluster=cluster,
+                wandb_project_name=wandb_project_name, save_to=save_to,
+            )
         else:
             array_size = sum(1 for _ in Path(config_txt).open())
 
