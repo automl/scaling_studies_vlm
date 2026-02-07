@@ -46,6 +46,6 @@ if __name__ == "__main__":
     end = time()
     elapsed = end - start
 
-    # with open(os.path.join(root_dir, "time.txt"), "w+", encoding="utf-8") as f:
-    #     f.write(f"{elapsed}")
+    with open(os.path.join(root_dir, "time.txt"), "w+", encoding="utf-8") as f:
+        f.write(f"{elapsed}")
     print(f"Finished HPO in {elapsed:.2f} seconds")
