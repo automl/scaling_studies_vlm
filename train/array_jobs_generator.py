@@ -1,3 +1,4 @@
+import math
 import re
 import sys
 from collections import defaultdict
@@ -69,7 +70,8 @@ def generate_downstream_eval_array_script(
     )
 
 
-def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs: int, workspace_dir: str, cluster: str):
+def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs: int, workspace_dir: str, cluster: str,
+                           wandb_project_name: str):
     logs_dir, evaluation_scripts_dir, downstream_evaluation_scripts_dir, models_cfg_dir, train_scripts_dir = create_directories(
         root_dir)
 
@@ -98,14 +100,16 @@ def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs:
         models_cfg_dir=models_cfg_dir,
         nr_configs=nr_configs,
         seed=seed,
-        slurm=slurm,
+        slurm=slurm
     )
 
     bundle_train_scripts_in_array_jobs(root_dir=root_dir, logs_dir=logs_dir, train_scripts_dir=train_scripts_dir,
-                                       seed=args.seed, workspace_dir=workspace_dir, cluster=cluster)
+                                       seed=args.seed, workspace_dir=workspace_dir, cluster=cluster,
+                                       wandb_project_name=wandb_project_name)
 
 
-def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, workspace_dir, seed: int, cluster: str):
+def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, workspace_dir, seed: int, cluster: str,
+                                       wandb_project_name: str):
     root_dir = str(root_dir)
     logs_dir = str(logs_dir)
     train_scripts_dir = Path(train_scripts_dir)
@@ -181,29 +185,36 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
     groups = group_configs(config_info)
     group_to_txt = write_group_configs(config_info, groups, train_scripts_dir)
     for (part, bs, gpus, nodes), config_txt in group_to_txt.items():
-        array_size = sum(1 for _ in config_txt.open())
-
-        config_txt = str(config_txt).replace("\\", "/")
-
-        if "train/" in config_txt:
-            config_txt = config_txt.replace("train/", "")
-
         job_name = f"train_p{part}_bs{bs}_g{gpus}_n{nodes}"
         slurmManager = SlurmManager(partition=part, gpus_per_node=gpus, nodes=nodes, job_name=job_name,
                                     workspace_dir=workspace_dir)
-
         save_to = Path(train_scripts_dir) / f"{slurmManager.job_name}.sh"
+        config_txt = str(config_txt).replace("\\", "/")
 
-        slurmManager.build_array_script(
-            model_root=root_dir,
-            logs_root=logs_dir,
-            config_txt=config_txt,
-            array_size=array_size,
-            batch_size=bs,
-            seed=seed,
-            save_to=save_to,
-            cluster=cluster
-        )
+        if gpus == 1 and nodes == 1:
+            num_lines = sum(1 for _ in Path(config_txt).open())
+            pack = 4
+            packed_array_size = math.ceil(num_lines / pack)
+
+            slurmManager.build_array_script_for_single_gpu_runs(array_size=packed_array_size, seed=seed, batch_size=bs,
+                                                                config_txt=config_txt, log_dir=logs_dir,
+                                                                cluster=cluster, wandb_project_name=wandb_project_name,
+                                                                save_to=save_to)
+
+        else:
+            array_size = sum(1 for _ in Path(config_txt).open())
+
+            slurmManager.build_array_script(
+                model_root=root_dir,
+                logs_root=logs_dir,
+                config_txt=config_txt,
+                array_size=array_size,
+                batch_size=bs,
+                seed=seed,
+                save_to=save_to,
+                cluster=cluster,
+                wandb_project_name=wandb_project_name
+            )
 
 
 def group_configs(config_info: dict[int, dict]) -> dict[tuple, list[int]]:
@@ -259,4 +270,5 @@ if __name__ == "__main__":
         nr_configs=nr_configs,
         workspace_dir=args.workspace_dir,
         cluster=args.cluster,
+        wandb_project_name=args.wandb_project_name
     )

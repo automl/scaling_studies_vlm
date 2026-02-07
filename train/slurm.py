@@ -431,7 +431,8 @@ python post_hoc_iterator.py --root "${{ROOT_DIR}}" --seed {seed} --model {model_
                            save_to: Path,
                            batch_size: int,
                            seed: int,
-                           cluster: str
+                           cluster: str,
+                           wandb_project_name: str,
                            ) -> None:
 
         cuda_visible = ",".join(str(i) for i in range(self.gpus_per_node))
@@ -487,7 +488,7 @@ srun --cpu-bind=v --accel-bind=gn python -u -m clip_train.main \\
     --dataset-type webdataset \\
     --precision amp \\
     --report-to wandb \\
-    --wandb-project-name open-clip-scan-space \\
+    --wandb-project-name '{wandb_project_name}' \\
     --model "local-dir:{model_root}/model_cfg/config_${{config_ID}}" \\
     --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \\
     --epochs 1 \\
@@ -505,6 +506,106 @@ srun --cpu-bind=v --accel-bind=gn python -u -m clip_train.main \\
 
 end=`date +%s`
 echo "Ended at $(date)";
+echo "Job execution complete."
+"""
+        if save_to:
+            save_to.write_text(script)
+        else:
+            self.script_path.write_text(script)
+
+    def build_array_script_for_single_gpu_runs(self, array_size, seed, batch_size, config_txt, log_dir, cluster,
+                                               wandb_project_name, save_to):
+
+        train_data = shards(DatasetShards.LAION400M_TRAIN, cluster)
+
+        step_jobs_logs_dir = Path(self.workspace_dir) / "train" / Path(save_to).parent
+        step_jobs_logs_dir = str(step_jobs_logs_dir
+                                 )
+        script = f"""#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:4
+#SBATCH --ntasks=4
+#SBATCH --cpus-per-task={self.cpus_per_task}
+#SBATCH --job-name={self.job_name}
+#SBATCH -p {self.partition}
+#SBATCH --array=1-{array_size}%1
+      
+#SBATCH --output array_job_logs/%x-%A_%a.out
+#SBATCH --error  array_job_logs/%x-%A_%a.err    
+        
+{self.conda_env}
+
+echo "Started at $(date)";
+start=`date +%s`
+        
+PROJECT_ROOT="{self.workspace_dir}"
+TRAIN_DIR="${{PROJECT_ROOT}}/train"
+
+cd "${{TRAIN_DIR}}"
+export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
+
+LOG_DIR="{step_jobs_logs_dir}"
+mkdir -p "${{LOG_DIR}}"
+
+CONFIG_TXT="{config_txt}"
+base_line=$(( (SLURM_ARRAY_TASK_ID - 1) * 4 + 1 ))
+
+echo "Array task ${{SLURM_ARRAY_TASK_ID}}"
+echo "  Using config lines: ${{base_line}}..$((base_line+3))"
+
+run_one () {{
+  local step_idx="$1"
+  local line="$2"
+
+  read -r config_ID TRAIN_NUM_SAMPLES LR WD WARMUP BETA1 BETA2 EPS <<< "${{line}}"
+  TRAIN_NUM_SAMPLES=${{TRAIN_NUM_SAMPLES%.*}}
+
+  echo "About to start srun for step ${{step_idx}} (config_ID=${{config_ID}}) at $(date)"
+
+  srun --exclusive --ntasks=1 --cpus-per-task={self.cpus_per_task} --gres=gpu:1 \\
+      --output "${{LOG_DIR}}/step_${{step_idx}}_%x-%A_%a.out" \\
+      --error  "${{LOG_DIR}}/step_${{step_idx}}_%x-%A_%a.err" \\
+      python -u -m clip_train.main \\
+        --train-data '{train_data}' \\
+        --local-loss \\
+        --gather-with-grad \\
+        --dataset-type webdataset \\
+        --precision amp \\
+        --report-to wandb \\
+        --wandb-project-name '{wandb_project_name}' \\
+        --model "local-dir:results/optimizer=experimental/seed=0/model_cfg/config_${{config_ID}}" \\
+        --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \\
+        --epochs 1 \\
+        --name "train_config${{config_ID}}" \\
+        --logs "{log_dir}" \\
+        --seed {seed} \\
+        --batch-size {batch_size} \\
+        --pipeline-id "${{config_ID}}" \\
+        --lr "${{LR}}" \\
+        --wd "${{WD}}" \\
+        --warmup-fraction "${{WARMUP}}" \\
+        --beta1 "${{BETA1}}" \\
+        --beta2 "${{BETA2}}" \\
+        --eps "${{EPS}}" &
+    }}
+
+for step_idx in 0 1 2 3; do
+  line_no=$((base_line + step_idx))
+  line=$(sed -n "${{line_no}}p" "${{CONFIG_TXT}}")
+
+  if [ -z "${{line}}" ]; then
+    echo "No line ${{line_no}} for array task ${{SLURM_ARRAY_TASK_ID}}, skipping"
+    continue
+  fi
+
+  echo "  Line${{step_idx}}: ${{line}}"
+  run_one "${{step_idx}}" "${{line}}"
+done
+
+wait
+
+end=$(date +%s)
+echo "Ended at $(date)"
 echo "Job execution complete."
 """
         if save_to:
