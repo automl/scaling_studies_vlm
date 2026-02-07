@@ -81,7 +81,8 @@ def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs:
         nodes=1,
         gpus_per_node=1,
         root_dir=root_dir,
-        workspace_dir=workspace_dir
+        workspace_dir=workspace_dir,
+        cluster=cluster,
     )
 
     generate_eval_array_script(
@@ -187,7 +188,7 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
     for (part, bs, gpus, nodes), config_txt in group_to_txt.items():
         job_name = f"train_p{part}_bs{bs}_g{gpus}_n{nodes}"
         slurmManager = SlurmManager(partition=part, gpus_per_node=gpus, nodes=nodes, job_name=job_name,
-                                    workspace_dir=workspace_dir)
+                                    workspace_dir=workspace_dir, cluster=cluster)
         save_to = Path(train_scripts_dir) / f"{slurmManager.job_name}.sh"
         config_txt = str(config_txt).replace("\\", "/")
 

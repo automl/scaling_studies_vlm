@@ -181,7 +181,7 @@ def generate_scripts_per_config(config_id, scan_space, root_dir, args, wandb_pro
 
     slurm = SlurmManager(job_name=job_name, partition=args.partition, nodes=nodes_nr,
                          gpus_per_node=gpus_per_node,
-                         root_dir=root_dir, workspace_dir=workspace_dir, command_dir=command_dir)
+                         root_dir=root_dir, workspace_dir=workspace_dir, command_dir=command_dir, cluster=cluster)
 
     generate_train_script(
         config_id=config_id,

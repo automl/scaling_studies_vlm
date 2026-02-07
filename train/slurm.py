@@ -1,9 +1,9 @@
+import json
 import subprocess
 from dataclasses import asdict
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING
-import json
 
 if TYPE_CHECKING:
     from config import TrainConfig, EvalConfig
@@ -158,6 +158,7 @@ class SlurmManager:
             root_dir: Path | str = ".",
             workspace_dir: str = ".",
             command_dir: Path | str | None = None,
+            cluster: str = "meta"
     ) -> None:
         """
         Manager to create and submit Slurm batch jobs.
@@ -184,6 +185,7 @@ class SlurmManager:
         self.workspace_dir = workspace_dir
         # If command_dir not provided, use workspace_dir (code in workspace)
         self.command_dir = command_dir if command_dir else workspace_dir
+        self.cluster = cluster
 
     def build_script(
             self,
@@ -213,7 +215,7 @@ class SlurmManager:
 #SBATCH --output logs/%x-%A.out
 #SBATCH --error logs/%x-%A.err
 
-{self.conda_env}
+{self.load_env()}
 
 echo "Started at $(date)";
 
@@ -247,15 +249,18 @@ echo "Job execution complete."
         else:
             self.script_path.write_text(script)
 
-    @property
-    def conda_env(self) -> str:
-        """
-        Get the command to activate the conda environment.
+    def load_env(self) -> str:
+        if self.cluster == "juwels":
+            return """\
+            ml --force purge
+            ml Stages/2026 GCCcore/14.3.0 PyTorch/2.9.1
+            source /p/project1/projectnucleus/sinani1/envs/openclip/bin/activate
+            """
 
-        Returns:
-            str: The command to activate the environment.
-        """
-        return "source ~/miniconda3/bin/activate && conda activate test_scaling_laws"
+        if self.cluster == "meta":
+            return "source ~/miniconda3/bin/activate && conda activate test_scaling_laws"
+
+        raise ValueError(f"Unknown cluster: {self.cluster}")
 
     def submit_job(self, cmd: str):
         """
@@ -307,7 +312,7 @@ echo "Job execution complete."
 #SBATCH --output evaluator_logs/%x-%A.out
 #SBATCH --error evaluator_logs/%x-%A.err
 
-{self.conda_env}
+{self.load_env()}
 
 echo "Started at $(date)";
 
@@ -340,7 +345,7 @@ echo "Job execution complete."
 #SBATCH --output=downstream_evaluator_logs/%x-%j.out
 #SBATCH --error=downstream_evaluator_logs/%x-%j.err
 
-{self.conda_env}
+{self.load_env()}
 
 COMMAND_DIR="{self.command_dir}"
 TRAIN_DIR="{self.workspace_dir}/train"
@@ -373,7 +378,7 @@ python post_hoc_iterator.py --root {root} --model {model} --seed {seed} --pipeli
 #SBATCH --output=evaluator_logs/%x-%A_%a.out
 #SBATCH --error=evaluator_logs/%x-%A_%a.err
 
-{self.conda_env}
+{self.load_env()}
 
 echo "Started at $(date)"
 echo "Array task id: ${{SLURM_ARRAY_TASK_ID}}"
@@ -414,7 +419,7 @@ echo "Job execution complete."
 #SBATCH --output=downstream_evaluator_logs/%x-%A_%a.out
 #SBATCH --error=downstream_evaluator_logs/%x-%A_%a.err
 
-{self.conda_env}
+{self.load_env()}
 
 COMMAND_DIR="{self.command_dir}"
 TRAIN_DIR="{self.workspace_dir}/train"
@@ -469,7 +474,7 @@ python post_hoc_iterator.py --root "${{ROOT_DIR}}" --seed {seed} --model {model_
 #SBATCH --output array_job_logs/%x-%A_%a.out
 #SBATCH --error array_job_logs/%x-%A_%a.err
 
-{self.conda_env}
+{self.load_env()}
 
 echo "Started at $(date)";
 start=`date +%s`
@@ -548,7 +553,7 @@ echo "Job execution complete."
 #SBATCH --output array_job_logs/%x-%A_%a.out
 #SBATCH --error  array_job_logs/%x-%A_%a.err    
         
-{self.conda_env}
+{self.load_env()}
 
 echo "Started at $(date)";
 start=`date +%s`
@@ -648,7 +653,7 @@ echo "Job execution complete."
 #SBATCH --output array_job_logs/%x-%A_%a.out
 #SBATCH --error  array_job_logs/%x-%A_%a.err    
 
-{self.conda_env}
+{self.load_env()}
 
 echo "Started at $(date)";
 start=`date +%s`
