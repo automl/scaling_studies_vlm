@@ -68,6 +68,8 @@ def build_cmd(config: "TrainConfig", wandb_project_name, cluster) -> str:
             continue
 
         if isinstance(value, dict):
+            if not value:
+                continue
             json_value = json.dumps(value)
             cmd_parts.append(f"--{cli_key} '{json_value}'")
         else:
@@ -89,7 +91,13 @@ def eval_cmd(config: "EvalConfig", cluster) -> str:
                 cmd_parts.append(f"--{cli_key}")
             continue
 
-        cmd_parts.append(f"--{cli_key} {value}")
+        if isinstance(value, dict):
+            if not value:
+                continue
+            json_value = json.dumps(value)
+            cmd_parts.append(f"--{cli_key} '{json_value}'")
+        else:
+            cmd_parts.append(f"--{cli_key} {value}")
 
     return cmd_parts
 
@@ -149,6 +157,7 @@ class SlurmManager:
             mem_gb: int = 32,
             root_dir: Path | str = ".",
             workspace_dir: str = ".",
+            command_dir: Path | str | None = None,
     ) -> None:
         """
         Manager to create and submit Slurm batch jobs.
@@ -161,6 +170,8 @@ class SlurmManager:
             cpus_per_task: CPU cores per task.
             mem_gb: Memory in gigabytes.
             root_dir: root dir.
+            workspace_dir: Workspace directory (where to cd).
+            command_dir: Command directory (for PYTHONPATH, where code is).
         """
         self.job_id = None
         self.job_name = job_name
@@ -171,6 +182,8 @@ class SlurmManager:
         self.mem_gb = mem_gb
         self.script_path = Path(root_dir) / "train.sh"
         self.workspace_dir = workspace_dir
+        # If command_dir not provided, use workspace_dir (code in workspace)
+        self.command_dir = command_dir if command_dir else workspace_dir
 
     def build_script(
             self,
@@ -215,12 +228,11 @@ export MASTER_PORT=12802
 master_addr=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
 export MASTER_ADDR=$master_addr
 
-PROJECT_ROOT="{self.workspace_dir}"
-TRAIN_DIR="${{PROJECT_ROOT}}/train"
+COMMAND_DIR="{self.command_dir}"
+TRAIN_DIR="{self.workspace_dir}/train"
 
+export PYTHONPATH="${{COMMAND_DIR}}:${{PYTHONPATH}}"
 cd "${{TRAIN_DIR}}"
-
-export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
 
 {cmd}
 
@@ -299,12 +311,11 @@ echo "Job execution complete."
 
 echo "Started at $(date)";
 
-PROJECT_ROOT="{self.workspace_dir}"
-TRAIN_DIR="${{PROJECT_ROOT}}/train"
+COMMAND_DIR="{self.command_dir}"
+TRAIN_DIR="{self.workspace_dir}/train"
 
+export PYTHONPATH="${{COMMAND_DIR}}:${{PYTHONPATH}}"
 cd "${{TRAIN_DIR}}"
-
-export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
 
 {cmd}
 
@@ -331,12 +342,11 @@ echo "Job execution complete."
 
 {self.conda_env}
 
-PROJECT_ROOT="{self.workspace_dir}"
-TRAIN_DIR="${{PROJECT_ROOT}}/train"
+COMMAND_DIR="{self.command_dir}"
+TRAIN_DIR="{self.workspace_dir}/train"
 
+export PYTHONPATH="${{COMMAND_DIR}}:${{PYTHONPATH}}"
 cd "${{TRAIN_DIR}}"
-
-export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
 
 python post_hoc_iterator.py --root {root} --model {model} --seed {seed} --pipeline_id {config_id}
 """
@@ -368,11 +378,11 @@ python post_hoc_iterator.py --root {root} --model {model} --seed {seed} --pipeli
 echo "Started at $(date)"
 echo "Array task id: ${{SLURM_ARRAY_TASK_ID}}"
 
-PROJECT_ROOT="{self.workspace_dir}"
-TRAIN_DIR="${{PROJECT_ROOT}}/train"
+COMMAND_DIR="{self.command_dir}"
+TRAIN_DIR="{self.workspace_dir}/train"
 
+export PYTHONPATH="${{COMMAND_DIR}}:${{PYTHONPATH}}"
 cd "${{TRAIN_DIR}}"
-export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
 
 CONFIG_ID="${{SLURM_ARRAY_TASK_ID}}"
 RUN_NAME="train_config${{CONFIG_ID}}"
@@ -406,11 +416,11 @@ echo "Job execution complete."
 
 {self.conda_env}
 
-PROJECT_ROOT="{self.workspace_dir}"
-TRAIN_DIR="${{PROJECT_ROOT}}/train"
+COMMAND_DIR="{self.command_dir}"
+TRAIN_DIR="{self.workspace_dir}/train"
 
+export PYTHONPATH="${{COMMAND_DIR}}:${{PYTHONPATH}}"
 cd "${{TRAIN_DIR}}"
-export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
 
 config_ID="${{SLURM_ARRAY_TASK_ID}}"
 RUN_NAME="train_config${{config_ID}}"

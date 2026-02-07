@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Union
 
@@ -160,7 +160,7 @@ HPO_CONFIGS = {
             text_heads=4,
         )
     ),
-        "scale_space_only_minimal_capacity_probe": NePSConfig(
+    "scale_space_only_minimal_capacity_probe": NePSConfig(
         optimizer=chinchilla_optimizer_aproach1,
         evaluations_to_spend=100,
         pipeline_space=
@@ -168,18 +168,17 @@ HPO_CONFIGS = {
             lr=2e-3,
             warmup_fraction=0.5, 
             wd=1.0e-6,
-            train_num_samples = neps.Integer(
-                lower=1_000_000,
-                upper=8_000_000,
+            train_num_samples = neps.Float(
+                lower=1,
+                upper=80.0,
             ),
             vision_width = neps.Integer(
                 lower=1, upper=4,
             ),
             text_width = neps.Integer(
                 lower=1, upper=4,
-            ),
-            text_heads = 0,
-            ),
+            )
+        ),
     ),
 }
 
@@ -218,6 +217,7 @@ class TrainConfig:
     beta1: float = 0.9
     beta2: float = 0.98
     eps: float = 1e-6
+    config_id_to_train_num_samples: dict[int, int] = None
 
     def __post_init__(self):
         if self.logs and "train/" in self.logs:

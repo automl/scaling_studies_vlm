@@ -25,7 +25,7 @@ def group_configs_by_all_except_train_num_samples(df: pd.DataFrame, bias_scale_s
     groups = {}
     
     for config_id, row in df.iterrows():
-        scan_space = build_scan_space(row, bias_scale_sampling, alpha, normalize_train_num_samples=False)
+        scan_space = build_scan_space(row, bias_scale_sampling, alpha)
         
         # Create a hashable key from all keys except train_num_samples
         group_key = frozenset((k, v) for k, v in scan_space.items() if k != 'train_num_samples')
@@ -73,16 +73,16 @@ def get_hp_space_train_num_samples_from_scan_space(scan_space):
     return hp_only
 
 
-def build_scan_space(row, bias_scale_sampling, alpha, normalize_train_num_samples=True) -> Dict[str, Any]:
+def build_scan_space(row, bias_scale_sampling, alpha) -> Dict[str, Any]:
     scan_space = {
         col.replace("config.", ""): val
         for col, val in row.items()
         if col.startswith("config.")
     }
-    return normalize_scan_space(scan_space, bias_scale_sampling, alpha, normalize_train_num_samples=normalize_train_num_samples)
+    return normalize_scan_space(scan_space, bias_scale_sampling, alpha)
 
 
-def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, alpha: float, normalize_train_num_samples: bool = True) -> Dict[str, Any]:
+def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, alpha: float) -> Dict[str, Any]:
     """Normalize scan space values by applying scaling factors and transformations."""
     if scan_space.get("text_width") is not None:
         scan_space["text_heads"] = int(scan_space["text_width"])
@@ -93,10 +93,9 @@ def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, 
         scan_space["vision_width"] = int(scan_space["vision_width"]) * 64
 
     if scan_space.get("train_num_samples") is not None:
-        if normalize_train_num_samples:
-            if bias_scale_sampling:
-                scan_space["train_num_samples"] = sample_warped_log_uniform(scan_space["train_num_samples"], alpha)
-            scan_space["train_num_samples"] = int(float(scan_space["train_num_samples"]) * 1_000_000)
+        if bias_scale_sampling:
+            scan_space["train_num_samples"] = sample_warped_log_uniform(scan_space["train_num_samples"], alpha)
+        scan_space["train_num_samples"] = int(float(scan_space["train_num_samples"]) * 1_000_000)
 
     return scan_space
 
@@ -157,8 +156,7 @@ def get_total_compute(model_str, train_num_samples, precision) -> int:
             torch.cuda.empty_cache()
 
 
-def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_name, workspace_dir, bias_scale_sampling,
-                                alpha, cluster, config_id_to_train_num_samples=None):
+def generate_scripts_per_config(config_id, scan_space, root_dir, args, wandb_project_name, workspace_dir, cluster, command_dir=None, config_id_to_train_num_samples=None):
     precision = "amp"
 
     logs_dir, scripts_dir, evaluation_scripts_path, downstream_evaluation_scripts_path, model_cfg_path = create_directories(
@@ -177,9 +175,13 @@ def generate_scripts_per_config(config_id, row, root_dir, args, wandb_project_na
     hp_space_train_num_samples = get_hp_space_train_num_samples_from_scan_space(scan_space)
     job_name = f"train_config{config_id}"
 
+    # If command_dir not specified, use workspace_dir (code in workspace)
+    if command_dir is None:
+        command_dir = workspace_dir
+
     slurm = SlurmManager(job_name=job_name, partition=args.partition, nodes=nodes_nr,
                          gpus_per_node=gpus_per_node,
-                         root_dir=root_dir, workspace_dir=workspace_dir)
+                         root_dir=root_dir, workspace_dir=workspace_dir, command_dir=command_dir)
 
     generate_train_script(
         config_id=config_id,
@@ -300,10 +302,13 @@ if __name__ == "__main__":
                 f"processing index {i} | config_id={config_id} | "
                 f"total_configs={nr_configs}"
             )
-            generate_scripts_per_config(config_id, row, root_dir, args, args.wandb_project_name, args.workspace_dir,
-                                        args.bias_scale_sampling, args.alpha, args.cluster)
-    else:    
-    # Group configs by all parameters except train_num_samples
+            scan_space = build_scan_space(row, args.bias_scale_sampling, args.alpha)
+            if scan_space["text_width"] > scan_space["vision_width"]:
+                print(f"Skipping config_id {config_id} because text_width > vision_width")
+                continue
+            generate_scripts_per_config(config_id, scan_space, root_dir, args, args.wandb_project_name, args.workspace_dir,
+                                        args.cluster, command_dir=args.command_dir)
+    else:
         grouped = group_configs_by_all_except_train_num_samples(full_df, args.bias_scale_sampling, args.alpha)
         
         total_groups = len(grouped)
@@ -325,4 +330,7 @@ if __name__ == "__main__":
                 else:
                     config_id_to_train_num_samples = None
                 generate_scripts_per_config(config_id, scan_space, root_dir, args,
-                                                args.wandb_project_name, args.workspace_dir, config_id_to_train_num_samples)
+                                                args.wandb_project_name, args.workspace_dir, 
+                                                args.cluster,
+                                                command_dir=args.command_dir, 
+                                                config_id_to_train_num_samples=config_id_to_train_num_samples)

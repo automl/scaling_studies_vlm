@@ -19,6 +19,13 @@ def parse_args(args):
     )
 
     parser.add_argument(
+        "--command_dir",
+        type=str,
+        help="Directory where the train code is located (for PYTHONPATH).",
+        default="/home/alipourn/scaling_studies_vlm/train",
+    )
+
+    parser.add_argument(
         "--cluster",
         type=str,
         choices=["meta", "juwels"],
@@ -74,6 +81,14 @@ def parse_args(args):
         type=float,
         default=1.0,
         help="parameter for biased scale sampling, check utils.py sample_warped_log_uniform() method for a brief description",
+    )
+
+    parser.add_argument(
+        "--group_by_train_num_samples",
+        default=False,
+        action="store_true",
+        help="Whether to group the configurations by their train_num_samples, and set train bigger train_num_samples first and set checkpoint_path to the checkpoint of the previous smaller train_num_samples configuration." \
+        "Useful incase you have set warmup_fraction to 0, then no need to train the same model multiple times",
     )
 
     args = parser.parse_args(args)

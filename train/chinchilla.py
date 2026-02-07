@@ -71,7 +71,7 @@ class ChichillaPipeline(neps.PipelineSpace):
 
 def flop_estimator(**kwargs) -> float:
     # create the model config path temporarily
-    configs_denormalized = normalize_scan_space(kwargs, bias_scale_sampling=False, alpha=0, normalize_train_num_samples=False)
+    configs_denormalized = normalize_scan_space(kwargs, bias_scale_sampling=False, alpha=0)
     model_cfg_dir = build_model_cfg_temp(**configs_denormalized)
     model_cfg = get_local_model_str(model_cfg_dir)
     return get_total_compute(
@@ -82,12 +82,12 @@ def flop_estimator(**kwargs) -> float:
 
 
 def seen_datapoints_estimator(**kwargs) -> int:
-    configs_denormalized = normalize_scan_space(kwargs, bias_scale_sampling=False, alpha=0, normalize_train_num_samples=False)
+    configs_denormalized = normalize_scan_space(kwargs, bias_scale_sampling=False, alpha=0)
     return configs_denormalized["epochs"] * configs_denormalized["train_num_samples"]
 
 
 def parameters_estimator(**kwargs) -> int:
-    configs_denormalized = normalize_scan_space(kwargs, bias_scale_sampling=False, alpha=0, normalize_train_num_samples=False)
+    configs_denormalized = normalize_scan_space(kwargs, bias_scale_sampling=False, alpha=0)
     model_cfg_dir = build_model_cfg_temp(**configs_denormalized)
     model_cfg = get_local_model_str(model_cfg_dir)
     model = create_default_model(model_cfg)
