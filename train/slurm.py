@@ -236,7 +236,7 @@ start=`date +%s`
 echo "Running job $SLURM_JOB_NAME using $SLURM_JOB_CPUS_PER_NODE cpus per node with given JID $SLURM_JOB_ID on queue $SLURM_JOB_PARTITION";
 
 export CUDA_VISIBLE_DEVICES={cuda_visible}
-export MASTER_PORT=12802
+export MASTER_PORT=$((12000 + SLURM_ARRAY_TASK_ID % 20000))
 
 # first node to be used as the master node in multi-node distributed setup
 master_addr=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
