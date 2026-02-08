@@ -558,7 +558,7 @@ echo "Job execution complete."
 #SBATCH --job-name={self.job_name}
 #SBATCH -p {self.partition}
 #SBATCH --time=24:00:00
-{account}#SBATCH --array=1-{array_size}%1
+{account}#SBATCH --array=1-{array_size}
       
 #SBATCH --output array_job_logs/%x-%A_%a.out
 #SBATCH --error  array_job_logs/%x-%A_%a.err    
@@ -661,7 +661,7 @@ echo "Job execution complete."
 #SBATCH --job-name={self.job_name}
 #SBATCH -p {self.partition}
 #SBATCH --time=24:00:00
-{account}#SBATCH --array=1-{array_size}%1
+{account}#SBATCH --array=1-{array_size}
 
 #SBATCH --output array_job_logs/%x-%A_%a.out
 #SBATCH --error  array_job_logs/%x-%A_%a.err    
