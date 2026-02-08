@@ -497,7 +497,6 @@ master_addr=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
 export MASTER_ADDR=$master_addr
 
 {python_ws_paths}
-
 export WANDB_DIR=${{TRAIN_DIR}}/{wandb_project_name}
 
 CONFIG_TXT="{config_txt}"
@@ -577,7 +576,6 @@ start=`date +%s`
 
 LOG_DIR="{step_jobs_logs_dir}"
 mkdir -p "${{LOG_DIR}}"
-
 export WANDB_DIR=${{TRAIN_DIR}}/{wandb_project_name}
 
 CONFIG_TXT="{config_txt}"
@@ -679,7 +677,6 @@ echo "Started at $(date)";
 start=`date +%s`
 
 {python_ws_paths}
-
 export WANDB_DIR=${{TRAIN_DIR}}/{wandb_project_name}
 
 LOG_DIR="{step_jobs_logs_dir}"
