@@ -208,6 +208,9 @@ class SlurmManager:
 
         cmd += f"\n    --workers {self.cpus_per_task}"
 
+        ws_python_paths = self._slurm_ws_python_path_setup()
+        account = self._account()
+
         script = f"""#!/bin/bash
 #SBATCH --nodes={self.nodes}
 #SBATCH --gres=gpu:{self.gpus_per_node}
@@ -215,7 +218,7 @@ class SlurmManager:
 #SBATCH --cpus-per-task={self.cpus_per_task}
 #SBATCH --wait-all-nodes=1
 #SBATCH --job-name={self.job_name}
-#SBATCH -p {self.partition}
+{account}#SBATCH -p {self.partition}
 
 #SBATCH --output logs/%x-%A.out
 #SBATCH --error logs/%x-%A.err
@@ -235,11 +238,7 @@ export MASTER_PORT=12802
 master_addr=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
 export MASTER_ADDR=$master_addr
 
-COMMAND_DIR="{self.command_dir}"
-TRAIN_DIR="{self.workspace_dir}/train"
-
-export PYTHONPATH="${{COMMAND_DIR}}:${{PYTHONPATH}}"
-cd "${{TRAIN_DIR}}"
+{ws_python_paths}
 
 {cmd}
 
@@ -257,10 +256,10 @@ echo "Job execution complete."
     def load_env(self) -> str:
         if self.cluster == "juwels":
             return """\
-            ml --force purge
-            ml Stages/2026 GCCcore/14.3.0 PyTorch/2.9.1
-            source /p/project1/projectnucleus/sinani1/envs/openclip/bin/activate
-            """
+ml --force purge
+ml Stages/2026 GCCcore/14.3.0 PyTorch/2.9.1
+source /p/project1/projectnucleus/sinani1/envs/openclip/bin/activate
+"""
 
         if self.cluster == "meta":
             return "source ~/miniconda3/bin/activate && conda activate test_scaling_laws"
@@ -306,13 +305,15 @@ echo "Job execution complete."
 
     def build_evaluation_script(self, cmd: str, job_name,
                                 save_to: Path = None):
+        ws_python_paths = self._slurm_ws_python_path_setup()
+        account = self._account()
 
         script = f"""#!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task={self.cpus_per_task}
 #SBATCH --job-name={job_name}
-#SBATCH -p {self.partition}
+{account}#SBATCH -p {self.partition}
 
 #SBATCH --output evaluator_logs/%x-%A.out
 #SBATCH --error evaluator_logs/%x-%A.err
@@ -321,11 +322,7 @@ echo "Job execution complete."
 
 echo "Started at $(date)";
 
-COMMAND_DIR="{self.command_dir}"
-TRAIN_DIR="{self.workspace_dir}/train"
-
-export PYTHONPATH="${{COMMAND_DIR}}:${{PYTHONPATH}}"
-cd "${{TRAIN_DIR}}"
+{ws_python_paths}
 
 {cmd}
 
@@ -340,23 +337,21 @@ echo "Job execution complete."
     def build_downstream_evaluation_script(self, job_name, root, model, seed, config_id, save_to: Path = None):
         if "train/" in root:
             root = root.replace("train/", "")
+        python_ws_paths = self._slurm_ws_python_path_setup()
+        account = self._account()
         script = f"""#!/bin/bash
 #SBATCH --job-name={job_name}
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task={self.cpus_per_task}
-#SBATCH -p {self.partition}
+{account}#SBATCH -p {self.partition}
 
 #SBATCH --output=downstream_evaluator_logs/%x-%j.out
 #SBATCH --error=downstream_evaluator_logs/%x-%j.err
 
 {self.load_env()}
 
-COMMAND_DIR="{self.command_dir}"
-TRAIN_DIR="{self.workspace_dir}/train"
-
-export PYTHONPATH="${{COMMAND_DIR}}:${{PYTHONPATH}}"
-cd "${{TRAIN_DIR}}"
+{python_ws_paths}
 
 python post_hoc_iterator.py --root {root} --model {model} --seed {seed} --pipeline_id {config_id}
 """
@@ -370,12 +365,14 @@ python post_hoc_iterator.py --root {root} --model {model} --seed {seed} --pipeli
 
         cmd = cmd.strip()
         cmd = f'{cmd} \\\n    --model "{model_name}" \\\n    --name "${{RUN_NAME}}" \\\n    --pipeline_id "${{SLURM_ARRAY_TASK_ID}}"'
+        python_ws_paths = self._slurm_ws_python_path_setup()
+        account = self._account()
 
         script = f"""#!/bin/bash
 #SBATCH --nodes={self.nodes}
 #SBATCH --gres=gpu:{self.gpus_per_node}
 #SBATCH --cpus-per-task={self.cpus_per_task}
-#SBATCH -p {self.partition}
+{account}#SBATCH -p {self.partition}
 
 #SBATCH --array=1-{nr_total_configs}
 
@@ -388,11 +385,7 @@ python post_hoc_iterator.py --root {root} --model {model} --seed {seed} --pipeli
 echo "Started at $(date)"
 echo "Array task id: ${{SLURM_ARRAY_TASK_ID}}"
 
-COMMAND_DIR="{self.command_dir}"
-TRAIN_DIR="{self.workspace_dir}/train"
-
-export PYTHONPATH="${{COMMAND_DIR}}:${{PYTHONPATH}}"
-cd "${{TRAIN_DIR}}"
+{python_ws_paths}
 
 CONFIG_ID="${{SLURM_ARRAY_TASK_ID}}"
 RUN_NAME="train_config${{CONFIG_ID}}"
@@ -412,12 +405,15 @@ echo "Job execution complete."
         if "train/" in root:
             root = root.replace("train/", "")
         model_name = f'"local-dir:{models_cfg_dir}/config_${{SLURM_ARRAY_TASK_ID}}"'
+        python_ws_paths = self._slurm_ws_python_path_setup()
+        account = self._account()
+
         script = f"""#!/bin/bash
 #SBATCH --job-name=downstream_eval_config
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task={self.cpus_per_task}
-#SBATCH -p {self.partition}
+{account}#SBATCH -p {self.partition}
 
 #SBATCH --array=1-{nr_total_configs}
 
@@ -426,11 +422,7 @@ echo "Job execution complete."
 
 {self.load_env()}
 
-COMMAND_DIR="{self.command_dir}"
-TRAIN_DIR="{self.workspace_dir}/train"
-
-export PYTHONPATH="${{COMMAND_DIR}}:${{PYTHONPATH}}"
-cd "${{TRAIN_DIR}}"
+{python_ws_paths}
 
 config_ID="${{SLURM_ARRAY_TASK_ID}}"
 RUN_NAME="train_config${{config_ID}}"
@@ -463,6 +455,8 @@ python post_hoc_iterator.py --root "${{ROOT_DIR}}" --seed {seed} --model {model_
         cuda_visible = ",".join(str(i) for i in range(self.gpus_per_node))
 
         train_data = shards(DatasetShards.LAION400M_TRAIN, cluster)
+        python_ws_paths = self._slurm_ws_python_path_setup()
+        account = self._account()
 
         script = f"""#!/bin/bash
 #SBATCH --nodes={self.nodes}
@@ -472,7 +466,8 @@ python post_hoc_iterator.py --root "${{ROOT_DIR}}" --seed {seed} --model {model_
 #SBATCH --wait-all-nodes=1
 #SBATCH --job-name={self.job_name}
 #SBATCH -p {self.partition}
-#SBATCH --array=1-{array_size}
+#SBATCH --time=24:00:00
+{account}#SBATCH --array=1-{array_size}
 
 #SBATCH --output array_job_logs/%x-%A_%a.out
 #SBATCH --error array_job_logs/%x-%A_%a.err
@@ -488,10 +483,7 @@ export MASTER_PORT=$((12000 + SLURM_ARRAY_TASK_ID % 20000))
 master_addr=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
 export MASTER_ADDR=$master_addr
 
-PROJECT_ROOT="{self.workspace_dir}"
-TRAIN_DIR="${{PROJECT_ROOT}}/train"
-cd "${{TRAIN_DIR}}"
-export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
+{python_ws_paths}
 
 CONFIG_TXT="{config_txt}"
 
@@ -541,8 +533,11 @@ echo "Job execution complete."
         train_data = shards(DatasetShards.LAION400M_TRAIN, cluster)
 
         step_jobs_logs_dir = Path(self.workspace_dir) / "train" / Path(save_to).parent
-        step_jobs_logs_dir = str(step_jobs_logs_dir
-                                 )
+        step_jobs_logs_dir = str(step_jobs_logs_dir)
+
+        python_ws_paths = self._slurm_ws_python_path_setup()
+        account = self._account()
+
         script = f"""#!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:4
@@ -550,7 +545,8 @@ echo "Job execution complete."
 #SBATCH --cpus-per-task={self.cpus_per_task}
 #SBATCH --job-name={self.job_name}
 #SBATCH -p {self.partition}
-#SBATCH --array=1-{array_size}%1
+#SBATCH --time=24:00:00
+{account}#SBATCH --array=1-{array_size}%1
       
 #SBATCH --output array_job_logs/%x-%A_%a.out
 #SBATCH --error  array_job_logs/%x-%A_%a.err    
@@ -560,11 +556,7 @@ echo "Job execution complete."
 echo "Started at $(date)";
 start=`date +%s`
         
-PROJECT_ROOT="{self.workspace_dir}"
-TRAIN_DIR="${{PROJECT_ROOT}}/train"
-
-cd "${{TRAIN_DIR}}"
-export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
+{python_ws_paths}
 
 LOG_DIR="{step_jobs_logs_dir}"
 mkdir -p "${{LOG_DIR}}"
@@ -642,8 +634,11 @@ echo "Job execution complete."
         train_data = shards(DatasetShards.LAION400M_TRAIN, cluster)
 
         step_jobs_logs_dir = Path(self.workspace_dir) / "train" / Path(save_to).parent
-        step_jobs_logs_dir = str(step_jobs_logs_dir
-                                 )
+        step_jobs_logs_dir = str(step_jobs_logs_dir)
+
+        account = self._account()
+        python_ws_paths = self._slurm_ws_python_path_setup()
+
         script = f"""#!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:4
@@ -651,7 +646,8 @@ echo "Job execution complete."
 #SBATCH --cpus-per-task={self.cpus_per_task * 4}
 #SBATCH --job-name={self.job_name}
 #SBATCH -p {self.partition}
-#SBATCH --array=1-{array_size}%1
+#SBATCH --time=24:00:00
+{account}#SBATCH --array=1-{array_size}%1
 
 #SBATCH --output array_job_logs/%x-%A_%a.out
 #SBATCH --error  array_job_logs/%x-%A_%a.err    
@@ -661,11 +657,7 @@ echo "Job execution complete."
 echo "Started at $(date)";
 start=`date +%s`
 
-PROJECT_ROOT="{self.workspace_dir}"
-TRAIN_DIR="${{PROJECT_ROOT}}/train"
-
-cd "${{TRAIN_DIR}}"
-export PYTHONPATH="${{TRAIN_DIR}}:${{PYTHONPATH}}"
+{python_ws_paths}
 
 LOG_DIR="{step_jobs_logs_dir}"
 mkdir -p "${{LOG_DIR}}"
@@ -739,3 +731,17 @@ echo "Job execution complete."
             save_to.write_text(script)
         else:
             self.script_path.write_text(script)
+
+    def _account(self) -> str:
+        if self.cluster.lower() == "juwels":
+            return "#SBATCH --account=projectnucleus\n"
+        return ""
+
+    def _slurm_ws_python_path_setup(self) -> str:
+        return f"""
+COMMAND_DIR="{self.command_dir}"
+TRAIN_DIR="{self.workspace_dir}/train"
+
+export PYTHONPATH="${{COMMAND_DIR}}:${{PYTHONPATH}}"
+cd "${{TRAIN_DIR}}"
+"""
