@@ -162,7 +162,8 @@ class SlurmManager:
             root_dir: Path | str = ".",
             workspace_dir: str = ".",
             command_dir: Path | str | None = None,
-            cluster: str = "meta"
+            cluster: str = "meta",
+            venv_path: str | None = None
     ) -> None:
         """
         Manager to create and submit Slurm batch jobs.
@@ -190,6 +191,7 @@ class SlurmManager:
         # If command_dir not provided, use workspace_dir (code in workspace)
         self.command_dir = command_dir if command_dir else workspace_dir
         self.cluster = cluster
+        self.venv_path = venv_path
 
     def build_script(
             self,
@@ -259,11 +261,15 @@ echo "Job execution complete."
 
     def load_env(self) -> str:
         if self.cluster == "juwels":
-            return """\
+            venv_activate = ""
+            if self.venv_path:
+                venv_activate = f"source {self.venv_path}\n"
+            else:
+                raise ValueError("venv_path must be provided for juwels cluster")            
+            return f"""\
 ml --force purge
 ml Stages/2026 GCCcore/14.3.0 PyTorch/2.9.1
-source /p/project1/projectnucleus/sinani1/envs/openclip/bin/activate
-"""
+{venv_activate}"""
 
         if self.cluster == "meta":
             return "source ~/miniconda3/bin/activate && conda activate test_scaling_laws"

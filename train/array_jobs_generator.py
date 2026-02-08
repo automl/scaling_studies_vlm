@@ -71,7 +71,7 @@ def generate_downstream_eval_array_script(
 
 
 def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs: int, workspace_dir: str, cluster: str,
-                           wandb_project_name: str, command_dir: str):
+                           wandb_project_name: str, command_dir: str, venv_path: str | None = None):
     logs_dir, evaluation_scripts_dir, downstream_evaluation_scripts_dir, models_cfg_dir, train_scripts_dir = create_directories(
         root_dir)
 
@@ -84,6 +84,7 @@ def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs:
         workspace_dir=workspace_dir,
         cluster=cluster,
         command_dir=command_dir,
+        venv_path=venv_path,
     )
 
     generate_eval_array_script(
@@ -106,12 +107,13 @@ def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs:
     )
 
     bundle_train_scripts_in_array_jobs(root_dir=root_dir, logs_dir=logs_dir, train_scripts_dir=train_scripts_dir,
-                                       seed=args.seed, workspace_dir=workspace_dir, cluster=cluster,
-                                       wandb_project_name=wandb_project_name, command_dir=command_dir)
+                                       seed=seed, workspace_dir=workspace_dir, cluster=cluster,
+                                       wandb_project_name=wandb_project_name, command_dir=command_dir,
+                                       venv_path=venv_path)
 
 
 def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, workspace_dir, seed: int, cluster: str,
-                                       wandb_project_name: str, command_dir: str):
+                                       wandb_project_name: str, command_dir: str, venv_path: str | None = None):
     root_dir = str(root_dir)
     logs_dir = str(logs_dir)
     train_scripts_dir = Path(train_scripts_dir)
@@ -189,7 +191,8 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
     for (part, bs, gpus, nodes), config_txt in group_to_txt.items():
         job_name = f"train_p{part}_bs{bs}_g{gpus}_n{nodes}"
         slurmManager = SlurmManager(partition=part, gpus_per_node=gpus, nodes=nodes, job_name=job_name,
-                                    workspace_dir=workspace_dir, cluster=cluster, command_dir=command_dir,)
+                                    workspace_dir=workspace_dir, cluster=cluster, command_dir=command_dir,
+                                    venv_path=venv_path)
         save_to = Path(train_scripts_dir) / f"{slurmManager.job_name}.sh"
         config_txt = str(config_txt).replace("\\", "/")
 
@@ -283,5 +286,6 @@ if __name__ == "__main__":
         workspace_dir=args.workspace_dir,
         cluster=args.cluster,
         command_dir=args.command_dir,
-        wandb_project_name=args.wandb_project_name
+        wandb_project_name=args.wandb_project_name,
+        venv_path=args.venv_path,
     )

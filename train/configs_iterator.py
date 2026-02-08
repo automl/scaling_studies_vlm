@@ -181,7 +181,8 @@ def generate_scripts_per_config(config_id, scan_space, root_dir, args, wandb_pro
 
     slurm = SlurmManager(job_name=job_name, partition=args.partition, nodes=nodes_nr,
                          gpus_per_node=gpus_per_node,
-                         root_dir=root_dir, workspace_dir=workspace_dir, command_dir=command_dir, cluster=cluster)
+                         root_dir=root_dir, workspace_dir=workspace_dir, command_dir=command_dir, cluster=cluster,
+                         venv_path=args.venv_path)
 
     if config_id_to_train_num_samples is None:
         config_id_to_train_num_samples = {}
@@ -306,9 +307,12 @@ if __name__ == "__main__":
                 f"total_configs={nr_configs}"
             )
             scan_space = build_scan_space(row, args.bias_scale_sampling, args.alpha)
+            if scan_space["vision_width"] < scan_space["text_width"]:
+                print(f"Skipping config_id {config_id} because vision_width < text_width")
+                continue
             generate_scripts_per_config(config_id, scan_space, root_dir, args, args.wandb_project_name,
                                         args.workspace_dir,
-                                        args.cluster, command_dir=args.command_dir)
+                                        args.cluster, command_dir=args.command_dir, venv_path=args.venv_path)
     else:
         grouped = group_configs_by_all_except_train_num_samples(full_df, args.bias_scale_sampling, args.alpha)
 

@@ -91,5 +91,12 @@ def parse_args(args):
         "Useful incase you have set warmup_fraction to 0, then no need to train the same model multiple times",
     )
 
+    parser.add_argument(
+        "--venv_path",
+        type=str,
+        default=None,
+        help="Path to the python virtual environment to use.",
+    )
+
     args = parser.parse_args(args)
     return args
