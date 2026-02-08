@@ -42,7 +42,8 @@ python -u '"${COMMAND_DIR}"'/configs_iterator.py \
   --workspace_dir '"${WORKSPACE_DIR}"' \
   --cluster juwels \
   --partition develbooster \
-  --wandb_project_name experimental
+  --wandb_project_name experimental \
+  --command_dir '"${COMMAND_DIR}"
 '
 
 end=`date +%s`
