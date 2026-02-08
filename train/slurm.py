@@ -23,7 +23,7 @@ CLUSTER_DATASET_SHARDS: dict[str, dict[DatasetShards, str]] = {
     },
     "juwels": {
         DatasetShards.LAION400M_TRAIN: (
-            "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-safe/{0..419580}.tar::"
+            "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-safe/{0..419401}.tar::"
             "/p/data1/datasets/mmlaion/relaion/relaion_diff_download/{0..113636}.tar::"
             "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-addon/{0..13094}.tar"
         ),
