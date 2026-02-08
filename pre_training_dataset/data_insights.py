@@ -4,11 +4,11 @@ import torch
 
 from open_clip import create_model_and_transforms, get_tokenizer
 
-from train.open_clip_train.distributed import init_distributed_device
-from train.open_clip_train.params import parse_args
-from train.open_clip_train.data import expand_urls, get_data
-from train.open_clip_train.data import tarfile_to_samples_nothrow
-from train.open_clip_train.data import filter_no_caption_or_no_image
+from train.clip_train.distributed import init_distributed_device
+from train.clip_train.params import parse_args
+from train.clip_train.data import expand_urls, get_data
+from train.clip_train.data import tarfile_to_samples_nothrow
+from train.clip_train.data import filter_no_caption_or_no_image
 
 
 def main(args):

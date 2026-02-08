@@ -21,10 +21,14 @@ CLUSTER_DATASET_SHARDS: dict[str, dict[DatasetShards, str]] = {
         DatasetShards.LAION400M_VAL: "../pre_training_dataset/laion400m/validation_data/{00000000..00000015}.tar",
         DatasetShards.LAION400M_TEST: "../pre_training_dataset/laion400m/test_data/{00000000..00000015}.tar",
     },
-    "juwels": {  # TODO splits to be defined. Check for laion400m again.
-        DatasetShards.LAION400M_TRAIN: "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-safe",
-        DatasetShards.LAION400M_VAL: "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-safe",
-        DatasetShards.LAION400M_TEST: "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-safe",
+    "juwels": {
+        DatasetShards.LAION400M_TRAIN: (
+            "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-safe/{0..419580}.tar::"
+            "/p/data1/datasets/mmlaion/relaion/relaion_diff_download/{0..113636}.tar::"
+            "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-addon/{0..13094}.tar"
+        ),
+        DatasetShards.LAION400M_VAL: "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-safe/{419402..419512}.tar",
+        DatasetShards.LAION400M_TEST: "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-safe/{419513..419583}.tar",
     },
 }
 
