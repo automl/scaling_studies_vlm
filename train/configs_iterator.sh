@@ -5,7 +5,7 @@
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:2
 #SBATCH --ntasks-per-node=2
-#SBATCH -p mldlc2_gpu-h200
+#SBATCH -p alldlc_gpu-rtx3080
 #SBATCH --job-name=individual_scripts_builder
 
 #SBATCH --output configs_iterator_logs/%x-%A.out   # STDOUT  %x and %A will be replaced by the job name and job id, respectively. short: -o logs/%x-%A-job_name.out
@@ -13,8 +13,8 @@
 
 # Set defaults or use provided arguments
 WORKSPACE_DIR="${1:-/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm}"
-COMMAND_DIR="${2:-/home/alipourn/scaling_studies_vlm/train}"
-ROOT_DIR="${3:-results/optimizer=scale_space_only_minimal_capacity_probe/seed=42}"
+COMMAND_DIR="${2:-/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/train}"
+ROOT_DIR="${3:-results/optimizer=experimental/seed=0}"
 
 echo "WORKSPACE_DIR: $WORKSPACE_DIR"
 echo "COMMAND_DIR: $COMMAND_DIR"
@@ -40,8 +40,8 @@ python -u '"${COMMAND_DIR}"'/configs_iterator.py \
   --num_workers $SLURM_NTASKS \
   --workspace_dir '"${WORKSPACE_DIR}"' \
   --cluster meta \
-  --partition mldlc2_gpu-h200 \
-  --wandb_project_name chinchilla
+  --partition alldlc_gpu-rtx3080 \
+  --wandb_project_name experimental
 '
 
 end=`date +%s`
