@@ -10,13 +10,12 @@ import iterator_params
 from slurm import eval_array_job_cmd, SlurmManager
 
 
-def create_directories(root_dir: str):
-    root = Path(root_dir)
-    logs_dir = root / "individual_training_logs"
-    evaluation_scripts_dir = root / "evaluation_scripts"
-    downstream_evaluation_scripts_dir = root / "downstream_evaluation_scripts"
-    models_cfg_dir = root / "model_cfg"
-    train_scripts_dir = root / "train_scripts"
+def create_directories(neps_dir: Path):
+    logs_dir = neps_dir / "individual_training_logs"
+    evaluation_scripts_dir = neps_dir / "evaluation_scripts"
+    downstream_evaluation_scripts_dir = neps_dir / "downstream_evaluation_scripts"
+    models_cfg_dir = neps_dir / "model_cfg"
+    train_scripts_dir = neps_dir / "train_scripts"
 
     evaluation_scripts_dir.mkdir(parents=True, exist_ok=True)
     downstream_evaluation_scripts_dir.mkdir(parents=True, exist_ok=True)
@@ -70,10 +69,11 @@ def generate_downstream_eval_array_script(
     )
 
 
-def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs: int, workspace_dir: str, cluster: str,
+def generate_array_scripts(neps_dir: Path, root_dir: str, seed: int, partition: str, nr_configs: int, workspace_dir: str,
+                           cluster: str,
                            wandb_project_name: str, command_dir: str):
     logs_dir, evaluation_scripts_dir, downstream_evaluation_scripts_dir, models_cfg_dir, train_scripts_dir = create_directories(
-        root_dir)
+        neps_dir)
 
     slurm = SlurmManager(
         job_name="eval_arrays",
@@ -189,7 +189,7 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
     for (part, bs, gpus, nodes), config_txt in group_to_txt.items():
         job_name = f"train_p{part}_bs{bs}_g{gpus}_n{nodes}"
         slurmManager = SlurmManager(partition=part, gpus_per_node=gpus, nodes=nodes, job_name=job_name,
-                                    workspace_dir=workspace_dir, cluster=cluster, command_dir=command_dir,)
+                                    workspace_dir=workspace_dir, cluster=cluster, command_dir=command_dir, )
         save_to = Path(train_scripts_dir) / f"{slurmManager.job_name}.sh"
         config_txt = str(config_txt).replace("\\", "/")
 
@@ -272,10 +272,12 @@ if __name__ == "__main__":
     args = iterator_params.parse_args(sys.argv[1:])
 
     root_dir = args.root_dir
-    full_df, _ = neps.status(root_dir)
+    neps_dir = Path(args.workspace_dir + "/train/" + args.root_dir).resolve()
+    full_df, _ = neps.status(neps_dir)
     nr_configs = len(full_df)
 
     generate_array_scripts(
+        neps_dir=neps_dir,
         root_dir=root_dir,
         seed=args.seed,
         partition=args.partition,
