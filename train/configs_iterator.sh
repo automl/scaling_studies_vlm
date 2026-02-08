@@ -13,16 +13,14 @@
 #SBATCH --error configs_iterator_logs/%x-%A.err    # STDERR  short: -e logs/%x-%A-job_name.out
 
 # Set defaults or use provided arguments
-WORKSPACE_DIR="${1:-/p/home/jusers/sinani1/juwels/sinani1/scaling_studies_vlm}"
+WORKSPACE_DIR="${1:-/p/data1/datasets/scan/openclip}"
 COMMAND_DIR="${2:-/p/home/jusers/sinani1/juwels/sinani1/scaling_studies_vlm/train}"
 ROOT_DIR="${3:-results/optimizer=experimental/seed=0}"
+VENV_DIR="${4:-/p/project1/projectnucleus/sinani1/envs/openclip/bin/activate}"
 
 echo "WORKSPACE_DIR: $WORKSPACE_DIR"
 echo "COMMAND_DIR: $COMMAND_DIR"
 echo "ROOT_DIR: $ROOT_DIR"
-
-source ~/miniconda3/bin/activate
-conda activate test_scaling_laws
 
 echo "Started at $(date)";
 
@@ -43,7 +41,8 @@ python -u '"${COMMAND_DIR}"'/configs_iterator.py \
   --cluster juwels \
   --partition develbooster \
   --wandb_project_name experimental \
-  --command_dir '"${COMMAND_DIR}"
+  --command_dir '"${COMMAND_DIR}"' \
+  --venv_path '"${VENV_DIR}"'
 '
 
 end=`date +%s`

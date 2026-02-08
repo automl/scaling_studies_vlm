@@ -119,8 +119,7 @@ def compute_batch_and_resources(
         precision: str,
         max_gpus_per_node: int,
 ) -> Tuple[int, int, int]:
-    total_compute = get_total_compute(model_cfg, hp_scale_space.get("train_num_samples"), precision)
-    global_batch_size = query_bs(total_compute)
+    global_batch_size = query_bs(hp_scale_space.get("train_num_samples"))
     gpus_per_node, nodes_nr, local_bs = infer_hardware_setup_and_local_bs(
         model_name=model_cfg,
         precision=precision,
@@ -128,7 +127,6 @@ def compute_batch_and_resources(
         max_gpus_per_node=max_gpus_per_node,
     )
 
-    print(f"total_compute: {total_compute}")
     print(f"global_batch_size: {global_batch_size}")
     print(f"local_bs: {local_bs}")
     print(f"gpus_per_node: {gpus_per_node}")
@@ -307,9 +305,9 @@ if __name__ == "__main__":
                 f"total_configs={nr_configs}"
             )
             scan_space = build_scan_space(row, args.bias_scale_sampling, args.alpha)
-            if scan_space["vision_width"] < scan_space["text_width"]:
-                print(f"Skipping config_id {config_id} because vision_width < text_width")
-                continue
+            # if scan_space["vision_width"] < scan_space["text_width"]:
+            #     print(f"Skipping config_id {config_id} because vision_width < text_width")
+            #     continue
             generate_scripts_per_config(config_id, scan_space, root_dir, args.venv_path, args.wandb_project_name,
                                         args.workspace_dir,
                                         args.cluster, command_dir=args.command_dir)

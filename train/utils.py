@@ -181,9 +181,9 @@ def sample_warped_log_uniform(
 # methods for batch size heuristics
 ####################################################################
 
-def monotonic_bs(total_compute, batch_size, buffer_gflops=5.0):
-    order = np.argsort(total_compute)
-    c_sorted = np.array(total_compute, dtype=float)[order]
+def monotonic_bs(samples_seen, batch_size):
+    order = np.argsort(samples_seen)
+    s_sorted = np.array(samples_seen, dtype=float)[order]
     bs_sorted = np.array(batch_size, dtype=int)[order]
 
     bs_mono = np.maximum.accumulate(bs_sorted)
@@ -192,18 +192,24 @@ def monotonic_bs(total_compute, batch_size, buffer_gflops=5.0):
     start = 0.0
     current_bs = int(bs_mono[0])
 
-    for k in range(1, len(c_sorted)):
+    for k in range(1, len(s_sorted)):
         if int(bs_mono[k]) != current_bs:
-            boundary = float(c_sorted[k]) + buffer_gflops
-            ranges.append({"min": start, "max": boundary, "bs": current_bs})
+            prev_s = float(s_sorted[k - 1])
+            next_s = float(s_sorted[k])
+
+            alpha = 0.1
+            boundary = prev_s + alpha * (next_s - prev_s)
+
+            ranges.append({
+                "min": start,
+                "max": boundary,
+                "bs": current_bs
+            })
+
             start = boundary
             current_bs = int(bs_mono[k])
 
     ranges.append({"min": start, "max": None, "bs": current_bs})
-
-    with open("bs_ranges.json", "w", encoding="utf-8") as f:
-        json.dump(ranges, f, indent=2)
-
     return ranges
 
 
