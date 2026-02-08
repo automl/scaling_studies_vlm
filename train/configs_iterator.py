@@ -241,7 +241,7 @@ def generate_train_script(model_cfg, local_bs, config_id, logs_dir, train_script
 
     script_name = slurmManager.job_name + ".sh"
     script_path = Path(train_scripts_dir + "/" + script_name)
-    slurmManager.build_script(cmd, save_to=script_path)
+    slurmManager.build_script(cmd, save_to=script_path, wandb_project_name=wandb_project_name)
 
 
 def generate_eval_script(

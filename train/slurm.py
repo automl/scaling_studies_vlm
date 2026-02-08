@@ -196,7 +196,8 @@ class SlurmManager:
     def build_script(
             self,
             cmd: str,
-            save_to: Path = None
+            save_to: Path = None,
+            wandb_project_name: str = None,
     ) -> None:
         """
         Build a Slurm script that runs the given command.
@@ -246,6 +247,8 @@ export MASTER_ADDR=$master_addr
 
 {ws_python_paths}
 
+export WANDB_DIR=${{TRAIN_DIR}}/{wandb_project_name}
+
 {cmd}
 
 end=`date +%s`
@@ -265,7 +268,7 @@ echo "Job execution complete."
             if self.venv_path:
                 venv_activate = f"source {self.venv_path}\n"
             else:
-                raise ValueError("venv_path must be provided for juwels cluster")            
+                raise ValueError("venv_path must be provided for juwels cluster")
             return f"""\
 ml --force purge
 ml Stages/2026 GCCcore/14.3.0 PyTorch/2.9.1
@@ -495,6 +498,8 @@ export MASTER_ADDR=$master_addr
 
 {python_ws_paths}
 
+export WANDB_DIR=${{TRAIN_DIR}}/{wandb_project_name}
+
 CONFIG_TXT="{config_txt}"
 
 LINE=$(sed -n "${{SLURM_ARRAY_TASK_ID}}p" "${{CONFIG_TXT}}")
@@ -572,6 +577,8 @@ start=`date +%s`
 
 LOG_DIR="{step_jobs_logs_dir}"
 mkdir -p "${{LOG_DIR}}"
+
+export WANDB_DIR=${{TRAIN_DIR}}/{wandb_project_name}
 
 CONFIG_TXT="{config_txt}"
 base_line=$(( (SLURM_ARRAY_TASK_ID - 1) * 4 + 1 ))
@@ -672,6 +679,8 @@ echo "Started at $(date)";
 start=`date +%s`
 
 {python_ws_paths}
+
+export WANDB_DIR=${{TRAIN_DIR}}/{wandb_project_name}
 
 LOG_DIR="{step_jobs_logs_dir}"
 mkdir -p "${{LOG_DIR}}"
