@@ -23,18 +23,18 @@ def group_configs_by_all_except_train_num_samples(df: pd.DataFrame, bias_scale_s
     Returns a Dict where each group key (frozenset) maps to a list of (config_id, scan_space) tuples.
     """
     groups = {}
-    
+
     for config_id, row in df.iterrows():
         scan_space = build_scan_space(row, bias_scale_sampling, alpha)
-        
+
         # Create a hashable key from all keys except train_num_samples
         group_key = frozenset((k, v) for k, v in scan_space.items() if k != 'train_num_samples')
-        
+
         if group_key not in groups:
             groups[group_key] = []
-        
+
         groups[group_key].append((config_id, scan_space))
-    
+
     return groups
 
 
@@ -87,7 +87,6 @@ def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, 
     if scan_space.get("text_width") is not None:
         scan_space["text_heads"] = int(scan_space["text_width"])
         scan_space["text_width"] = int(scan_space["text_width"]) * 64
-
 
     if scan_space.get("vision_width") is not None:
         scan_space["vision_width"] = int(scan_space["vision_width"]) * 64
@@ -156,7 +155,8 @@ def get_total_compute(model_str, train_num_samples, precision) -> int:
             torch.cuda.empty_cache()
 
 
-def generate_scripts_per_config(config_id, scan_space, root_dir, args, wandb_project_name, workspace_dir, cluster, command_dir=None, config_id_to_train_num_samples=None):
+def generate_scripts_per_config(config_id, scan_space, root_dir, args, wandb_project_name, workspace_dir, cluster,
+                                command_dir=None, config_id_to_train_num_samples=None):
     precision = "amp"
 
     logs_dir, scripts_dir, evaluation_scripts_path, downstream_evaluation_scripts_path, model_cfg_path = create_directories(
@@ -176,12 +176,15 @@ def generate_scripts_per_config(config_id, scan_space, root_dir, args, wandb_pro
     job_name = f"train_config{config_id}"
 
     # If command_dir not specified, use workspace_dir (code in workspace)
-    if command_dir is None:
+    if not command_dir:
         command_dir = workspace_dir
 
     slurm = SlurmManager(job_name=job_name, partition=args.partition, nodes=nodes_nr,
                          gpus_per_node=gpus_per_node,
                          root_dir=root_dir, workspace_dir=workspace_dir, command_dir=command_dir, cluster=cluster)
+
+    if config_id_to_train_num_samples is None:
+        config_id_to_train_num_samples = {}
 
     generate_train_script(
         config_id=config_id,
@@ -303,22 +306,20 @@ if __name__ == "__main__":
                 f"total_configs={nr_configs}"
             )
             scan_space = build_scan_space(row, args.bias_scale_sampling, args.alpha)
-            if scan_space["text_width"] > scan_space["vision_width"]:
-                print(f"Skipping config_id {config_id} because text_width > vision_width")
-                continue
-            generate_scripts_per_config(config_id, scan_space, root_dir, args, args.wandb_project_name, args.workspace_dir,
+            generate_scripts_per_config(config_id, scan_space, root_dir, args, args.wandb_project_name,
+                                        args.workspace_dir,
                                         args.cluster, command_dir=args.command_dir)
     else:
         grouped = group_configs_by_all_except_train_num_samples(full_df, args.bias_scale_sampling, args.alpha)
-        
+
         total_groups = len(grouped)
         for group_idx, (group_key, configs_in_group) in enumerate(grouped.items()):
-            
+
             print(f"[worker {args.worker_id}/{args.num_workers}] "
-                f"processing group {group_idx} | total_groups={total_groups}")
+                  f"processing group {group_idx} | total_groups={total_groups}")
             print(f"Group config (all keys except train_num_samples): {dict(group_key)}")
             print(f"Number of configs in group: {len(configs_in_group)}")
-            
+
             _config_id_to_train_num_samples = {
                 cfg_id: scan_space['train_num_samples'] for cfg_id, scan_space in configs_in_group}
 
@@ -330,7 +331,7 @@ if __name__ == "__main__":
                 else:
                     config_id_to_train_num_samples = None
                 generate_scripts_per_config(config_id, scan_space, root_dir, args,
-                                                args.wandb_project_name, args.workspace_dir, 
-                                                args.cluster,
-                                                command_dir=args.command_dir, 
-                                                config_id_to_train_num_samples=config_id_to_train_num_samples)
+                                            args.wandb_project_name, args.workspace_dir,
+                                            args.cluster,
+                                            command_dir=args.command_dir,
+                                            config_id_to_train_num_samples=config_id_to_train_num_samples)

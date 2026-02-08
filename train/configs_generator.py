@@ -1,5 +1,4 @@
 import multiprocessing as mp
-import os
 import sys
 from time import time
 
@@ -27,10 +26,8 @@ def worker_proc(rank, args, root_dir):
 if __name__ == "__main__":
     args = params.parse_args(sys.argv[1:])
 
-    from neps.optimizers.algorithms import chinchilla_guided_scaling, random_search
-    root_dir = f"/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/train/results/optimizer={args.hpo_optimizer}/seed={args.seed}"
+    root_dir = f"{args.workspace_dir}/train/results/optimizer={args.hpo_optimizer}/seed={args.seed}"
 
-    
     print("Starting HPO...")
     start = time()
 
@@ -46,6 +43,4 @@ if __name__ == "__main__":
     end = time()
     elapsed = end - start
 
-    # with open(os.path.join(root_dir, "time.txt"), "w+", encoding="utf-8") as f:
-    #     f.write(f"{elapsed}")
     print(f"Finished HPO in {elapsed:.2f} seconds")

@@ -16,6 +16,14 @@ def parse_args(args):
         required=False,
         help="Model type."
     )
+
+    parser.add_argument(
+        "--workspace_dir",
+        type=str,
+        help="Directory to the workspace.",
+        default="/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm",
+    )
+
     parser.add_argument(
         "--sampling-only",
         default=False,

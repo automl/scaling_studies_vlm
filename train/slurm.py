@@ -203,7 +203,12 @@ class SlurmManager:
         """
         cuda_visible = ",".join(str(i) for i in range(self.gpus_per_node))
 
-        script = f"""#!/bin/bash -x
+        if not cmd.endswith("\\"):
+            cmd += " \\"
+
+        cmd += f"\n    --workers {self.cpus_per_task}"
+
+        script = f"""#!/bin/bash
 #SBATCH --nodes={self.nodes}
 #SBATCH --gres=gpu:{self.gpus_per_node}
 #SBATCH --ntasks-per-node={self.gpus_per_node}
@@ -458,8 +463,6 @@ python post_hoc_iterator.py --root "${{ROOT_DIR}}" --seed {seed} --model {model_
         cuda_visible = ",".join(str(i) for i in range(self.gpus_per_node))
 
         train_data = shards(DatasetShards.LAION400M_TRAIN, cluster)
-        val_data = shards(DatasetShards.LAION400M_VAL, cluster)
-        test_data = shards(DatasetShards.LAION400M_TEST, cluster)
 
         script = f"""#!/bin/bash
 #SBATCH --nodes={self.nodes}
@@ -501,8 +504,6 @@ TRAIN_NUM_SAMPLES=${{TRAIN_NUM_SAMPLES%.*}}
 
 srun --cpu-bind=v --accel-bind=gn python -u -m clip_train.main \\
     --train-data "{train_data}" \\
-    --val-data "{val_data}" \\
-    --test-data "{test_data}" \\
     --local-loss \\
     --gather-with-grad \\
     --dataset-type webdataset \\
@@ -516,6 +517,7 @@ srun --cpu-bind=v --accel-bind=gn python -u -m clip_train.main \\
     --logs "{logs_root}" \\
     --seed {seed} \\
     --batch-size {batch_size} \\
+    --workers {self.cpus_per_task} \\
     --pipeline-id "${{config_ID}}" \\
     --lr "${{LR}}" \\
     --wd "${{WD}}" \\
@@ -600,6 +602,7 @@ run_one () {{
         --logs "{log_dir}" \\
         --seed {seed} \\
         --batch-size {batch_size} \\
+        --workers {self.cpus_per_task} \\
         --pipeline-id "${{config_ID}}" \\
         --lr "${{LR}}" \\
         --wd "${{WD}}" \\
@@ -702,6 +705,7 @@ run_one () {{
         --name "train_config${{config_ID}}" \\
         --logs "{log_dir}" \\
         --seed {seed} \\
+        --workers {self.cpus_per_task} \\
         --batch-size {batch_size} \\
         --pipeline-id "${{config_ID}}" \\
         --lr "${{LR}}" \\
