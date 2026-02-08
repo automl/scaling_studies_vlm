@@ -71,7 +71,7 @@ def generate_downstream_eval_array_script(
 
 
 def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs: int, workspace_dir: str, cluster: str,
-                           wandb_project_name: str):
+                           wandb_project_name: str, command_dir: str):
     logs_dir, evaluation_scripts_dir, downstream_evaluation_scripts_dir, models_cfg_dir, train_scripts_dir = create_directories(
         root_dir)
 
@@ -83,6 +83,7 @@ def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs:
         root_dir=root_dir,
         workspace_dir=workspace_dir,
         cluster=cluster,
+        command_dir=command_dir,
     )
 
     generate_eval_array_script(
@@ -92,7 +93,7 @@ def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs:
         models_cfg_dir=models_cfg_dir,
         seed=seed,
         slurm=slurm,
-        cluster=cluster
+        cluster=cluster,
     )
 
     generate_downstream_eval_array_script(
@@ -106,11 +107,11 @@ def generate_array_scripts(root_dir: str, seed: int, partition: str, nr_configs:
 
     bundle_train_scripts_in_array_jobs(root_dir=root_dir, logs_dir=logs_dir, train_scripts_dir=train_scripts_dir,
                                        seed=args.seed, workspace_dir=workspace_dir, cluster=cluster,
-                                       wandb_project_name=wandb_project_name)
+                                       wandb_project_name=wandb_project_name, command_dir=command_dir)
 
 
 def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, workspace_dir, seed: int, cluster: str,
-                                       wandb_project_name: str):
+                                       wandb_project_name: str, command_dir: str):
     root_dir = str(root_dir)
     logs_dir = str(logs_dir)
     train_scripts_dir = Path(train_scripts_dir)
@@ -188,7 +189,7 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
     for (part, bs, gpus, nodes), config_txt in group_to_txt.items():
         job_name = f"train_p{part}_bs{bs}_g{gpus}_n{nodes}"
         slurmManager = SlurmManager(partition=part, gpus_per_node=gpus, nodes=nodes, job_name=job_name,
-                                    workspace_dir=workspace_dir, cluster=cluster)
+                                    workspace_dir=workspace_dir, cluster=cluster, command_dir=command_dir,)
         save_to = Path(train_scripts_dir) / f"{slurmManager.job_name}.sh"
         config_txt = str(config_txt).replace("\\", "/")
 
@@ -198,9 +199,9 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
             packed_array_size = math.ceil(num_lines / pack)
 
             slurmManager.build_array_script_for_single_gpu_runs(array_size=packed_array_size, seed=seed, batch_size=bs,
-                                                                config_txt=config_txt, log_dir=logs_dir,
+                                                                config_txt=config_txt, logs_root=logs_dir,
                                                                 cluster=cluster, wandb_project_name=wandb_project_name,
-                                                                save_to=save_to)
+                                                                save_to=save_to, model_root=root_dir)
 
         elif gpus == 2 and nodes == 1:
             num_lines = sum(1 for _ in Path(config_txt).open())
@@ -209,8 +210,8 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
 
             slurmManager.build_array_script_for_two_gpu_runs(
                 array_size=packed_array_size, seed=seed, batch_size=bs,
-                config_txt=config_txt, log_dir=logs_dir, cluster=cluster,
-                wandb_project_name=wandb_project_name, save_to=save_to,
+                config_txt=config_txt, logs_root=logs_dir, cluster=cluster,
+                wandb_project_name=wandb_project_name, save_to=save_to, model_root=root_dir
             )
         else:
             array_size = sum(1 for _ in Path(config_txt).open())
@@ -281,5 +282,6 @@ if __name__ == "__main__":
         nr_configs=nr_configs,
         workspace_dir=args.workspace_dir,
         cluster=args.cluster,
+        command_dir=args.command_dir,
         wandb_project_name=args.wandb_project_name
     )

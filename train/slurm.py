@@ -531,8 +531,10 @@ echo "Job execution complete."
         else:
             self.script_path.write_text(script)
 
-    def build_array_script_for_single_gpu_runs(self, array_size, seed, batch_size, config_txt, log_dir, cluster,
-                                               wandb_project_name, save_to):
+    def build_array_script_for_single_gpu_runs(self, array_size, seed, batch_size, config_txt, logs_root, cluster,
+                                               wandb_project_name, save_to, model_root=None):
+        if model_root is None:
+            model_root = "results/optimizer=experimental/seed=0"
 
         train_data = shards(DatasetShards.LAION400M_TRAIN, cluster)
 
@@ -591,11 +593,11 @@ run_one () {{
         --precision amp \\
         --report-to wandb \\
         --wandb-project-name '{wandb_project_name}' \\
-        --model "local-dir:results/optimizer=experimental/seed=0/model_cfg/config_${{config_ID}}" \\
-        --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \\
-        --epochs 1 \\
-        --name "train_config${{config_ID}}" \\
-        --logs "{log_dir}" \\
+        --model "local-dir:{model_root}/model_cfg/config_${{config_ID}}" \
+        --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \
+        --epochs 1 \
+        --name "train_config${{config_ID}}" \
+        --logs "{logs_root}" \
         --seed {seed} \\
         --batch-size {batch_size} \\
         --workers {self.cpus_per_task} \\
@@ -632,8 +634,10 @@ echo "Job execution complete."
         else:
             self.script_path.write_text(script)
 
-    def build_array_script_for_two_gpu_runs(self, array_size, seed, batch_size, config_txt, log_dir, cluster,
-                                            wandb_project_name, save_to):
+    def build_array_script_for_two_gpu_runs(self, array_size, seed, batch_size, config_txt, logs_root, cluster,
+                                            wandb_project_name, save_to, model_root=None):
+        if model_root is None:
+            model_root = "results/optimizer=experimental/seed=0"
 
         train_data = shards(DatasetShards.LAION400M_TRAIN, cluster)
 
@@ -695,11 +699,11 @@ run_one () {{
         --precision amp \\
         --report-to wandb \\
         --wandb-project-name '{wandb_project_name}' \\
-        --model "local-dir:results/optimizer=experimental/seed=0/model_cfg/config_${{config_ID}}" \\
-        --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \\
-        --epochs 1 \\
-        --name "train_config${{config_ID}}" \\
-        --logs "{log_dir}" \\
+        --model "local-dir:{model_root}/model_cfg/config_${{config_ID}}" \
+        --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \
+        --epochs 1 \
+        --name "train_config${{config_ID}}" \
+        --logs "{logs_root}" \
         --seed {seed} \\
         --workers {self.cpus_per_task} \\
         --batch-size {batch_size} \\

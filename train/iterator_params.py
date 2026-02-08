@@ -15,14 +15,14 @@ def parse_args(args):
         "--workspace_dir",
         type=str,
         help="Directory to the workspace.",
-        default="/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm",
+        required=True,
     )
 
     parser.add_argument(
         "--command_dir",
         type=str,
         help="Directory where the train code is located (for PYTHONPATH).",
-        default="/home/alipourn/scaling_studies_vlm/train",
+        required=True,
     )
 
     parser.add_argument(
@@ -51,7 +51,7 @@ def parse_args(args):
     parser.add_argument(
         "--partition",
         type=str,
-        default="testdlc_gpu-rtx2080",
+        required=True,
         help="which partition to use for training",
     )
 
