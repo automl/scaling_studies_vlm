@@ -105,8 +105,6 @@ def eval_cmd(config: "EvalConfig", cluster) -> str:
 
 def eval_array_job_cmd(seed, logs_dir, cluster):
     cmd_parts = build_eval_cmd_defaults(cluster)
-    if "train/" in logs_dir:
-        logs_dir = logs_dir.replace("train/", "")
 
     cmd_parts.append(f"--seed {seed}")
     cmd_parts.append(f"--logs {logs_dir}")
