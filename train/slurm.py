@@ -1,4 +1,5 @@
 import json
+import math
 import subprocess
 from dataclasses import asdict
 from enum import Enum
@@ -111,7 +112,6 @@ def eval_array_job_cmd(seed, logs_dir, cluster):
     cmd_parts.append(f"--logs {logs_dir}")
 
     return (
-            "srun --cpu-bind=v --accel-bind=gn "
             "python -u -m clip_train.main \\\n    "
             + " \\\n    ".join(cmd_parts)
     )
@@ -369,41 +369,77 @@ python post_hoc_iterator.py --root {root} --model {model} --seed {seed} --pipeli
         else:
             self.script_path.write_text(script)
 
-    def build_array_job_for_evaluation(self, cmd: str, models_cfg_dir, nr_total_configs, save_to: Path = None):
-        model_name = f'local-dir:{models_cfg_dir}/config_${{SLURM_ARRAY_TASK_ID}}'
+    def build_array_job_for_evaluation(self, cmd: str, models_cfg_dir, nr_total_configs, save_to: Path = None,
+                                       bundle: int = 4):
+
+        array_size = math.ceil(nr_total_configs / bundle)
 
         cmd = cmd.strip()
-        cmd = f'{cmd} \\\n    --model "{model_name}" \\\n    --name "${{RUN_NAME}}" \\\n    --pipeline_id "${{SLURM_ARRAY_TASK_ID}}"'
         python_ws_paths = self._slurm_ws_python_path_setup()
         account = self._account()
 
+        step_jobs_logs_dir = Path(self.workspace_dir) / "train" / Path(save_to).parent
+        step_jobs_logs_dir = str(step_jobs_logs_dir)
+
         script = f"""#!/bin/bash
-#SBATCH --nodes={self.nodes}
-#SBATCH --gres=gpu:{self.gpus_per_node}
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:4
+#SBATCH --ntasks=4
 #SBATCH --cpus-per-task={self.cpus_per_task}
 {account}#SBATCH -p {self.partition}
+#SBATCH --time=24:00:00
 
-#SBATCH --array=1-{nr_total_configs}
+#SBATCH --array=1-{array_size}
 
 #SBATCH --job-name=eval_config
 #SBATCH --output=evaluator_logs/%x-%A_%a.out
 #SBATCH --error=evaluator_logs/%x-%A_%a.err
 
 {self.load_env()}
-
+i
 echo "Started at $(date)"
 echo "Array task id: ${{SLURM_ARRAY_TASK_ID}}"
 
 {python_ws_paths}
 
-CONFIG_ID="${{SLURM_ARRAY_TASK_ID}}"
-RUN_NAME="train_config${{CONFIG_ID}}"
+LOG_DIR="{step_jobs_logs_dir}"
+mkdir -p "${{LOG_DIR}}"
 
-{cmd}
+MODELS_CFG_DIR="{models_cfg_dir}"
+
+BASE_ID=$(( (SLURM_ARRAY_TASK_ID - 1) * {bundle} + 1 ))
+
+echo "Array task ${{SLURM_ARRAY_TASK_ID}} uses config ids: ${{BASE_ID}}..$((BASE_ID+{bundle}-1))"
+
+run_one () {{
+  local step_idx="$1"
+  local config_ID="$2"
+
+  RUN_NAME="train_config${{config_ID}}"
+  MODEL_NAME="local-dir:${{MODELS_CFG_DIR}}/config_${{config_ID}}"
+
+  echo "Starting eval step ${{step_idx}} (config_ID=${{config_ID}}) at $(date)"
+
+  srun --exclusive --ntasks=1 --cpus-per-task=8 --gres=gpu:1 \\
+    --output "${{LOG_DIR}}/array_eval_logs/step_${{step_idx}}_%x-%A_%a.out" \\
+    --error  "${{LOG_DIR}}/array_eval_logs/step_${{step_idx}}_%x-%A_%a.err" \\
+    {cmd} \\
+    --model "${{MODEL_NAME}}" \\
+    --name "${{RUN_NAME}}" \\
+    --pipeline-id "${{config_ID}}" &
+}}
+
+for step_idx in 0 1 2 3; do
+  config_ID=$(( BASE_ID + step_idx ))
+  run_one "${{step_idx}}" "${{config_ID}}"
+done
+
+wait
 
 echo "Ended at $(date)"
 echo "Job execution complete."
 """
+
         if save_to:
             save_to.write_text(script)
         else:
