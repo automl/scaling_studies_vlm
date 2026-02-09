@@ -106,13 +106,13 @@ HPO_CONFIGS = {
                                                                                               **__SCALE_SPACE_CONSTANT_ViT_S_32)
                                                                   ),
     "scale_space_only_search": NePSConfig(lambda p: neps.algorithms.random_search(p, use_priors=True),
-                                          evaluations_to_spend=20,
+                                          evaluations_to_spend=50,
                                           pipeline_space=
                                           ScanPipeline.with_overrides(lr=2e-3, warmup_fraction=0.5, wd=1.0e-6)
                                           ),
     "scale_space_only_search_biased_scale_space": NePSConfig(
         optimizer=lambda p: neps.algorithms.random_search(p, use_priors=True),
-        evaluations_to_spend=40,
+        evaluations_to_spend=50,
         pipeline_space=
         ScanPipeline.with_overrides(lr=2e-3, warmup_fraction=0.5, wd=1.0e-6)),
     "scale_space_only_search_biased_scale_space_alpha_0_5": NePSConfig(

@@ -22,13 +22,9 @@ CLUSTER_DATASET_SHARDS: dict[str, dict[DatasetShards, str]] = {
         DatasetShards.LAION400M_TEST: "../pre_training_dataset/laion400m/test_data/{00000000..00000015}.tar",
     },
     "juwels": {
-        DatasetShards.LAION400M_TRAIN: (
-            "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-safe/{00000..419401}.tar::"
-            "/p/data1/datasets/mmlaion/relaion/relaion_diff_download/{00000..113636}.tar::"
-            "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-addon/{00000..13094}.tar"
-        ),
-        DatasetShards.LAION400M_VAL: "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-safe/{419402..419512}.tar",
-        DatasetShards.LAION400M_TEST: "/p/data1/datasets/mmlaion/relaion/relaion-2b-en-research-safe/{419513..419583}.tar",
+        DatasetShards.LAION400M_TRAIN: "/p/data1/mmlaion/relaion_subsets/relaion_subset_307M/{00000000..00078295}.tar",
+        DatasetShards.LAION400M_VAL: "/p/data1/mmlaion/relaion_subsets/relaion_subset_307M/{00078296..00078321}.tar",
+        DatasetShards.LAION400M_TEST: "/p/data1/mmlaion/relaion_subsets/relaion_subset_307M/{00078322..00078347}.tar",
     },
 }
 
@@ -604,11 +600,11 @@ run_one () {{
         --precision amp \\
         --report-to wandb \\
         --wandb-project-name '{wandb_project_name}' \\
-        --model "local-dir:{model_root}/model_cfg/config_${{config_ID}}" \
-        --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \
-        --epochs 1 \
-        --name "train_config${{config_ID}}" \
-        --logs "{logs_root}" \
+        --model "local-dir:{model_root}/model_cfg/config_${{config_ID}}" \\
+        --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \\
+        --epochs 1 \\
+        --name "train_config${{config_ID}}" \\
+        --logs "{logs_root}" \\
         --seed {seed} \\
         --batch-size {batch_size} \\
         --workers {self.cpus_per_task} \\
@@ -711,11 +707,11 @@ run_one () {{
         --precision amp \\
         --report-to wandb \\
         --wandb-project-name '{wandb_project_name}' \\
-        --model "local-dir:{model_root}/model_cfg/config_${{config_ID}}" \
-        --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \
-        --epochs 1 \
-        --name "train_config${{config_ID}}" \
-        --logs "{logs_root}" \
+        --model "local-dir:{model_root}/model_cfg/config_${{config_ID}}" \\
+        --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \\
+        --epochs 1 \\
+        --name "train_config${{config_ID}}" \\
+        --logs "{logs_root}" \\
         --seed {seed} \\
         --workers {self.cpus_per_task} \\
         --batch-size {batch_size} \\

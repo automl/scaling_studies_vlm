@@ -15,7 +15,7 @@
 # Set defaults or use provided arguments
 WORKSPACE_DIR="${1:-/p/data1/datasets/scan/openclip}"
 COMMAND_DIR="${2:-/p/home/jusers/sinani1/juwels/sinani1/scaling_studies_vlm/train}"
-ROOT_DIR="${3:-results/optimizer=experimental/seed=0}"
+ROOT_DIR="${3:-results/optimizer=scale_space_only_search/seed=40}"
 VENV_DIR="${4:-/p/project1/projectnucleus/sinani1/envs/openclip/bin/activate}"
 
 echo "WORKSPACE_DIR: $WORKSPACE_DIR"
@@ -34,13 +34,13 @@ srun -n $SLURM_NTASKS --gpus-per-task=1 \
      --gpu-bind=single:1 bash -lc '
 python -u '"${COMMAND_DIR}"'/configs_iterator.py \
   --root_dir '"${ROOT_DIR}"' \
-  --seed 0 \
+  --seed 40 \
   --worker_id $SLURM_PROCID \
   --num_workers $SLURM_NTASKS \
   --workspace_dir '"${WORKSPACE_DIR}"' \
   --cluster juwels \
-  --partition develbooster \
-  --wandb_project_name experimental \
+  --partition booster \
+  --wandb_project_name scale_space_only_search_juwels \
   --command_dir '"${COMMAND_DIR}"' \
   --venv_path '"${VENV_DIR}"'
 '
