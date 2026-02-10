@@ -414,6 +414,11 @@ echo "Array task ${{SLURM_ARRAY_TASK_ID}} uses config ids: ${{BASE_ID}}..$((BASE
 run_one () {{
   local step_idx="$1"
   local config_ID="$2"
+  
+  if [ "${{config_ID}}" -gt "{nr_total_configs}" ]; then
+        echo "Skipping step ${{step_idx}} because config_ID=${{config_ID}} exceeds nr_total_configs={nr_total_configs}"
+        return 0
+      fi
 
   RUN_NAME="train_config${{config_ID}}"
   MODEL_NAME="local-dir:${{MODELS_CFG_DIR}}/config_${{config_ID}}"
@@ -445,39 +450,94 @@ echo "Job execution complete."
         else:
             self.script_path.write_text(script)
 
-    def build_array_job_for_downstream_evaluation(self, root, models_cfg_dir, nr_total_configs, seed, cluster,
-                                                  save_to: Path = None):
+    def build_array_job_for_downstream_evaluation(
+            self,
+            root: str,
+            models_cfg_dir: str,
+            nr_total_configs: int,
+            cluster: str,
+            seed: int,
+            save_to: Path = None,
+            bundle: int = 4,
+    ):
         if "train/" in root:
             root = root.replace("train/", "")
-        model_name = f'"local-dir:{models_cfg_dir}/config_${{SLURM_ARRAY_TASK_ID}}"'
+
+        array_size = math.ceil(nr_total_configs / bundle)
+
         python_ws_paths = self._slurm_ws_python_path_setup()
         account = self._account()
 
+        step_jobs_logs_dir = Path(self.workspace_dir) / "train" / Path(save_to).parent
+        step_jobs_logs_dir = str(step_jobs_logs_dir)
+
         script = f"""#!/bin/bash
-#SBATCH --job-name=downstream_eval_config
 #SBATCH --nodes=1
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:4
+#SBATCH --ntasks=4
 #SBATCH --cpus-per-task={self.cpus_per_task}
 {account}#SBATCH -p {self.partition}
+#SBATCH --time=24:00:00
 
-#SBATCH --array=1-{nr_total_configs}
+#SBATCH --array=1-{array_size}
 
+#SBATCH --job-name=downstream_eval
 #SBATCH --output=downstream_evaluator_logs/%x-%A_%a.out
 #SBATCH --error=downstream_evaluator_logs/%x-%A_%a.err
 
 {self.load_env()}
 
+echo "Started at $(date)"
+echo "Array task id: ${{SLURM_ARRAY_TASK_ID}}"
+
 {python_ws_paths}
 
-config_ID="${{SLURM_ARRAY_TASK_ID}}"
-RUN_NAME="train_config${{config_ID}}"
+LOG_DIR="{step_jobs_logs_dir}"
+mkdir -p "${{LOG_DIR}}"
+mkdir -p "${{LOG_DIR}}/downstream_array_eval_logs"
 
-ROOT_DIR={root}"/train_config${{config_ID}}"
+MODELS_CFG_DIR="{models_cfg_dir}"
+ROOT_DIR="{root}"
+CLUSTER="{cluster}"
+SEED="{seed}"
 
-echo "Running downstream eval for config ${{config_ID}}"
-echo "Root dir: ${{ROOT_DIR}}"
+BASE_ID=$(( (SLURM_ARRAY_TASK_ID - 1) * {bundle} + 1 ))
 
-python post_hoc_iterator.py --root "${{ROOT_DIR}}" --seed {seed} --model {model_name} --pipeline_id ${{SLURM_ARRAY_TASK_ID}} --cluster {cluster}
+echo "Array task ${{SLURM_ARRAY_TASK_ID}} uses config ids: ${{BASE_ID}}..$((BASE_ID+{bundle}-1))"
+
+run_one () {{
+    local step_idx="$1"
+    local config_ID="$2"
+
+    if [ "${{config_ID}}" -gt "{nr_total_configs}" ]; then
+      echo "Skipping step ${{step_idx}} because config_ID=${{config_ID}} exceeds nr_total_configs={nr_total_configs}"
+      return 0
+    fi
+
+    MODEL_NAME="local-dir:${{MODELS_CFG_DIR}}/config_${{config_ID}}"
+
+    echo "Starting downstream eval step ${{step_idx}} (config_ID=${{config_ID}}) at $(date)"
+
+    srun --exclusive --ntasks=1 --cpus-per-task={self.cpus_per_task} --gres=gpu:1 \\
+      --output "${{LOG_DIR}}/downstream_array_eval_logs/step_${{step_idx}}_%x-%A_%a.out" \\
+      --error  "${{LOG_DIR}}/downstream_array_eval_logs/step_${{step_idx}}_%x-%A_%a.err" \\
+      python post_hoc_iterator.py \\
+        --root "${{ROOT_DIR}}" \\
+        --model "${{MODEL_NAME}}" \\
+        --seed "${{SEED}}" \\
+        --pipeline_id "${{config_ID}}" \\
+        --cluster "${{CLUSTER}}" &
+}}
+
+for step_idx in 0 1 2 3; do
+    config_ID=$(( BASE_ID + step_idx ))
+    run_one "${{step_idx}}" "${{config_ID}}"
+done
+
+wait
+
+echo "Ended at $(date)"
+echo "Job execution complete."
 """
 
         if save_to:
