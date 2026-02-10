@@ -62,7 +62,7 @@ def generate_downstream_eval_array_script(
         nr_configs: int,
         seed: int,
         slurm: SlurmManager,
-        cluster:str
+        cluster: str
 ):
     out_path = downstream_evaluation_scripts_dir / "array_job.sh"
     if out_path.exists():
@@ -78,8 +78,9 @@ def generate_downstream_eval_array_script(
     )
 
 
-def generate_array_scripts(neps_dir: Path, root_dir: str, seed: int, partition: str, nr_configs: int, workspace_dir: str, cluster: str,
-                           wandb_project_name: str, command_dir: str,venv_path: str | None = None):
+def generate_array_scripts(neps_dir: Path, root_dir: str, seed: int, partition: str, nr_configs: int,
+                           workspace_dir: str, cluster: str,
+                           wandb_project_name: str, command_dir: str, venv_path: str | None = None):
     logs_dir, evaluation_scripts_dir, downstream_evaluation_scripts_dir, models_cfg_dir, train_scripts_dir = create_directories(
         neps_dir)
 
@@ -262,8 +263,13 @@ def write_group_configs(
         safe_part = "".join(c if c.isalnum() or c in "._" else "_" for c in str(part))
         p = out_dir / f"train_p{safe_part}_bs{bs}_g{gpus}_n{nodes}.txt"
 
+        sorted_ids = sorted(
+            config_ids,
+            key=lambda tid: config_info[tid]["train_num_samples"]
+        )
+
         with p.open("w", encoding="utf-8") as f:
-            for tid in config_ids:
+            for tid in sorted_ids:
                 info = config_info[tid]
                 f.write(
                     f"{tid} "
