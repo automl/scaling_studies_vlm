@@ -216,6 +216,7 @@ def generate_scripts_per_config(config_id, scan_space, root_dir, venv_path, wand
         slurmManager=slurm,
         logs_dir=logs_dir,
         downstream_eval_scripts_dir=downstream_evaluation_scripts_path,
+        cluster=cluster
     )
 
 
@@ -279,6 +280,7 @@ def generate_downstream_eval_script(
         slurmManager,
         logs_dir,
         downstream_eval_scripts_dir,
+        cluster
 ):
     run_name = f"train_config{config_id}"
     downstream_eval_job_name = f"downstream_eval_config{config_id}"
@@ -286,6 +288,7 @@ def generate_downstream_eval_script(
     slurmManager.build_downstream_evaluation_script(job_name=downstream_eval_job_name,
                                                     root=logs_dir + "/" + run_name,
                                                     save_to=downstream_eval_script_path, model=model_cfg, seed=seed,
+                                                    cluster=cluster,
                                                     config_id=config_id)
 
 

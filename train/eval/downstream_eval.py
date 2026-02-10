@@ -1,11 +1,12 @@
 import json
 import time
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Iterable, Optional, List
+from typing import Iterable, Optional, List, Union, Mapping
 
-from eval.openclip_benchmark_parser import get_parser
 from eval.openclip_benchmark_cli import main_eval
+from eval.openclip_benchmark_parser import get_parser
 from utils import find_latest_checkpoint, _build_output_name
 
 
@@ -15,17 +16,29 @@ class EvalTask(str, Enum):
     LINEAR_PROBE = "linear_probe"
 
 
-class EvalDataset(str, Enum):
+@dataclass(frozen=True)
+class DatasetSpec:
+    name: str
+    root: Optional[Union[Path, Mapping[str, Path]]] = None
+
+
+class EvalDataset(Enum):
     pass
 
 
 class ZeroShotDataset(EvalDataset):
-    CIFAR10 = "cifar10"
-    IMAGENET = "imagenet1k"
+    CIFAR10 = DatasetSpec("cifar10")
+    IMAGENET = DatasetSpec(
+        "imagenet1k",
+        root={
+            "meta": Path("eval_data"),
+            "juwels": Path("/p/data1/datasets/Imagenet2012_1k_tar"),
+        },
+    )
 
 
 class RetrievalDataset(EvalDataset):
-    MS_COCO = "mscoco_captions"
+    MS_COCO = DatasetSpec("mscoco_captions")
 
 
 class ClipBenchmarkEvaluator:
@@ -36,6 +49,7 @@ class ClipBenchmarkEvaluator:
             default_batch_size: int = 128,
             default_seed: int = 0,
             use_amp: bool = False,
+            cluster: str = "meta"
     ) -> None:
         """
         Wrapper around clip_benchmark eval.
@@ -52,13 +66,28 @@ class ClipBenchmarkEvaluator:
         self.eval_dir.mkdir(parents=True, exist_ok=True)
 
         self.output_dir = self.eval_dir
+        self.cluster = cluster
 
         self.parser = get_parser()
+
+    def _resolve_dataset_root(self, dataset: EvalDataset) -> str:
+        spec = dataset.value
+
+        if spec.root is None:
+            return "eval_data"
+
+        if isinstance(spec.root, Path):
+            return str(spec.root)
+
+        if self.cluster in spec.root:
+            return str(spec.root[self.cluster])
+
+        return "eval_data"
 
     def _build_argv(
             self,
             task: str,
-            dataset: str,
+            dataset: EvalDataset,
             pretrained: Optional[Path],
             output: Optional[Path],
             batch_size: Optional[int],
@@ -74,29 +103,29 @@ class ClipBenchmarkEvaluator:
         pretrained = pretrained / checkpoint
 
         epoch = int(checkpoint.split("_")[1].split(".")[0])
-        filename = _build_output_name(dataset, epoch)
+        filename = _build_output_name(dataset.value.name, epoch)
 
         out = (output / filename) if output is not None else (self.output_dir / filename)
         out.parent.mkdir(parents=True, exist_ok=True)
 
+        dataset_root = self._resolve_dataset_root(dataset)
+
         argv = [
             "eval",
-            f"--dataset={dataset}",
+            f"--dataset={dataset.value.name}",
             "--task", task,
             "--model", self.model,
             "--pretrained", str(pretrained),
             "--batch_size", str(bs),
             "--output", str(out),
             "--seed", str(sd),
-            "--dataset_root", "eval_data"
+            "--dataset_root", dataset_root,
         ]
 
         if not self.use_amp:
             argv.append("--no_amp")
-
         if extra_args:
             argv.extend(list(extra_args))
-
         return argv
 
     def evaluate(
@@ -112,7 +141,7 @@ class ClipBenchmarkEvaluator:
 
         argv = self._build_argv(
             task=task.value,
-            dataset=dataset.value,
+            dataset=dataset,
             pretrained=pretrained,
             output=output,
             batch_size=batch_size,
@@ -225,6 +254,7 @@ class ClipBenchmarkEvaluator:
 
         for ds in datasets:
             start = time.time()
+
             output_file = self.evaluate(
                 task=EvalTask.RETRIEVAL,
                 dataset=ds,

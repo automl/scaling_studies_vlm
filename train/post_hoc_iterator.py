@@ -33,6 +33,14 @@ def parse_args():
         type=int,
         help="Id of the configuration being evaluated."
     )
+
+    p.add_argument(
+        "--cluster",
+        default="meta",
+        type=str,
+        choices=["meta", "juwels"],
+        help="Cluster used to run evaluations."
+    )
     return p.parse_args()
 
 
@@ -64,7 +72,7 @@ if __name__ == "__main__":
 
     neps_root = Path(args.root).resolve().parents[1]
 
-    evaluator = ClipBenchmarkEvaluator(root=args.root, model=args.model, default_seed=args.seed)
+    evaluator = ClipBenchmarkEvaluator(root=args.root, model=args.model, default_seed=args.seed, cluster=args.cluster)
     zero_shot_results = evaluator.zero_shot_eval([ZeroShotDataset.CIFAR10, ZeroShotDataset.IMAGENET])
     retrieval_results = evaluator.zero_shot_retrieval([RetrievalDataset.MS_COCO])
     full_results = {

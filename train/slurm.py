@@ -220,6 +220,7 @@ class SlurmManager:
 #SBATCH --wait-all-nodes=1
 #SBATCH --job-name={self.job_name}
 {account}#SBATCH -p {self.partition}
+#SBATCH --time=24:00:00
 
 #SBATCH --output logs/%x-%A.out
 #SBATCH --error logs/%x-%A.err
@@ -321,6 +322,7 @@ ml Stages/2026 GCCcore/14.3.0 PyTorch/2.9.1
 #SBATCH --cpus-per-task={self.cpus_per_task}
 #SBATCH --job-name={job_name}
 {account}#SBATCH -p {self.partition}
+#SBATCH --time=24:00:00
 
 #SBATCH --output evaluator_logs/%x-%A.out
 #SBATCH --error evaluator_logs/%x-%A.err
@@ -341,7 +343,7 @@ echo "Job execution complete."
         else:
             self.script_path.write_text(script)
 
-    def build_downstream_evaluation_script(self, job_name, root, model, seed, config_id, save_to: Path = None):
+    def build_downstream_evaluation_script(self, job_name, root, model, seed, config_id, cluster, save_to: Path = None):
         if "train/" in root:
             root = root.replace("train/", "")
         python_ws_paths = self._slurm_ws_python_path_setup()
@@ -360,7 +362,7 @@ echo "Job execution complete."
 
 {python_ws_paths}
 
-python post_hoc_iterator.py --root {root} --model {model} --seed {seed} --pipeline_id {config_id}
+python post_hoc_iterator.py --root {root} --model {model} --seed {seed} --pipeline_id {config_id} --cluster {cluster}
 """
         if save_to:
             save_to.write_text(script)
@@ -443,7 +445,7 @@ echo "Job execution complete."
         else:
             self.script_path.write_text(script)
 
-    def build_array_job_for_downstream_evaluation(self, root, models_cfg_dir, nr_total_configs, seed,
+    def build_array_job_for_downstream_evaluation(self, root, models_cfg_dir, nr_total_configs, seed, cluster,
                                                   save_to: Path = None):
         if "train/" in root:
             root = root.replace("train/", "")
@@ -475,7 +477,7 @@ ROOT_DIR={root}"/train_config${{config_ID}}"
 echo "Running downstream eval for config ${{config_ID}}"
 echo "Root dir: ${{ROOT_DIR}}"
 
-python post_hoc_iterator.py --root "${{ROOT_DIR}}" --seed {seed} --model {model_name} --pipeline_id ${{SLURM_ARRAY_TASK_ID}}
+python post_hoc_iterator.py --root "${{ROOT_DIR}}" --seed {seed} --model {model_name} --pipeline_id ${{SLURM_ARRAY_TASK_ID}} --cluster {cluster}
 """
 
         if save_to:

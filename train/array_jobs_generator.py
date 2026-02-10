@@ -62,6 +62,7 @@ def generate_downstream_eval_array_script(
         nr_configs: int,
         seed: int,
         slurm: SlurmManager,
+        cluster:str
 ):
     out_path = downstream_evaluation_scripts_dir / "array_job.sh"
     if out_path.exists():
@@ -73,6 +74,7 @@ def generate_downstream_eval_array_script(
         nr_total_configs=nr_configs,
         seed=seed,
         save_to=out_path,
+        cluster=cluster
     )
 
 
@@ -109,7 +111,8 @@ def generate_array_scripts(neps_dir: Path, root_dir: str, seed: int, partition: 
         models_cfg_dir=models_cfg_dir,
         nr_configs=nr_configs,
         seed=seed,
-        slurm=slurm
+        slurm=slurm,
+        cluster=cluster
     )
 
     bundle_train_scripts_in_array_jobs(root_dir=root_dir, logs_dir=logs_dir, train_scripts_dir=train_scripts_dir,
