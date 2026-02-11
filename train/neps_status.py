@@ -101,6 +101,17 @@ def fetch_total_compute_and_nparams(config_dir: Path) -> dict:
 
 def fetch_training_gpu_used_gpu_training_time(checkpoints_dir: Path) -> dict:
     out = {"train_gpu_name": None, "world_size": None, "train_duration(s)": None}
+    train_results_path = checkpoints_dir / "train_loss.jsonl"
+    train_time_path = checkpoints_dir / "train_time.jsonl"
+
+    try:
+        out["train_gpu_name"] = read_last_json_line(train_results_path).get("GPU_trained_on")
+        out["world_size"] = read_last_json_line(train_results_path).get("world_size")
+        out["train_duration(s)"] = read_last_json_line(train_time_path).get("epoch_training_duration_seconds")
+    except Exception:
+        pass
+
+    return out
 
 
 def fetch_losses(checkpoints_dir: Path) -> dict:
@@ -175,8 +186,8 @@ if __name__ == "__main__":
             **fetch_losses(checkpoints_dir),
             **fetch_downstream_eval_results(downstream_eval_path),
             **fetch_scale_parameters(config_dir),
-            **fetch_total_compute_and_nparams(config_dir)
-            # fetch gpu used during training, world size, training time
+            **fetch_total_compute_and_nparams(config_dir),
+            **fetch_training_gpu_used_gpu_training_time(checkpoints_dir),
             # fetch gpu used during evaluations, time it took
         }
         rows.append(row)
