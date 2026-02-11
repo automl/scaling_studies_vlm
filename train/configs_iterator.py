@@ -93,7 +93,7 @@ def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, 
 
     if scan_space.get("train_num_samples") is not None:
         if bias_scale_sampling:
-            scan_space["train_num_samples"] = sample_warped_log_uniform(scan_space["train_num_samples"], alpha)
+            scan_space["train_num_samples"] = sample_warped_log_uniform(x=scan_space["train_num_samples"], alpha=alpha)
         scan_space["train_num_samples"] = int(float(scan_space["train_num_samples"]) * 1_000_000)
 
     return scan_space
