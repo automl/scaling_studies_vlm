@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import torch
 from matplotlib import pyplot as plt
+from matplotlib.ticker import LogLocator, LogFormatterSciNotation
 from open_clip import create_model
 
 
@@ -344,3 +345,67 @@ def _write_cached_bs(cache_dir: Path, key: str, max_bs: int) -> None:
     cache_dir.mkdir(parents=True, exist_ok=True)
     payload = {"max_bs": int(max_bs)}
     (cache_dir / f"{key}.json").write_text(json.dumps(payload, indent=2))
+
+
+####################################################################
+# methods for GFLOPs to GPU hours mapping
+####################################################################
+
+def add_gpu_hours_column(
+        df: pd.DataFrame,
+        *,
+        world_size_col: str = "world_size",
+        duration_s_col: str = "train_duration(s)",
+        out_col: str = "gpu_hours",
+) -> pd.DataFrame:
+    df = df.copy()
+    df[out_col] = df[world_size_col] * (df[duration_s_col] / 3600.0)
+    return df
+
+
+def plot_measured_vs_predicted_gpu_hours(
+        df: pd.DataFrame,
+        *,
+        gpu_name: str,
+        model,
+        compute_col: str = "Total compute(GLOPs)",
+        measured_gpu_hours_col: str = "gpu_hours",
+        x_query=None,
+        xlim=(1e7, 1e9),
+        title=None,
+        show_bs_lines: bool = False,
+        bs_rules=None,
+):
+    df_gpu = df[df["train_gpu_name"] == gpu_name]
+    if df_gpu.empty:
+        raise ValueError(f"No rows for gpu_name {gpu_name!r}")
+
+    if x_query is None:
+        x_query = np.logspace(np.log10(xlim[0]), np.log10(xlim[1]), 6)
+
+    y_pred = model.gpu_hours(x_query)
+
+    plt.figure(figsize=(8, 5))
+    plt.scatter(df_gpu[compute_col], df_gpu[measured_gpu_hours_col], alpha=0.8, label="Measured")
+    plt.scatter(x_query, y_pred, marker="x", s=80, linewidths=2, label="Predicted")
+
+    if show_bs_lines and bs_rules:
+        for r in bs_rules:
+            if r["min"] > 0:
+                plt.axvline(r["min"], linestyle="--", linewidth=1, alpha=0.6, color="gray")
+
+    plt.xscale("log")
+    plt.xlim(*xlim)
+
+    ax = plt.gca()
+    ax.xaxis.set_major_locator(LogLocator(base=10))
+    ax.xaxis.set_major_formatter(LogFormatterSciNotation())
+
+    plt.xlabel("Total compute (GFLOPs)")
+    plt.ylabel(f"GPU hours ({gpu_name})")
+    plt.title(title or f"Total compute vs GPU hours for {gpu_name}")
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+
+    return x_query, y_pred
