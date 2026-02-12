@@ -460,9 +460,6 @@ echo "Job execution complete."
             save_to: Path = None,
             bundle: int = 4,
     ):
-        if "train/" in root:
-            root = root.replace("train/", "")
-
         array_size = math.ceil(nr_total_configs / bundle)
 
         python_ws_paths = self._slurm_ws_python_path_setup()
@@ -521,8 +518,8 @@ run_one () {{
     srun --exclusive --ntasks=1 --cpus-per-task={self.cpus_per_task} --gres=gpu:1 \\
       --output "${{LOG_DIR}}/downstream_array_eval_logs/step_${{step_idx}}_%x-%A_%a.out" \\
       --error  "${{LOG_DIR}}/downstream_array_eval_logs/step_${{step_idx}}_%x-%A_%a.err" \\
-      python post_hoc_iterator.py \\
-        --root "${{ROOT_DIR}}" \\
+      python -m post_hoc_iterator \\
+        --root "${{ROOT_DIR}}/train_config${{config_ID}}" \\
         --model "${{MODEL_NAME}}" \\
         --seed "${{SEED}}" \\
         --pipeline_id "${{config_ID}}" \\
