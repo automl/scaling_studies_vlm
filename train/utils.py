@@ -364,17 +364,16 @@ def add_gpu_hours_column(
 
 
 def plot_measured_vs_predicted_gpu_hours(
-        df: pd.DataFrame,
-        *,
-        gpu_name: str,
-        model,
-        compute_col: str = "Total compute(GLOPs)",
-        measured_gpu_hours_col: str = "gpu_hours",
-        x_query=None,
-        xlim=(1e7, 1e9),
-        title=None,
-        show_bs_lines: bool = False,
-        bs_rules=None,
+    df: pd.DataFrame,
+    *,
+    gpu_name: str,
+    model,
+    compute_col: str = "Total compute(GLOPs)",
+    measured_gpu_hours_col: str = "gpu_hours",
+    x_query=None,
+    xlim=(1e7, 1e9),
+    title=None,
+    n_fit_points: int = 200,
 ):
     df_gpu = df[df["train_gpu_name"] == gpu_name]
     if df_gpu.empty:
@@ -383,16 +382,32 @@ def plot_measured_vs_predicted_gpu_hours(
     if x_query is None:
         x_query = np.logspace(np.log10(xlim[0]), np.log10(xlim[1]), 6)
 
-    y_pred = model.gpu_hours(x_query)
+    y_pred = model.gpu_hours(x_query, k=3, mode="global_linear")
+
+    x_fit = np.logspace(np.log10(xlim[0]), np.log10(xlim[1]), n_fit_points)
+    y_fit = model.gpu_hours(x_fit, k=3, mode="global_linear")
 
     plt.figure(figsize=(8, 5))
-    plt.scatter(df_gpu[compute_col], df_gpu[measured_gpu_hours_col], alpha=0.8, label="Measured")
-    plt.scatter(x_query, y_pred, marker="x", s=80, linewidths=2, label="Predicted")
-
-    if show_bs_lines and bs_rules:
-        for r in bs_rules:
-            if r["min"] > 0:
-                plt.axvline(r["min"], linestyle="--", linewidth=1, alpha=0.6, color="gray")
+    plt.scatter(
+        df_gpu[compute_col],
+        df_gpu[measured_gpu_hours_col],
+        alpha=0.8,
+        label="Measured",
+    )
+    plt.scatter(
+        x_query,
+        y_pred,
+        marker="x",
+        s=80,
+        linewidths=1,
+        label="Predicted points",
+    )
+    plt.plot(
+        x_fit,
+        y_fit,
+        linewidth=0.5,
+        label="Fitted curve",
+    )
 
     plt.xscale("log")
     plt.xlim(*xlim)
@@ -408,4 +423,4 @@ def plot_measured_vs_predicted_gpu_hours(
     plt.legend()
     plt.tight_layout()
 
-    return x_query, y_pred
+    return (x_query, y_pred), (x_fit, y_fit)

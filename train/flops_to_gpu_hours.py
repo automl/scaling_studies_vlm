@@ -26,22 +26,52 @@ class BsRule:
 
 class GpuHoursModel:
     """
-        Batch size aware GPU-hours model:
-        - Fit one MFU per batch-size bucket (defined by bs_rules over compute ranges)
-        - For a query compute, select the right MFU bucket
+    Batch size aware GPU-hours model using linear fits.
+
+    We fit a linear line per bucket:
+      y = a*x + b
+    where:
+      x = total compute (GFLOPs)
+      y = train_duration_seconds * world_size   (GPU-seconds)
+
+    For a query x, we select the bucket and predict:
+      gpu_hours = (a*x + b) / 3600
+
+    Also provides a global linear fit:
+      gpu_hours = (global_a*x + global_b) / 3600
     """
 
-    def __init__(self, spec: GpuSpec, bs_rules: List[BsRule], mfu_by_bs: Dict[int, float]):
-        self.spec = spec
+    def __init__(
+            self,
+            bs_rules: List[BsRule],
+            *,
+            lin_a_by_bs: Dict[int, float],
+            lin_b_by_bs: Dict[int, float],
+            global_lin_a: float,
+            global_lin_b: float,
+            use_compute_col: bool,
+    ):
         self.bs_rules = bs_rules
-        self.mfu_by_bs = mfu_by_bs  # For a GPU, how efficient was I at each batch size range
+        self.lin_a_by_bs = lin_a_by_bs
+        self.lin_b_by_bs = lin_b_by_bs
+        self.global_lin_a = global_lin_a
+        self.global_lin_b = global_lin_b
+        self.use_compute_col = use_compute_col
 
     @staticmethod
-    def _weighted_mfu(df: pd.DataFrame, *, compute_col: str, duration_s_col: str, world_size_col: str,
-                      peak_gflops: float) -> float:
-        total_compute = df[compute_col].sum()
-        total_peak = peak_gflops * (df[duration_s_col] * df[world_size_col]).sum()
-        return float(total_compute / total_peak)
+    def _fit_linear_time_model(x, y) -> tuple[float, float]:
+        a, b = np.polyfit(x, y, 1)
+        return float(a), float(b)
+
+    @staticmethod
+    def _extract_xy(df: pd.DataFrame, *, compute_col: str, duration_s_col: str, world_size_col: str):
+        x = pd.to_numeric(df[compute_col], errors="coerce").to_numpy(dtype=float)
+        y = (
+                pd.to_numeric(df[duration_s_col], errors="coerce").to_numpy(dtype=float)
+                * pd.to_numeric(df[world_size_col], errors="coerce").to_numpy(dtype=float)
+        )
+        mask = np.isfinite(x) & np.isfinite(y)
+        return x[mask], y[mask]
 
     @classmethod
     def fit_from_df(
@@ -49,12 +79,13 @@ class GpuHoursModel:
             df: pd.DataFrame,
             gpu_name: str,
             *,
-            peak_gflops: float,
             bs_rules: List[dict],
             gpu_name_col: str = "train_gpu_name",
             compute_col: str = "Total compute(GLOPs)",
+            samples_col: str = "train_num_samples",
             duration_s_col: str = "train_duration(s)",
             world_size_col: str = "world_size",
+            use_compute_col: bool = True,
     ) -> "GpuHoursModel":
         df_gpu = df[df[gpu_name_col] == gpu_name].copy()
         if df_gpu.empty:
@@ -62,48 +93,104 @@ class GpuHoursModel:
 
         rules = [BsRule(r["min"], r["max"], r["bs"]) for r in bs_rules]
 
-        mfu_by_bs: Dict[int, float] = {}
+        gx, gy = cls._extract_xy(df_gpu, compute_col=compute_col,
+                                 duration_s_col=duration_s_col,
+                                 world_size_col=world_size_col)
+        global_lin_a, global_lin_b = cls._fit_linear_time_model(gx, gy)
+
+        lin_a_by_bs: Dict[int, float] = {}
+        lin_b_by_bs: Dict[int, float] = {}
+
         for r in rules:
-            bucket = df_gpu[(df_gpu[compute_col] >= r.min_compute) & (df_gpu[compute_col] < r.max_compute)]
-            if bucket.empty:
-                continue
-            mfu_by_bs[r.bs] = cls._weighted_mfu(
-                bucket,
-                compute_col=compute_col,
-                duration_s_col=duration_s_col,
-                world_size_col=world_size_col,
-                peak_gflops=peak_gflops,
-            )
+            if use_compute_col:
+                bucket = df_gpu[(df_gpu[compute_col] >= r.min_compute) & (df_gpu[compute_col] < r.max_compute)]
+            else:
+                bucket = df_gpu[(df_gpu[samples_col] >= r.min_compute) & (df_gpu[samples_col] < r.max_compute)]
 
-        if not mfu_by_bs:
-            raise ValueError(
-                f"No MFU buckets could be fit for gpu_name {gpu_name!r}. "
-            )
+            x, y = cls._extract_xy(bucket, compute_col=compute_col,
+                                   duration_s_col=duration_s_col,
+                                   world_size_col=world_size_col)
 
-        return cls(GpuSpec(gpu_name, float(peak_gflops)), rules, mfu_by_bs)
+            if x.size < 2:
+                a, b = global_lin_a, global_lin_b
+            else:
+                a, b = cls._fit_linear_time_model(x, y)
 
-    def _select_bs(self, total_gflops: float) -> int:
-        for r in self.bs_rules:
-            if r.min_compute <= total_gflops < r.max_compute and r.bs in self.mfu_by_bs:
-                return r.bs
-        available = [r for r in self.bs_rules if r.bs in self.mfu_by_bs]
+            lin_a_by_bs[r.bs] = a
+            lin_b_by_bs[r.bs] = b
+
+        if not lin_a_by_bs:
+            raise ValueError(f"No linear buckets could be fit for gpu_name {gpu_name!r}.")
+
+        return cls(
+            rules,
+            lin_a_by_bs=lin_a_by_bs,
+            lin_b_by_bs=lin_b_by_bs,
+            global_lin_a=global_lin_a,
+            global_lin_b=global_lin_b,
+            use_compute_col=use_compute_col,
+        )
+
+    def _select_bs_knn(self, bucket_value: float, k: int = 3, eps: float = 1e-9) -> int:
+        available = [r for r in self.bs_rules if r.bs in self.lin_a_by_bs]
         if not available:
-            raise ValueError("No available MFU buckets.")
+            raise ValueError("No available linear buckets.")
+
+        mids = np.array([(r.min_compute + r.max_compute) / 2 for r in available], dtype=float)
+        dists = np.abs(mids - float(bucket_value))
+
+        k = min(k, len(available))
+        idxs = np.argpartition(dists, k - 1)[:k]
+
+        votes = {}
+        for i in idxs:
+            bs = available[int(i)].bs
+            weight = 1.0 / (dists[int(i)] + eps)
+            votes[bs] = votes.get(bs, 0.0) + weight
+
+        return max(votes.items(), key=lambda kv: kv[1])[0]
+
+    def _select_bs(self, bucket_value: float) -> int:
+        for r in self.bs_rules:
+            if r.min_compute <= bucket_value < r.max_compute and r.bs in self.lin_a_by_bs:
+                return r.bs
+
+        available = [r for r in self.bs_rules if r.bs in self.lin_a_by_bs]
+        if not available:
+            raise ValueError("No available linear buckets.")
+
         mid = np.array([(r.min_compute + r.max_compute) / 2 for r in available], dtype=float)
-        idx = int(np.argmin(np.abs(mid - float(total_gflops))))
+        idx = int(np.argmin(np.abs(mid - float(bucket_value))))
         return available[idx].bs
 
-    def mfu_for(self, total_gflops: Number) -> float:
-        bs = self._select_bs(float(total_gflops))
-        if bs in self.mfu_by_bs:
-            return self.mfu_by_bs[bs]
-        # if bucket is missing then fallback to mean mfu of existing buckets
-        return float(np.mean(list(self.mfu_by_bs.values())))
+    def linear_params_for(self, *, bucket_value: Number, k: int | None = None) -> tuple[float, float]:
+        bucket_value = float(bucket_value)
+        bs = self._select_bs(bucket_value) if k is None else self._select_bs_knn(bucket_value, k=k)
+        a = self.lin_a_by_bs.get(bs, self.global_lin_a)
+        b = self.lin_b_by_bs.get(bs, self.global_lin_b)
+        return a, b
 
-    def gpu_hours(self, total_gflops: Union[Number, np.ndarray]) -> Union[float, np.ndarray]:
+    def gpu_hours(self, total_gflops, *, k: int | None = None, mode: str = "linear"):
+        """
+        mode:
+          - "linear":        hours = (a(bucket)*x + b(bucket)) / 3600
+          - "global_linear": hours = (global_lin_a*x + global_lin_b) / 3600
+        """
         x = np.asarray(total_gflops, dtype=float)
-        mfus = np.array([self.mfu_for(v) for v in x.ravel()], dtype=float).reshape(x.shape)
-        hours = (x / (self.spec.peak_gflops * mfus)) / 3600.0
+
+        if mode not in {"linear", "global_linear"}:
+            raise ValueError("mode must be 'linear' or 'global_linear'")
+
+        if mode == "global_linear":
+            hours = (self.global_lin_a * x + self.global_lin_b) / 3600.0
+            return float(hours) if np.isscalar(total_gflops) else hours
+
+        out = np.empty_like(x, dtype=float)
+        for i, v in enumerate(x.ravel()):
+            a, b = self.linear_params_for(bucket_value=v, k=k)
+            out.ravel()[i] = (a * float(v) + b) / 3600.0
+
+        hours = out
         return float(hours) if np.isscalar(total_gflops) else hours
 
     def mapping_gflops_to_gpu_hours(
@@ -111,9 +198,11 @@ class GpuHoursModel:
             gflops_values: Iterable[Number],
             *,
             as_dict: bool = True,
+            k: int | None = None,
+            mode: str = "linear",
     ):
         xs = np.array(list(gflops_values), dtype=float)
-        ys = self.gpu_hours(xs)
+        ys = self.gpu_hours(xs, k=k, mode=mode)
         if as_dict:
             return {float(x): float(y) for x, y in zip(xs, ys)}
         return pd.Series(ys, index=xs, name="gpu_hours")
@@ -121,10 +210,15 @@ class GpuHoursModel:
     def debug_bucket_table(self) -> pd.DataFrame:
         rows = []
         for r in self.bs_rules:
-            if r.bs in self.mfu_by_bs:
+            if r.bs in self.lin_a_by_bs:
                 rows.append(
-                    {"bs": r.bs, "min_compute": r.min_compute, "max_compute": r.max_compute,
-                     "mfu": self.mfu_by_bs[r.bs]}
+                    {
+                        "bs": r.bs,
+                        "min_compute": r.min_compute,
+                        "max_compute": r.max_compute,
+                        "lin_a": self.lin_a_by_bs.get(r.bs, np.nan),
+                        "lin_b": self.lin_b_by_bs.get(r.bs, np.nan),
+                    }
                 )
         return pd.DataFrame(rows).sort_values("bs")
 
