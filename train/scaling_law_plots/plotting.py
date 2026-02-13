@@ -296,6 +296,7 @@ def plot_pareto_front_from_csv(
         params_col: str = "mparams",
         data_col: str = "train_num_samples",
         params_are_millions: bool = True,
+        compare_csv_path: str | None = None,
 ) -> tuple[plt.Figure, pd.DataFrame]:
     """
     Pareto front plot from CSV (non-dominated points) in log-log scale.
@@ -389,6 +390,54 @@ def plot_pareto_front_from_csv(
         norm=norm_front,
         label="Pareto front (actual)",
     )
+
+    if compare_csv_path is not None and (
+            objective_col == "imagenet1k_acc1_error_rate" or objective_col == "mscoco_image_recall@5_error_rate" or objective_col == "mscoco_text_recall@5_error_rate"):
+        df2 = None
+        if objective_col == "imagenet1k_acc1_error_rate":
+            df2 = pd.read_csv("results/openclip_in1k_pareto.csv")
+
+        if objective_col == "mscoco_image_recall@5_error_rate":
+            df2 = pd.read_csv("results/openclip_msococo_img_ret_pareto.csv")
+
+        if objective_col == "mscoco_text_recall@5_error_rate":
+            df2 = pd.read_csv("results/openclip_msococo_img_ret_pareto.csv")
+            df2["mscoco_text_recall@5_error_rate"] = 1 - df2["mscoco_text_recall@5_error_rate"]
+
+        needed2 = {objective_col, flops_col, params_col}
+        missing2 = [c for c in needed2 if c not in df2.columns]
+        if missing2:
+            print(f"[compare] Missing required columns: {missing2}")
+        else:
+            obj2 = pd.to_numeric(df2[objective_col], errors="coerce").to_numpy(float)
+            flops2 = pd.to_numeric(df2[flops_col], errors="coerce").to_numpy(float)
+            n_params2 = pd.to_numeric(df2[params_col], errors="coerce").to_numpy(float)
+
+            if params_are_millions:
+                n_params2 *= 1_000_000
+
+            mask2 = np.isfinite(obj2) & np.isfinite(flops2) & np.isfinite(n_params2)
+            mask2 &= (obj2 > 0) & (flops2 > 0) & (n_params2 > 0)
+
+            obj2 = obj2[mask2]
+            flops2 = flops2[mask2]
+            n_params2 = n_params2[mask2]
+
+            if len(flops2) > 0:
+                norm_front = Normalize(
+                    vmin=min(norm_front.vmin, float(np.min(n_params2))),
+                    vmax=max(norm_front.vmax, float(np.max(n_params2))),
+                )
+                sc.set_norm(norm_front)
+
+                ax.scatter(
+                    flops2, obj2,
+                    c=n_params2, cmap="inferno",
+                    marker="^", s=120,
+                    edgecolors="black", linewidth=1.5,
+                    norm=norm_front,
+                    label="External points",
+                )
 
     ax.plot(flops_front, objs_front, "k-", alpha=0.3, linewidth=1)
 
@@ -562,7 +611,8 @@ def plot_all_scaling_law_figures(csv_path: str, objective_col: str, dpi: int = 2
         "flops_per_objective": plot_flops_per_objective_from_csv(csv_used, objective_col=obj_used),
         "params_vs_loss": plot_params_vs_loss_from_csv(csv_used, objective_col=obj_used),
         "data_vs_loss": plot_data_vs_loss_from_csv(csv_used, objective_col=obj_used),
-        "pareto_front": plot_pareto_front_from_csv(csv_used, objective_col=obj_used),
+        "pareto_front": plot_pareto_front_from_csv(csv_used, objective_col=obj_used,
+                                                   compare_csv_path="results/openclip_in1k_pareto.csv"),
         "accumulated_flops_objective": plot_accumulated_flops_per_objective_from_csv(csv_used, objective_col=obj_used),
     }
 
@@ -601,7 +651,8 @@ def plot_all_scaling_law_figures(csv_path: str, objective_col: str, dpi: int = 2
                     flops_vs_data_pareto.savefig(obj_dir / "pareto_flops_vs_data.png", dpi=dpi, bbox_inches="tight")
 
                 if flops_vs_n_params_pareto is not None:
-                    flops_vs_n_params_pareto.savefig(obj_dir / "pareto_flops_vs_n_params.png", dpi=dpi, bbox_inches="tight")
+                    flops_vs_n_params_pareto.savefig(obj_dir / "pareto_flops_vs_n_params.png", dpi=dpi,
+                                                     bbox_inches="tight")
 
     return figures
 
