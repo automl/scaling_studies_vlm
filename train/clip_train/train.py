@@ -168,6 +168,16 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                 total_loss = sum(losses.values())
                 losses["loss"] = total_loss
 
+                if not torch.isfinite(total_loss):
+                    torch.save({
+                        "model": model.state_dict(),
+                        "optimizer": optimizer.state_dict(),
+                        "step": step,
+                        "epoch": epoch
+                    }, os.path.join(args.checkpoint_path, "nan_checkpoint.pt"))
+                    logging.error(f"NaN/Inf loss detected at epoch: {epoch}, step: {step}")
+                    raise RuntimeError("Stopping training due to NaN loss")
+
             backward(total_loss, scaler)
         else:
             # First, cache the features without any gradient tracking.
@@ -217,6 +227,16 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                     del inputs_no_accum
                     total_loss = sum(losses.values())
                     losses["loss"] = total_loss
+                    if not torch.isfinite(total_loss):
+                        torch.save({
+                            "model": model.state_dict(),
+                            "optimizer": optimizer.state_dict(),
+                            "step": step,
+                            "epoch": epoch
+                        }, os.path.join(args.checkpoint_path, "nan_checkpoint.pt"))
+
+                        logging.error(f"NaN/Inf loss detected at epoch: {epoch}, step: {step}")
+                        raise RuntimeError("Stopping training due to NaN loss")
 
                 backward(total_loss, scaler)
 
