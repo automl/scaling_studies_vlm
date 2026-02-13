@@ -60,7 +60,8 @@ class GpuHoursModel:
 
     @staticmethod
     def _fit_linear_time_model(x, y) -> tuple[float, float]:
-        a, b = np.polyfit(x, y, 1)
+        w = GpuHoursModel._compute_weights(x)
+        a, b = np.polyfit(x, y, 1, w=w)
         return float(a), float(b)
 
     @staticmethod
@@ -72,6 +73,18 @@ class GpuHoursModel:
         )
         mask = np.isfinite(x) & np.isfinite(y)
         return x[mask], y[mask]
+
+    @staticmethod
+    def _compute_weights(x):
+        x = np.asarray(x)
+
+        w = np.ones_like(x)
+
+        w[x < 5e7] *= 4.0
+        w[(x >= 5e7) & (x < 1e9)] *= 2.0
+        w[x >= 1e9] *= 1.0
+
+        return w
 
     @classmethod
     def fit_from_df(

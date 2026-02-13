@@ -1,5 +1,6 @@
 import argparse
 import json
+import re
 from pathlib import Path
 
 import neps
@@ -80,8 +81,23 @@ def fetch_scale_parameters(config_dir: Path) -> dict:
     config_path = config_dir / "config.yaml"
     if not config_path.is_file():
         return {}
+
     with config_path.open("r") as f:
-        return yaml.safe_load(f) or {}
+        params = yaml.safe_load(f) or {}
+
+    params.pop("train_num_samples", None)
+
+    return params
+
+
+def fetch_train_num_samples(train_scripts_dir: Path, config_id: int):
+    script_path = train_scripts_dir / f"train_config{config_id}.sh"
+    text = Path(script_path).read_text()
+
+    match = re.search(r'--train-num-samples\s+(\S+)', text)
+    if match:
+        return {"train_num_samples": int(match.group(1))}
+    return None
 
 
 def fetch_total_compute_and_nparams(config_dir: Path) -> dict:
@@ -166,6 +182,7 @@ if __name__ == "__main__":
     train_logs_root = root_dir / "individual_training_logs"
     configs_dir = root_dir / "configs"
     out_csv = root_dir / "configs_summary.csv"
+    train_scripts_dir = root_dir / "train_scripts"
 
     full_df, _ = neps.status(str(root_dir))
     trial_ids = [int(i) for i in full_df.index.tolist()]
@@ -188,6 +205,7 @@ if __name__ == "__main__":
             **fetch_scale_parameters(config_dir),
             **fetch_total_compute_and_nparams(config_dir),
             **fetch_training_gpu_used_gpu_training_time(checkpoints_dir),
+            **fetch_train_num_samples(train_scripts_dir, int(trial_id)),
             # fetch gpu used during evaluations, time it took
         }
         rows.append(row)
