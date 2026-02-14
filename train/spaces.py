@@ -10,8 +10,8 @@ __SCALE_SPACE_CONSTANT_ViT_S_32 = {
 class ScanPipeline(neps.PipelineSpace):
     # hps
     lr = neps.Float(
-        lower=1.0e-6,
-        upper=1.0e-1,
+        lower=1.0e-5,
+        upper=5.0e-2,
         log=True,
     )
     wd = neps.Float(
@@ -23,9 +23,9 @@ class ScanPipeline(neps.PipelineSpace):
         lower=0.0,
         upper=0.75,
     )
-    beta1 = 0.9
-    beta2 = 0.98
-    eps = 1e-6
+    beta1 = neps.Float(lower=0.95, upper=0.9)
+    beta2 = neps.Float(lower=0.98, upper=0.999)
+    eps = neps.Float(lower=1e-8, upper=1e-6, log=True)
 
     # scale space
     train_num_samples = neps.Float(
@@ -33,14 +33,10 @@ class ScanPipeline(neps.PipelineSpace):
         upper=60.0,
     )
     vision_width = neps.Integer(
-        lower=1, upper=8,  # head width is set to 64 by default. Emb. dim. needs to be divisible by 64!
-        prior=3,
-        prior_confidence="medium"
+        lower=0, upper=8,  # head width is set to 64 by default. Emb. dim. needs to be divisible by 64!
     )
     text_width = neps.Integer(
-        lower=1, upper=8,
-        prior=3,
-        prior_confidence="medium"
+        lower=0, upper=8,
     )
 
     @classmethod

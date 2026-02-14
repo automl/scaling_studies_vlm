@@ -1,3 +1,4 @@
+import csv
 import gc
 import math
 import os
@@ -6,6 +7,7 @@ from pathlib import Path
 from typing import Dict, Any, Tuple
 
 import neps
+import numpy as np
 import pandas as pd
 import torch
 
@@ -14,7 +16,7 @@ from clip_train.profiler import get_model_flops
 from probe_max_bs import probe_max_bs
 from slurm import SlurmManager, build_srun_cmd, build_eval_cmd
 from utils import query_bs, build_model_cfg, get_local_model_str, precision_to_dtype, create_default_model, \
-    sample_warped_log_uniform
+    sample_warped_log_uniform, sample_small_favoring_index
 
 
 def group_configs_by_all_except_train_num_samples(df: pd.DataFrame, bias_scale_sampling: bool, alpha: float) -> Dict:
@@ -73,28 +75,53 @@ def get_hp_space_train_num_samples_from_scan_space(scan_space):
     return hp_only
 
 
-def build_scan_space(row, bias_scale_sampling, alpha) -> Dict[str, Any]:
+def build_scan_space(row, bias_scale_sampling, alpha, rng) -> Dict[str, Any]:
     scan_space = {
         col.replace("config.", ""): val
         for col, val in row.items()
         if col.startswith("config.")
     }
-    return normalize_scan_space(scan_space, bias_scale_sampling, alpha)
+    return normalize_scan_space(scan_space, bias_scale_sampling, alpha, rng)
 
 
-def normalize_scan_space(scan_space: Dict[str, Any], bias_scale_sampling: bool, alpha: float) -> Dict[str, Any]:
-    """Normalize scan space values by applying scaling factors and transformations."""
+def _decode_text(idx: int) -> tuple[int, int]:
+    # width, heads
+    if idx == 0:
+        return 32, 1
+    return idx * 64, idx
+
+
+def _decode_vision(idx: int) -> tuple[int, int]:
+    # width, head_width
+    if idx == 0:
+        return 32, 32
+    return idx * 64, 64
+
+
+def normalize_scan_space(
+        scan_space: Dict[str, Any],
+        bias_scale_sampling: bool,
+        alpha: float,
+        rng,
+) -> Dict[str, Any]:
     if scan_space.get("text_width") is not None:
-        scan_space["text_heads"] = int(scan_space["text_width"])
-        scan_space["text_width"] = int(scan_space["text_width"]) * 64
+        idx = sample_small_favoring_index(alpha=alpha, rng=rng) if bias_scale_sampling else int(
+            scan_space["text_width"])
+        width, heads = _decode_text(idx)
+        scan_space["text_width"] = width
+        scan_space["text_heads"] = heads
 
     if scan_space.get("vision_width") is not None:
-        scan_space["vision_width"] = int(scan_space["vision_width"]) * 64
+        idx = sample_small_favoring_index(alpha=alpha, rng=rng) if bias_scale_sampling else int(
+            scan_space["vision_width"])
+        width, head_width = _decode_vision(idx)
+        scan_space["vision_width"] = width
+        scan_space["vision_head_width"] = head_width
 
-    if scan_space.get("train_num_samples") is not None:
-        if bias_scale_sampling:
-            scan_space["train_num_samples"] = sample_warped_log_uniform(x=scan_space["train_num_samples"], alpha=alpha)
-        scan_space["train_num_samples"] = int(float(scan_space["train_num_samples"]) * 1_000_000)
+    x = scan_space["train_num_samples"]
+    if bias_scale_sampling:
+        x = sample_warped_log_uniform(x=x, alpha=alpha)
+    scan_space["train_num_samples"] = int(float(x) * 1_000_000)
 
     return scan_space
 
@@ -297,6 +324,7 @@ if __name__ == "__main__":
 
     root_dir = args.root_dir
     full_df, result = neps.status(root_dir)
+    rng = np.random.default_rng(args.seed)
     if not args.group_by_train_num_samples:
         nr_configs = len(full_df)
         for i, (config_id, row) in enumerate(full_df.iterrows()):
@@ -307,10 +335,7 @@ if __name__ == "__main__":
                 f"processing index {i} | config_id={config_id} | "
                 f"total_configs={nr_configs}"
             )
-            scan_space = build_scan_space(row, args.bias_scale_sampling, args.alpha)
-            # if scan_space["vision_width"] < scan_space["text_width"]:
-            #     print(f"Skipping config_id {config_id} because vision_width < text_width")
-            #     continue
+            scan_space = build_scan_space(row, args.bias_scale_sampling, args.alpha, rng)
             generate_scripts_per_config(config_id, scan_space, root_dir, args.venv_path, args.wandb_project_name,
                                         args.workspace_dir,
                                         args.cluster, command_dir=args.command_dir)

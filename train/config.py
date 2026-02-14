@@ -59,7 +59,7 @@ HPO_CONFIGS = {
     ),
     "experimental": NePSConfig(
         optimizer=chinchilla_rs_optimizer,
-        evaluations_to_spend=20,
+        evaluations_to_spend=1000,
         pipeline_space=ScanPipeline.with_overrides()
     ),
     "random_ViT-S-32_fixed_lr_307e4_samples": NePSConfig(optimizer=Optimizer.Random,

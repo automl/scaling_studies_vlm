@@ -236,7 +236,7 @@ class GpuHoursModel:
         return pd.DataFrame(rows).sort_values("bs")
 
 
-WIDTH_LEVELS = list(range(64, 513, 64))
+WIDTH_LEVELS = [32, 64, 128, 192, 256, 320, 384, 448, 512]
 
 TRAIN_SAMPLES_MIN = 0.6e6
 TRAIN_SAMPLES_MAX = 60e6

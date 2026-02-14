@@ -73,6 +73,7 @@ def build_model_cfg(
         context_length: int = 77,
         vocab_size: int = 49408,
         text_heads: int = 8,
+        vision_head_width: int = 64,
         text_layers: int = 12,
         **kwargs
 ):
@@ -91,6 +92,7 @@ def build_model_cfg(
                 "image_size": image_size,
                 "layers": vision_layers,
                 "width": vision_width,
+                "head_width": vision_head_width,
                 "patch_size": patch_size,
             },
             "text_cfg": {
@@ -176,6 +178,17 @@ def sample_warped_log_uniform(
     """
     x = (x - low) / (high - low)  # map to [0,1]
     return low * (high / low) ** (x ** alpha)  # apply inverse warped log uniform transform
+
+
+def sample_small_favoring_index(n: int = 9, alpha: float = 1.0, rng=None):
+    if rng is None:
+        rng = np.random.default_rng()
+
+    k = np.arange(n)
+    weights = 1.0 / (k + 1) ** alpha
+    probs = weights / weights.sum()
+
+    return int(rng.choice(k, p=probs))
 
 
 ####################################################################
@@ -364,16 +377,16 @@ def add_gpu_hours_column(
 
 
 def plot_measured_vs_predicted_gpu_hours(
-    df: pd.DataFrame,
-    *,
-    gpu_name: str,
-    model,
-    compute_col: str = "Total compute(GLOPs)",
-    measured_gpu_hours_col: str = "gpu_hours",
-    x_query=None,
-    xlim=(1e7, 1e9),
-    title=None,
-    n_fit_points: int = 200,
+        df: pd.DataFrame,
+        *,
+        gpu_name: str,
+        model,
+        compute_col: str = "Total compute(GLOPs)",
+        measured_gpu_hours_col: str = "gpu_hours",
+        x_query=None,
+        xlim=(1e7, 1e9),
+        title=None,
+        n_fit_points: int = 200,
 ):
     df_gpu = df[df["train_gpu_name"] == gpu_name]
     if df_gpu.empty:
