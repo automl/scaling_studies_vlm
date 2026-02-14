@@ -5,8 +5,9 @@ from typing import Union
 import neps
 from neps.space import Parameter
 
-from chinchilla import chinchilla_optimizer, ChichillaPipeline, chinchilla_rs_optimizer, chinchilla_optimizer_fine_grained_dp, \
-chinchilla_optimizer_fine_grained_dp, chinchilla_optimizer_aproach1
+from chinchilla import chinchilla_optimizer, ChichillaPipeline, chinchilla_rs_optimizer, \
+    chinchilla_optimizer_fine_grained_dp, \
+    chinchilla_optimizer_fine_grained_dp, chinchilla_optimizer_aproach1
 from spaces import (__SCALE_SPACE_CONSTANT_ViT_S_32,
                     ScanPipeline)
 
@@ -166,22 +167,26 @@ HPO_CONFIGS = {
         pipeline_space=
         ScanPipeline.with_overrides(
             lr=2e-3,
-            warmup_fraction=0.5, 
+            warmup_fraction=0.5,
             wd=1.0e-6,
-            train_num_samples = neps.Float(
+            train_num_samples=neps.Float(
                 lower=1,
                 upper=80.0,
             ),
-            vision_width = neps.Integer(
+            vision_width=neps.Integer(
                 lower=1, upper=4,
             ),
-            text_width = neps.Integer(
+            text_width=neps.Integer(
                 lower=1, upper=4,
             )
         ),
     ),
+    "scan_space_juwels_biased_alpha_0_5": NePSConfig(lambda p: neps.algorithms.random_search(p),
+                                                     evaluations_to_spend=100,
+                                                     pipeline_space=
+                                                     ScanPipeline.with_overrides()
+                                                     )
 }
-
 
 
 @dataclass

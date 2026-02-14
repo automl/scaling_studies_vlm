@@ -3,8 +3,8 @@
 # Example: sbatch configs_iterator.sh /work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm /home/alipourn/scaling_studies_vlm/train results/optimizer=scale_space_only_minimal_capacity_probe/seed=42
 
 #SBATCH --nodes=1
-#SBATCH --gres=gpu:4
-#SBATCH --ntasks-per-node=4
+#SBATCH --gres=gpu:1
+#SBATCH --ntasks-per-node=1
 #SBATCH --partition booster
 #SBATCH --account projectnucleus
 #SBATCH --job-name=individual_scripts_builder
@@ -15,7 +15,7 @@
 # Set defaults or use provided arguments
 WORKSPACE_DIR="${1:-/p/data1/datasets/scan/openclip}"
 COMMAND_DIR="${2:-/p/home/jusers/sinani1/juwels/sinani1/scaling_studies_vlm/train}"
-ROOT_DIR="${3:-results/optimizer=scale_space_only_search_biased_scale_space/seed=40}"
+ROOT_DIR="${3:-results/optimizer=scan_space_juwels_biased_alpha_0_5/seed=40}"
 VENV_DIR="${4:-/p/project1/projectnucleus/sinani1/envs/openclip/bin/activate}"
 
 echo "WORKSPACE_DIR: $WORKSPACE_DIR"
@@ -40,10 +40,11 @@ python -u '"${COMMAND_DIR}"'/configs_iterator.py \
   --workspace_dir '"${WORKSPACE_DIR}"' \
   --cluster juwels \
   --partition booster \
-  --wandb_project_name scale_space_only_search_biased_scale_space_juwels \
+  --wandb_project_name scan_space_juwels_biased_alpha_0_5 \
   --command_dir '"${COMMAND_DIR}"' \
   --venv_path '"${VENV_DIR}"' \
-  --bias_scale_sampling
+  --bias_scale_sampling \
+  --alpha 0.5
 '
 
 end=`date +%s`
