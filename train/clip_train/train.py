@@ -28,7 +28,7 @@ def _save_intermediate_checkpoints(model, args, num_samples, training_loss, comp
     saved_any = False
 
     n_params = round(sum(m.numel() for m in model.parameters()) / 1e6, 2)
-    
+
     for config_id_str, target_samples in args.config_id_to_train_num_samples.items():
         # Check if current samples are close to target (within batch_size)
         if abs(num_samples - target_samples) < batch_size:
@@ -37,7 +37,7 @@ def _save_intermediate_checkpoints(model, args, num_samples, training_loss, comp
             os.makedirs(log_base_path, exist_ok=True)
             checkpoint_path = os.path.join(log_base_path, "checkpoints")
             os.makedirs(checkpoint_path, exist_ok=True)
-            
+
             # Save checkpoint
             checkpoint_dict = {
                 'epoch': 1,
@@ -46,11 +46,12 @@ def _save_intermediate_checkpoints(model, args, num_samples, training_loss, comp
                 'optimizer': optimizer.state_dict(),
             }
             torch.save(
-                    checkpoint_dict,
-                    os.path.join(checkpoint_path, f"epoch_1.pt"),
-                )
-            logging.info(f"Saved intermediate checkpoint at {num_samples} samples (target: {target_samples}): {checkpoint_path}")
-            
+                checkpoint_dict,
+                os.path.join(checkpoint_path, f"epoch_1.pt"),
+            )
+            logging.info(
+                f"Saved intermediate checkpoint at {num_samples} samples (target: {target_samples}): {checkpoint_path}")
+
             try:
                 from neps import save_pipeline_results
 
@@ -71,10 +72,11 @@ def _save_intermediate_checkpoints(model, args, num_samples, training_loss, comp
                 logging.info(f"Called save_pipeline_results for config_id={config_id}")
             except Exception as e:
                 logging.warning(f"Could not call save_pipeline_results: {e}")
-            
+
             saved_any = True
-    
+
     return saved_any
+
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
@@ -139,6 +141,9 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
     data_time_m = AverageMeter()
     end = time.time()
 
+    max_consecutive_nans = 5
+    consecutive_nan_steps = 0
+
     for i, batch in enumerate(dataloader):
         i_accum = i // args.accum_freq
         # one step represents processing of a batch per GPU
@@ -169,16 +174,36 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                 losses["loss"] = total_loss
 
                 if not torch.isfinite(total_loss):
-                    torch.save({
-                        "model": model.state_dict(),
-                        "optimizer": optimizer.state_dict(),
-                        "step": step,
-                        "epoch": epoch
-                    }, os.path.join(args.checkpoint_path, "nan_checkpoint.pt"))
-                    logging.error(f"NaN/Inf loss detected at epoch: {epoch}, step: {step}")
-                    raise RuntimeError("Stopping training due to NaN loss")
+                    consecutive_nan_steps += 1
+                    optimizer.zero_grad(set_to_none=True)
+                    logging.error(
+                        f"NaN/Inf loss at epoch={epoch}, step={step}, "
+                        f"consecutive={consecutive_nan_steps}/{max_consecutive_nans}"
+                    )
 
-            backward(total_loss, scaler)
+                    if consecutive_nan_steps >= max_consecutive_nans:
+                        if is_master(args):
+                            torch.save(
+                                {
+                                    "model": model.state_dict(),
+                                    "optimizer": optimizer.state_dict(),
+                                    "step": step,
+                                    "epoch": epoch,
+                                    "consecutive_nan_steps": consecutive_nan_steps,
+                                },
+                                os.path.join(args.checkpoint_path, f"nan_checkpoint_step{step}.pt"),
+                            )
+                        raise RuntimeError(
+                            f"Stopping training after {consecutive_nan_steps} consecutive NaN/Inf losses "
+                            f"(epoch={epoch}, step={step})"
+                        )
+
+                    end = time.time()
+                    continue
+                else:
+                    consecutive_nan_steps = 0
+
+                backward(total_loss, scaler)
         else:
             # First, cache the features without any gradient tracking.
             with torch.no_grad():
@@ -227,18 +252,46 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                     del inputs_no_accum
                     total_loss = sum(losses.values())
                     losses["loss"] = total_loss
+
                     if not torch.isfinite(total_loss):
-                        torch.save({
-                            "model": model.state_dict(),
-                            "optimizer": optimizer.state_dict(),
-                            "step": step,
-                            "epoch": epoch
-                        }, os.path.join(args.checkpoint_path, "nan_checkpoint.pt"))
+                        consecutive_nan_steps += 1
+                        logging.error(
+                            f"NaN/Inf loss at epoch={epoch}, step={step}, "
+                            f"consecutive={consecutive_nan_steps}/{max_consecutive_nans}"
+                        )
 
-                        logging.error(f"NaN/Inf loss detected at epoch: {epoch}, step: {step}")
-                        raise RuntimeError("Stopping training due to NaN loss")
+                        optimizer.zero_grad(set_to_none=True)
 
-                backward(total_loss, scaler)
+                        accum_images, accum_texts, accum_features = [], [], {}
+
+                        if consecutive_nan_steps >= max_consecutive_nans:
+                            if is_master(args):
+                                torch.save(
+                                    {
+                                        "model": model.state_dict(),
+                                        "optimizer": optimizer.state_dict(),
+                                        "step": step,
+                                        "epoch": epoch,
+                                        "consecutive_nan_steps": consecutive_nan_steps,
+                                    },
+                                    os.path.join(args.checkpoint_path, f"nan_checkpoint_step{step}.pt"),
+                                )
+                            raise RuntimeError(
+                                f"Stopping training after {consecutive_nan_steps} consecutive NaN/Inf losses "
+                                f"(epoch={epoch}, step={step})"
+                            )
+
+                        nan_in_accum_step = True
+                        break
+
+                    else:
+                        consecutive_nan_steps = 0
+
+                    backward(total_loss, scaler)
+
+            if nan_in_accum_step:
+                end = time.time()
+                continue
 
         # if scaler exists use it, otherwise only gradient clipping is performed
         if scaler is not None:
@@ -339,8 +392,10 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
             if epoch == 0 and hasattr(args, 'config_id_to_train_num_samples') and args.config_id_to_train_num_samples:
                 from clip_train.profiler import get_model_flops
                 from utils import precision_to_dtype
-                compute = get_model_flops(model, data["train"].dataloader.num_samples, dtype=precision_to_dtype(args.precision))
-                _save_intermediate_checkpoints(model, args, num_samples, losses_m["loss"].avg, compute, batch_size=args.batch_size, optimizer=optimizer)
+                compute = get_model_flops(model, data["train"].dataloader.num_samples,
+                                          dtype=precision_to_dtype(args.precision))
+                _save_intermediate_checkpoints(model, args, num_samples, losses_m["loss"].avg, compute,
+                                               batch_size=args.batch_size, optimizer=optimizer)
 
             # resetting batch / data time meters per log window
             batch_time_m.reset()
@@ -360,7 +415,6 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
 
         except AttributeError:
             pass
-
 
         with open(log_path, "a") as f:
             f.write(json.dumps(record) + "\n")
