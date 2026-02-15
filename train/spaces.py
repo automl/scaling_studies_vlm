@@ -24,7 +24,7 @@ class ScanPipeline(neps.PipelineSpace):
         upper=0.75,
     )
     beta1 = neps.Float(lower=0.9, upper=0.98)
-    beta2 = neps.Float(lower=0.98, upper=0.999)
+    beta2 = neps.Float(lower=0.95, upper=0.999)
     eps = neps.Float(lower=1e-8, upper=1e-6, log=True)
 
     # scale space
