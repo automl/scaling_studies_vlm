@@ -89,6 +89,13 @@ def fetch_scale_parameters(config_dir: Path) -> dict:
 
     return params
 
+def fetch_text_vision_width(model_cfg):
+    with open(model_cfg, "r") as f:
+        cfg = json.load(f)
+
+    vision_width = cfg["model_cfg"]["vision_cfg"]["width"]
+    text_width = cfg["model_cfg"]["text_cfg"]["width"]
+    return {"text_width": text_width, "vision_width": vision_width}
 
 def fetch_train_num_samples(train_scripts_dir: Path, config_id: int):
     script_path = train_scripts_dir / f"train_config{config_id}.sh"
@@ -183,6 +190,7 @@ if __name__ == "__main__":
     configs_dir = root_dir / "configs"
     out_csv = root_dir / "configs_summary.csv"
     train_scripts_dir = root_dir / "train_scripts"
+    model_cfgs_dir = root_dir / "model_cfg"
 
     full_df, _ = neps.status(str(root_dir))
     trial_ids = [int(i) for i in full_df.index.tolist()]
@@ -194,6 +202,7 @@ if __name__ == "__main__":
         checkpoints_dir = trial_dir / "checkpoints"
         downstream_eval_path = trial_dir / "eval"
         config_dir = configs_dir / f"config_{trial_id}"
+        model_cfg = model_cfgs_dir / f"config_{trial_id}/open_clip_config.json"
 
         if (checkpoints_dir / "epoch_1.pt").is_file():
             completed_trial_ids.append(trial_id)
@@ -204,6 +213,7 @@ if __name__ == "__main__":
             **fetch_downstream_eval_results(downstream_eval_path),
             **fetch_scale_parameters(config_dir),
             **fetch_total_compute_and_nparams(config_dir),
+            **fetch_text_vision_width(model_cfg),
             **fetch_training_gpu_used_gpu_training_time(checkpoints_dir),
             **fetch_train_num_samples(train_scripts_dir, int(trial_id)),
             # fetch gpu used during evaluations, time it took
