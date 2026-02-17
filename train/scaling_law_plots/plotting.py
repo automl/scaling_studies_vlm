@@ -398,10 +398,10 @@ def plot_pareto_front_from_csv(
             df2 = pd.read_csv("results/openclip_in1k_pareto.csv")
 
         if objective_col == "mscoco_image_recall@5_error_rate":
-            df2 = pd.read_csv("results/openclip_msococo_img_ret_pareto.csv")
+            df2 = pd.read_csv("results/openclip_mscoco_img_ret_pareto.csv")
 
         if objective_col == "mscoco_text_recall@5_error_rate":
-            df2 = pd.read_csv("results/openclip_msococo_img_ret_pareto.csv")
+            df2 = pd.read_csv("results/openclip_mscoco_img_ret_pareto.csv")
             df2["mscoco_text_recall@5_error_rate"] = 1 - df2["mscoco_text_recall@5_error_rate"]
 
         needed2 = {objective_col, flops_col, params_col}
@@ -491,21 +491,44 @@ def plot_flop_vs_data_from_pareto_frontier(
     mask = np.isfinite(x) & np.isfinite(y) & (x > 0) & (y > 0)
     x, y = x[mask], y[mask]
 
-    if x.size == 0:
+    if x.size < 2:
         return None
 
     order = np.argsort(x)
     x, y = x[order], y[order]
 
+    logx = np.log(x)
+    logy = np.log(y)
+
+    slope = intercept = None
+    y_fit = None
+    try:
+        coeffs = np.polyfit(logx, logy, 1)
+        slope, intercept = float(coeffs[0]), float(coeffs[1])
+        y_fit = np.exp(intercept) * (x ** slope)
+    except Exception as e:
+        print(f"Could not fit power law: {e}")
+
     fig, ax = plt.subplots(figsize=(6, 4))
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.scatter(x, y, marker="o", alpha=0.9)
+
+    ax.scatter(x, y, marker="o", alpha=0.9, label="Pareto points")
+
+    if y_fit is not None and slope is not None and intercept is not None:
+        ax.plot(x, y_fit, "--", alpha=0.9, linewidth=2.0,
+                label=f"Fit: y = {np.exp(intercept):.2e} · x^{slope:.3f}")
+
+        eq = f"log(y) = {slope:.3f}·log(x) + {intercept:.3f}   →   y = {np.exp(intercept):.2e}·x^{slope:.3f}"
+        fig.text(0.5, 0.02, eq, ha="center", fontsize=8)
+
     ax.set_xlabel("GFLOPs")
     ax.set_ylabel("Number of datapoints")
     ax.set_title("Pareto: GFLOPs vs Dataset Size")
-    ax.grid(True, linestyle="--", alpha=0.4)
-    plt.tight_layout()
+    ax.grid(True, linestyle="--", alpha=0.4, which="both")
+    ax.legend(loc="best")
+
+    plt.tight_layout(rect=[0, 0.05, 1, 1])
     return fig
 
 
@@ -530,23 +553,47 @@ def plot_flops_vs_params_from_pareto(
     mask = np.isfinite(x) & np.isfinite(y) & (x > 0) & (y > 0)
     x, y = x[mask], y[mask]
 
-    if x.size == 0:
+    if x.size < 2:
         return None
 
     order = np.argsort(x)
     x, y = x[order], y[order]
 
+    logx = np.log(x)
+    logy = np.log(y)
+
+    slope = intercept = None
+    y_fit = None
+    try:
+        coeffs = np.polyfit(logx, logy, 1)
+        slope, intercept = float(coeffs[0]), float(coeffs[1])
+        y_fit = np.exp(intercept) * (x ** slope)
+    except Exception as e:
+        print(f"Could not fit power law: {e}")
+
     fig, ax = plt.subplots(figsize=(6, 4))
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.scatter(x, y, alpha=0.9)
+
+    ax.scatter(x, y, alpha=0.9, label="Pareto points")
+
+    if y_fit is not None:
+        ax.plot(
+            x, y_fit,
+            "--", linewidth=2,
+            label=f"Fit: y = {np.exp(intercept):.2e} · x^{slope:.3f}"
+        )
+
+        eq = f"log(y) = {slope:.3f}·log(x) + {intercept:.3f}   →   y = {np.exp(intercept):.2e}·x^{slope:.3f}"
+        fig.text(0.5, 0.02, eq, ha="center", fontsize=8)
 
     ax.set_xlabel("Compute (FLOPs)")
     ax.set_ylabel("Parameters")
     ax.set_title("Pareto: Compute vs Model Size")
-    ax.grid(True, linestyle="--", alpha=0.4)
+    ax.grid(True, linestyle="--", alpha=0.4, which="both")
+    ax.legend(loc="best")
 
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0.05, 1, 1])
     return fig
 
 
