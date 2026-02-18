@@ -5,9 +5,10 @@ from typing import Union
 import neps
 from neps.space import Parameter
 
-from chinchilla import chinchilla_optimizer, ChichillaPipeline, chinchilla_rs_optimizer, \
-    chinchilla_optimizer_fine_grained_dp, \
-    chinchilla_optimizer_fine_grained_dp, chinchilla_optimizer_aproach1
+from optimizers import chinchilla_optimizer, ChichillaPipeline, \
+    chinchilla_rs_optimizer, chinchilla_optimizer_fine_grained_dp, \
+    bo_guided_scaling_optimizer, chinchilla_optimizer_fine_grained_dp, \
+    chinchilla_optimizer_aproach1
 from spaces import (__SCALE_SPACE_CONSTANT_ViT_S_32,
                     ScanPipeline)
 
@@ -31,6 +32,7 @@ class NePSConfig:
     optimizer: Union[Optimizer, callable] = None
     pipeline_space: dict[str, Parameter] = None
     evaluations_to_spend: int | None = None
+    cost_to_spend: int | None = None
 
     def __post_init__(self):
         if isinstance(self.optimizer, Optimizer):
@@ -42,8 +44,8 @@ class NePSConfig:
             "optimizer": self.optimizer,
             "evaluations_to_spend": self.evaluations_to_spend,
             "pipeline_space": self.pipeline_space,
+            "cost_to_spend": self.cost_to_spend,
         }
-
         return args
 
 
@@ -60,7 +62,7 @@ HPO_CONFIGS = {
     ),
     "experimental": NePSConfig(
         optimizer=chinchilla_rs_optimizer,
-        evaluations_to_spend=1000,
+        evaluations_to_spend=20,
         pipeline_space=ScanPipeline.with_overrides()
     ),
     "random_ViT-S-32_fixed_lr_307e4_samples": NePSConfig(optimizer=Optimizer.Random,
@@ -169,6 +171,55 @@ HPO_CONFIGS = {
             lr=2e-3,
             warmup_fraction=0.5,
             wd=1.0e-6,
+            train_num_samples=neps.Float(
+                lower=1,
+                upper=80.0,
+            ),
+            vision_width=neps.Integer(
+                lower=1, upper=4,
+            ),
+            text_width=neps.Integer(
+                lower=1, upper=4,
+            )
+        ),
+    ),
+    "constrained_bo": NePSConfig(
+        optimizer=bo_guided_scaling_optimizer(max_evaluation_flops=209161783),
+        cost_to_spend=195017516,  # GFLOPS
+        pipeline_space=ScanPipeline.with_overrides(
+            train_num_samples=neps.Float(
+                lower=1,
+                upper=80.0,
+            ),
+            vision_width=neps.Integer(
+                lower=1, upper=4,
+            ),
+            text_width=neps.Integer(
+                lower=1, upper=4,
+            )
+        ),
+    ),
+    "constrained_bo_cost_gp": NePSConfig(
+        optimizer=bo_guided_scaling_optimizer(max_evaluation_flops=209161783, cost_aware="log"),
+        cost_to_spend=195017516,  # GFLOPS
+        pipeline_space=ScanPipeline.with_overrides(
+            train_num_samples=neps.Float(
+                lower=1,
+                upper=80.0,
+            ),
+            vision_width=neps.Integer(
+                lower=1, upper=4,
+            ),
+            text_width=neps.Integer(
+                lower=1, upper=4,
+            )
+        ),
+    ),
+    "constrained_rs": NePSConfig(
+        optimizer=chinchilla_rs_optimizer,
+        cost_to_spend=209161783,  # GFLOPS
+        pipeline_space=
+        ScanPipeline.with_overrides(
             train_num_samples=neps.Float(
                 lower=1,
                 upper=80.0,
