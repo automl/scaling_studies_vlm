@@ -38,7 +38,12 @@ class ZeroShotDataset(EvalDataset):
 
 
 class RetrievalDataset(EvalDataset):
-    MS_COCO = DatasetSpec("mscoco_captions")
+    MS_COCO = DatasetSpec(
+        "mscoco_captions",
+        root={
+            "meta": Path("eval_data"),
+            "juwels": Path("/p/data1/datasets/scan/openclip/train/eval_data"),
+        }, )
 
 
 class ClipBenchmarkEvaluator:
