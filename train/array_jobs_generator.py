@@ -206,7 +206,7 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
         save_to = Path(train_scripts_dir) / f"{slurmManager.job_name}.sh"
         config_txt = str(config_txt).replace("\\", "/")
 
-        if gpus == 1 and nodes == 1:
+        if gpus == 1 and nodes == 1 and cluster == "juwels":
             num_lines = sum(1 for _ in Path(config_txt).open())
             pack = 4
             packed_array_size = math.ceil(num_lines / pack)
@@ -216,7 +216,7 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
                                                                 cluster=cluster, wandb_project_name=wandb_project_name,
                                                                 save_to=save_to, model_root=root_dir)
 
-        elif gpus == 2 and nodes == 1:
+        elif gpus == 2 and nodes == 1 and cluster == "juwels":
             num_lines = sum(1 for _ in Path(config_txt).open())
             pack = 2
             packed_array_size = math.ceil(num_lines / pack)
