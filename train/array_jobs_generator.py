@@ -145,6 +145,7 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
     beta1_re = re.compile(r"--beta1\s+([0-9eE\.\+\-]+)")
     beta2_re = re.compile(r"--beta2\s+([0-9eE\.\+\-]+)")
     eps_re = re.compile(r"--eps\s+([0-9eE\.\+\-]+)")
+    epochs_re = re.compile(r"--epochs\s+(\d+)")
 
     config_info = {}
 
@@ -157,6 +158,7 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
         nodes = gpus = part = None
         samples = bs = None
         lr = wd = warmup = beta2 = beta1 = eps = None
+        epochs = None
 
         for line in sh.read_text().splitlines():
             if nodes is None and (m2 := nodes_re.match(line)):
@@ -182,6 +184,8 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
                 beta2 = float(m2.group(1))
             if eps is None and (m2 := eps_re.search(line)):
                 eps = float(m2.group(1))
+            if epochs is None and (m2 := epochs_re.search(line)):
+                epochs = int(m2.group(1))
 
         config_info[config_id] = {
             "nodes": nodes,
@@ -190,6 +194,7 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
             "train_num_samples": samples,
             "batch_size": bs,
             "lr": lr,
+            "epochs": epochs,
             "wd": wd,
             "warmup_fraction": warmup,
             "beta1": beta1,
@@ -265,7 +270,7 @@ def write_group_configs(
 
         sorted_ids = sorted(
             config_ids,
-            key=lambda tid: config_info[tid]["train_num_samples"]
+            key=lambda tid: config_info[tid]["train_num_samples"] * config_info[tid]["epochs"]
         )
 
         with p.open("w", encoding="utf-8") as f:
@@ -279,7 +284,8 @@ def write_group_configs(
                     f"{info['warmup_fraction']} "
                     f"{info['beta1']} "
                     f"{info['beta2']} "
-                    f"{info['eps']}\n"
+                    f"{info['eps']} "
+                    f"{info['epochs']}\n"
                 )
         out_paths[(part, bs, gpus, nodes)] = p
 

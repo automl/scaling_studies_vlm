@@ -5,7 +5,7 @@
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks-per-node=1
-#SBATCH --partition testdlc2_gpu-l40s
+#SBATCH --partition alldlc_gpu-rtx3080
 #SBATCH --job-name=individual_scripts_builder
 
 #SBATCH --output configs_iterator_logs/%x-%A.out   # STDOUT  %x and %A will be replaced by the job name and job id, respectively. short: -o logs/%x-%A-job_name.out
@@ -38,7 +38,7 @@ python -u '"${COMMAND_DIR}"'/configs_iterator.py \
   --num_workers $SLURM_NTASKS \
   --workspace_dir '"${WORKSPACE_DIR}"' \
   --cluster meta \
-  --partition mldlc2_gpu-l40s \
+  --partition alldlc_gpu-rtx3080 \
   --wandb_project_name scan_space_final_biased_alpha_0_5 \
   --command_dir '"${COMMAND_DIR}"' \
   --venv_path '"${VENV_DIR}"' \

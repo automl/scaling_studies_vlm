@@ -576,8 +576,8 @@ echo "Job execution complete."
 #SBATCH --error array_job_logs/%x-%A_%a.err
 
 {self.load_env()}
-{self._nccl_env()}
 
+{self._nccl_env()}
 echo "Started at $(date)";
 start=`date +%s`
 
@@ -595,7 +595,14 @@ CONFIG_TXT="{config_txt}"
 LINE=$(sed -n "${{SLURM_ARRAY_TASK_ID}}p" "${{CONFIG_TXT}}")
 [ -z "$LINE" ] && echo "No line for task $SLURM_ARRAY_TASK_ID" && exit 1
 
-read -r config_ID TRAIN_NUM_SAMPLES LR WD WARMUP BETA1 BETA2 EPS <<< "$LINE"
+read -r config_ID TRAIN_NUM_SAMPLES LR WD WARMUP BETA1 BETA2 EPS EPOCHS <<< "$LINE"
+
+if ! [[ "$EPOCHS" =~ ^[0-9]+$ ]]; then
+    echo "Error: EPOCHS is not an integer: $EPOCHS"
+    exit 1
+fi
+
+EPOCHS=$((EPOCHS))
 
 TRAIN_NUM_SAMPLES=${{TRAIN_NUM_SAMPLES%.*}}
 
@@ -609,7 +616,7 @@ srun --cpu-bind=v --accel-bind=gn python -u -m clip_train.main \\
     --wandb-project-name '{wandb_project_name}' \\
     --model "local-dir:{model_root}/model_cfg/config_${{config_ID}}" \\
     --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \\
-    --epochs 1 \\
+    --epochs ${{EPOCHS}} \\
     --name "train_config${{config_ID}}" \\
     --logs "{logs_root}" \\
     --seed {seed} \\
