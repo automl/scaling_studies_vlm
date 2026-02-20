@@ -226,6 +226,7 @@ class SlurmManager:
 #SBATCH --error logs/%x-%A.err
 
 {self.load_env()}
+{self._nccl_env()}
 
 echo "Started at $(date)";
 
@@ -575,6 +576,7 @@ echo "Job execution complete."
 #SBATCH --error array_job_logs/%x-%A_%a.err
 
 {self.load_env()}
+{self._nccl_env()}
 
 echo "Started at $(date)";
 start=`date +%s`
@@ -854,3 +856,15 @@ TRAIN_DIR="{self.workspace_dir}/train"
 export PYTHONPATH="${{COMMAND_DIR}}:${{PYTHONPATH}}"
 cd "${{TRAIN_DIR}}"
 """
+
+    def _nccl_env(self) -> str:
+
+        if self.cluster == "meta":
+            return """\
+export NCCL_IB_DISABLE=1
+export NCCL_P2P_DISABLE=1
+export NCCL_SOCKET_IFNAME=^lo,docker,virbr
+export NCCL_DEBUG=WARN
+"""
+
+        return ""

@@ -236,7 +236,12 @@ HPO_CONFIGS = {
                                                      evaluations_to_spend=100,
                                                      pipeline_space=
                                                      ScanPipeline.with_overrides()
-                                                     )
+                                                     ),
+    "scan_space_final_biased_alpha_0_5": NePSConfig(lambda p: neps.algorithms.random_search(p),
+                                                    evaluations_to_spend=100,
+                                                    pipeline_space=
+                                                    ScanPipeline.with_overrides()
+                                                    )
 }
 
 

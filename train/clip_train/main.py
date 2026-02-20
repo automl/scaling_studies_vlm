@@ -527,28 +527,29 @@ def main(args):
                         tb_writer=writer)
 
         completed_epoch = epoch + 1
-        steps_per_epoch = data["train"].dataloader.num_batches
-        global_steps_completed = steps_per_epoch * completed_epoch
+        if is_master(args):
+            steps_per_epoch = data["train"].dataloader.num_batches
+            global_steps_completed = steps_per_epoch * completed_epoch
 
-        in_warmup = global_steps_completed <= args.warmup
-        warmup_progress = min(global_steps_completed / args.warmup, 1.0) if args.warmup > 0 else 1.0
-        training_progress = global_steps_completed / total_steps
+            in_warmup = global_steps_completed <= args.warmup
+            warmup_progress = min(global_steps_completed / args.warmup, 1.0) if args.warmup > 0 else 1.0
+            training_progress = global_steps_completed / total_steps
 
-        epoch_steps_info = {
-            "epoch": completed_epoch,
-            "global_steps_completed": global_steps_completed,
-            "total_global_steps": total_steps,
-            "in_warmup": in_warmup,
-            "warmup_steps": args.warmup,
-            "warmup_progress": warmup_progress,
-            "training_progress": training_progress
-        }
+            epoch_steps_info = {
+                "epoch": completed_epoch,
+                "global_steps_completed": global_steps_completed,
+                "total_global_steps": total_steps,
+                "in_warmup": in_warmup,
+                "warmup_steps": args.warmup,
+                "warmup_progress": warmup_progress,
+                "training_progress": training_progress
+            }
 
-        path = os.path.join(args.checkpoint_path, "epoch_steps_info.jsonl")
-        os.makedirs(args.checkpoint_path, exist_ok=True)
+            path = os.path.join(args.checkpoint_path, "epoch_steps_info.jsonl")
+            os.makedirs(args.checkpoint_path, exist_ok=True)
 
-        with open(path, "a") as f:
-            f.write(json.dumps(epoch_steps_info) + "\n")
+            with open(path, "a") as f:
+                f.write(json.dumps(epoch_steps_info) + "\n")
 
         epoch_end = time.time()
         epoch_duration_seconds = epoch_end - epoch_start
@@ -666,6 +667,7 @@ def main(args):
         else:
             image_mparams = round(count_params(model.visual) / 1e6, 2)
         text_mparams = round(total_mparams - image_mparams, 2)
+        text_mparams_non_emb = round(count_non_emb_text_params(model) / 1e6, 2)
 
         out_path = Path(args.checkpoint_path) / "model_params.txt"
         out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -674,6 +676,7 @@ def main(args):
             f.write(f"total_mparams: {total_mparams}\n")
             f.write(f"image_mparams: {image_mparams}\n")
             f.write(f"text_mparams: {text_mparams}\n")
+            f.write(f"text_mparams_non_emb: {text_mparams_non_emb}\n")
 
         result = {
             "objective_to_minimize": training_loss,
@@ -759,6 +762,16 @@ def evaluate_benchmarks(model, root, seed):
 
 def count_params(model):
     return sum(m.numel() for m in model.parameters())
+
+
+def count_non_emb_text_params(model) -> int:
+    m = model.module if hasattr(model, "module") else model
+
+    transformer = sum(p.numel() for p in m.transformer.parameters())
+    ln_final = sum(p.numel() for p in m.ln_final.parameters()) if hasattr(m, "ln_final") else 0
+    text_proj = m.text_projection.numel() if getattr(m, "text_projection", None) is not None else 0
+
+    return transformer + ln_final + text_proj
 
 
 if __name__ == "__main__":

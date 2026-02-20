@@ -1,3 +1,4 @@
+import datetime
 import os
 import warnings
 from typing import Optional
@@ -167,6 +168,7 @@ def init_distributed_device_so(
                 init_method=dist_url,
                 world_size=world_size,
                 rank=global_rank,
+                timeout=datetime.timedelta(minutes=1),
             )
         else:
             # DDP via torchrun, torch.distributed.launch
@@ -174,6 +176,7 @@ def init_distributed_device_so(
             torch.distributed.init_process_group(
                 backend=dist_backend,
                 init_method=dist_url,
+                timeout=datetime.timedelta(minutes=1),
             )
             world_size = torch.distributed.get_world_size()
             global_rank = torch.distributed.get_rank()
