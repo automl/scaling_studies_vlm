@@ -255,7 +255,7 @@ def generate_train_script(model_cfg, local_bs, config_id, logs_dir, train_script
     config = TrainConfig(
         model=model_cfg,
         seed=seed,
-        epochs=1,
+        epochs=1, # will be overwritten
         name=slurmManager.job_name,
         batch_size=local_bs,
         sync_neps=False,

@@ -1,4 +1,5 @@
-from dataclasses import dataclass, field
+import math
+from dataclasses import dataclass
 from enum import Enum
 from typing import Union
 
@@ -6,8 +7,7 @@ import neps
 from neps.space import Parameter
 
 from optimizers import chinchilla_optimizer, ChichillaPipeline, \
-    chinchilla_rs_optimizer, chinchilla_optimizer_fine_grained_dp, \
-    bo_guided_scaling_optimizer, chinchilla_optimizer_fine_grained_dp, \
+    chinchilla_rs_optimizer, bo_guided_scaling_optimizer, chinchilla_optimizer_fine_grained_dp, \
     chinchilla_optimizer_aproach1
 from spaces import (__SCALE_SPACE_CONSTANT_ViT_S_32,
                     ScanPipeline)
@@ -255,7 +255,7 @@ class TrainConfig:
     """
 
     model: str
-    train_num_samples: str
+    train_num_samples: int
     epochs: int
     name: str
     logs: str
@@ -273,9 +273,18 @@ class TrainConfig:
     beta1: float = 0.9
     beta2: float = 0.98
     eps: float = 1e-6
+
     config_id_to_train_num_samples: dict[int, int] = None
 
     def __post_init__(self):
+        epoch_max_samples = 6_000_000
+        min_epochs = 2
+
+        total = self.train_num_samples
+        self.epochs = max(min_epochs, math.ceil(total / epoch_max_samples))
+        epoch_num_samples = math.ceil(total / self.epochs)
+        self.train_num_samples = epoch_num_samples
+
         if self.logs and "train/" in self.logs:
             self.logs = self.logs.replace("train/", "")
 

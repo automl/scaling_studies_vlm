@@ -527,6 +527,28 @@ def main(args):
                         tb_writer=writer)
 
         completed_epoch = epoch + 1
+        steps_per_epoch = data["train"].dataloader.num_batches
+        global_steps_completed = steps_per_epoch * completed_epoch
+
+        in_warmup = global_steps_completed <= args.warmup
+        warmup_progress = min(global_steps_completed / args.warmup, 1.0) if args.warmup > 0 else 1.0
+        training_progress = global_steps_completed / total_steps
+
+        epoch_steps_info = {
+            "epoch": completed_epoch,
+            "global_steps_completed": global_steps_completed,
+            "total_global_steps": total_steps,
+            "in_warmup": in_warmup,
+            "warmup_steps": args.warmup,
+            "warmup_progress": warmup_progress,
+            "training_progress": training_progress
+        }
+
+        path = os.path.join(args.checkpoint_path, "epoch_steps_info.jsonl")
+        os.makedirs(args.checkpoint_path, exist_ok=True)
+
+        with open(path, "a") as f:
+            f.write(json.dumps(epoch_steps_info) + "\n")
 
         epoch_end = time.time()
         epoch_duration_seconds = epoch_end - epoch_start
@@ -613,7 +635,23 @@ def main(args):
         training_loss = read_last_json_line(args.checkpoint_path + "/train_loss.jsonl")["train_loss"]
 
         # Calculate model compute
-        compute = get_model_flops(model, data["train"].dataloader.num_samples, dtype=precision_to_dtype(args.precision))
+        compute = get_model_flops(model, data["train"].dataloader.num_samples * args.epochs,
+                                  dtype=precision_to_dtype(args.precision))
+        compute_per_epoch = compute / args.epochs
+        compute_per_sample = compute_per_epoch / data["train"].dataloader.num_samples
+
+        compute_info = {
+            "total_samples": data["train"].dataloader.num_samples * args.epochs,
+            "epochs": args.epochs,
+            "total_compute": compute,
+            "compute_per_epoch": compute_per_epoch,
+            "compute_per_sample": compute_per_sample,
+        }
+
+        compute_path = os.path.join(args.checkpoint_path, "compute_info.json")
+
+        with open(compute_path, "w") as f:
+            json.dump(compute_info, f, indent=2)
 
         # Read training loss over datapoints if available
         training_loss_over_datapoints = None
@@ -655,6 +693,8 @@ def main(args):
                 "n_param": total_mparams,
                 "flops": compute,
                 "n_data": data["train"].dataloader.num_samples * args.epochs,
+                "compute_per_epoch": compute_per_epoch,
+                "compute_per_sample": compute_per_sample,
             },
         }
 

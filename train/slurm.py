@@ -18,14 +18,14 @@ class DatasetShards(str, Enum):
 
 CLUSTER_DATASET_SHARDS: dict[str, dict[DatasetShards, str]] = {
     "meta": {
-        DatasetShards.LAION400M_TRAIN: "../pre_training_dataset/laion400m/train_data/{00000000..00012136}.tar",
-        DatasetShards.LAION400M_VAL: "../pre_training_dataset/laion400m/validation_data/{00000000..00000015}.tar",
-        DatasetShards.LAION400M_TEST: "../pre_training_dataset/laion400m/test_data/{00000000..00000015}.tar",
+        DatasetShards.LAION400M_TRAIN: "/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/pre_training_dataset/laion400m/train_data/{00000000..00012136}.tar",
+        DatasetShards.LAION400M_VAL: "/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/pre_training_dataset/laion400m/validation_data/{00000000..00000015}.tar",
+        DatasetShards.LAION400M_TEST: "/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/pre_training_dataset/laion400m/test_data/{00000000..00000015}.tar",
     },
     "juwels": {
-        DatasetShards.LAION400M_TRAIN: "/p/data1/mmlaion/relaion_subsets/relaion_subset_307M/{00000000..00078295}.tar",
-        DatasetShards.LAION400M_VAL: "/p/data1/mmlaion/relaion_subsets/relaion_subset_307M/{00078296..00078321}.tar",
-        DatasetShards.LAION400M_TEST: "/p/data1/mmlaion/relaion_subsets/relaion_subset_307M/{00078322..00078347}.tar",
+        DatasetShards.LAION400M_TRAIN: "/p/data1/mmlaion/relaion_400m_subset/67m_samples/train_data/{00000000..00012136}.tar",
+        DatasetShards.LAION400M_VAL: "/p/data1/mmlaion/relaion_400m_subset/67m_samples/validation_data/{00000000..00000015}.tar",
+        DatasetShards.LAION400M_TEST: "/p/data1/mmlaion/relaion_400m_subset/67m_samples/test_data/{00000000..00000015}.tar",
     },
 }
 
