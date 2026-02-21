@@ -1,15 +1,13 @@
-import multiprocessing as mp
+import logging
 import sys
 from time import time
 
 import neps
 
-from clip_train.main import random_seed
-
 import params
+from clip_train.main import random_seed
 from config import HPO_CONFIGS
 from optimizers import set_workspace_dir
-import logging
 
 
 def main(args, root_dir):
@@ -29,25 +27,17 @@ def worker_proc(rank, args, root_dir):
 
 
 if __name__ == "__main__":
-    # Use spawn start method for CUDA compatibility with multiprocessing
     logging.basicConfig(level=logging.DEBUG)
-    mp.set_start_method('spawn', force=True)
+
     args = params.parse_args(sys.argv[1:])
     random_seed(args.seed, 0)
-    
+
     root_dir = f"{args.workspace_dir}/train/results/optimizer={args.hpo_optimizer}/seed={args.seed}"
 
     print("Starting HPO...")
     start = time()
 
-    processes = []
-    for rank in range(args.num_neps_workers):
-        p = mp.Process(target=worker_proc, args=(rank, args, root_dir))
-        p.start()
-        processes.append(p)
-
-    for p in processes:
-        p.join()
+    main(args, root_dir)
 
     end = time()
     elapsed = end - start
