@@ -686,8 +686,15 @@ run_one () {{
   local step_idx="$1"
   local line="$2"
 
-  read -r config_ID TRAIN_NUM_SAMPLES LR WD WARMUP BETA1 BETA2 EPS <<< "${{line}}"
+  read -r config_ID TRAIN_NUM_SAMPLES LR WD WARMUP BETA1 BETA2 EPS EPOCHS <<< "${{line}}"
   TRAIN_NUM_SAMPLES=${{TRAIN_NUM_SAMPLES%.*}}
+  
+  if ! [[ "$EPOCHS" =~ ^[0-9]+$ ]]; then
+        echo "Error: EPOCHS is not an integer: $EPOCHS"
+        exit 1
+  fi
+    
+  EPOCHS=$((EPOCHS))
 
   echo "About to start srun for step ${{step_idx}} (config_ID=${{config_ID}}) at $(date)"
 
@@ -704,7 +711,7 @@ run_one () {{
         --wandb-project-name '{wandb_project_name}' \\
         --model "local-dir:{model_root}/model_cfg/config_${{config_ID}}" \\
         --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \\
-        --epochs 1 \\
+        --epochs ${{EPOCHS}} \\
         --name "train_config${{config_ID}}" \\
         --logs "{logs_root}" \\
         --seed {seed} \\
@@ -793,8 +800,14 @@ run_one () {{
   BASE_PORT=28802
   PORT=$((BASE_PORT + SLURM_ARRAY_TASK_ID * 10 + step_idx))
   
-  read -r config_ID TRAIN_NUM_SAMPLES LR WD WARMUP BETA1 BETA2 EPS <<< "${{line}}"
+  read -r config_ID TRAIN_NUM_SAMPLES LR WD WARMUP BETA1 BETA2 EPS EPOCHS <<< "${{line}}"
   TRAIN_NUM_SAMPLES=${{TRAIN_NUM_SAMPLES%.*}}
+  if ! [[ "$EPOCHS" =~ ^[0-9]+$ ]]; then
+        echo "Error: EPOCHS is not an integer: $EPOCHS"
+        exit 1
+  fi
+    
+  EPOCHS=$((EPOCHS))
 
   echo "About to start srun for step ${{step_idx}} (config_ID=${{config_ID}}) at $(date)"
 
@@ -811,7 +824,7 @@ run_one () {{
         --wandb-project-name '{wandb_project_name}' \\
         --model "local-dir:{model_root}/model_cfg/config_${{config_ID}}" \\
         --train-num-samples "${{TRAIN_NUM_SAMPLES}}" \\
-        --epochs 1 \\
+        --epochs ${{EPOCHS}} \\
         --name "train_config${{config_ID}}" \\
         --logs "{logs_root}" \\
         --seed {seed} \\
