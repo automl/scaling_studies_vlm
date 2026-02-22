@@ -81,7 +81,7 @@ def largest_power_of_two_leq(x: int) -> int:
 def find_max_local_bs(
         model, loss_fn, optimizer, scheduler, device, precision,
         image_size: int = 224, text_len: int = 77,
-        max_bs: int = 4096,
+        max_bs: int = 2048,
 ):
     assert torch.cuda.is_available()
 
