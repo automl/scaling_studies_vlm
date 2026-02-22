@@ -31,7 +31,7 @@ class ZeroShotDataset(EvalDataset):
     IMAGENET = DatasetSpec(
         "imagenet1k",
         root={
-            "meta": Path("eval_data"),
+            "meta": Path("/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/train/eval_data"),
             "juwels": Path("/p/data1/datasets/Imagenet2012_1k_tar"),
         },
     )
@@ -41,7 +41,7 @@ class RetrievalDataset(EvalDataset):
     MS_COCO = DatasetSpec(
         "mscoco_captions",
         root={
-            "meta": Path("eval_data"),
+            "meta": Path("/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/train/eval_data"),
             "juwels": Path("/p/data1/datasets/scan/openclip/train/eval_data"),
         }, )
 
