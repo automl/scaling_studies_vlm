@@ -123,6 +123,7 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
     device = torch.device(args.device)
     autocast = get_autocast(args.precision, device_type=device.type)
     input_dtype = get_input_dtype(args.precision)
+    early_stop_info = None
 
     model.train()
     if args.distill:
@@ -191,12 +192,29 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                                     "epoch": epoch,
                                     "consecutive_nan_steps": consecutive_nan_steps,
                                 },
-                                os.path.join(args.checkpoint_path, f"nan_checkpoint_step{step}.pt"),
+                                os.path.join(args.checkpoint_path, f"nan_checkpoint_step{step - max_consecutive_nans}.pt"),
                             )
-                        raise RuntimeError(
-                            f"Stopping training after {consecutive_nan_steps} consecutive NaN/Inf losses "
-                            f"(epoch={epoch}, step={step})"
-                        )
+                            logging.error(
+                                f"Stopping training after {consecutive_nan_steps} consecutive NaN/Inf losses "
+                                f"(epoch={epoch}, step={step - consecutive_nan_steps})"
+                            )
+
+                            early_stopping = os.path.join(args.checkpoint_path, "early_stop_info.json")
+                            batch_count = i_accum + 1
+                            batch_size = len(images)
+                            samples_per_epoch = dataloader.num_samples
+
+                            num_samples = batch_count * batch_size * args.accum_freq * args.world_size
+                            early_stop_info = {
+                                "epoch": epoch,
+                                "step": step - 5,
+                                "samples_processed_current_epoch": num_samples - batch_size * args.world_size * consecutive_nan_steps,
+                                "target_samples": samples_per_epoch ,
+                            }
+
+                            with open(early_stopping, "w", encoding="utf-8") as f:
+                                json.dump(early_stop_info, f, indent=2)
+                        break
 
                     end = time.time()
                     continue
@@ -274,7 +292,7 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                                         "epoch": epoch,
                                         "consecutive_nan_steps": consecutive_nan_steps,
                                     },
-                                    os.path.join(args.checkpoint_path, f"nan_checkpoint_step{step}.pt"),
+                                    os.path.join(args.checkpoint_path, f"nan_checkpoint_step{step - consecutive_nan_steps}.pt"),
                                 )
                             raise RuntimeError(
                                 f"Stopping training after {consecutive_nan_steps} consecutive NaN/Inf losses "
@@ -376,7 +394,6 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                 log_data['step'] = step  # for backwards compatibility
                 wandb.log(log_data, step=step)
 
-            import json
             loss_over_data_path = os.path.join(args.checkpoint_path, "train_loss_over_data_seen.jsonl")
             os.makedirs(os.path.dirname(loss_over_data_path), exist_ok=True)
             with open(loss_over_data_path, "a", encoding="utf-8") as f:
@@ -402,7 +419,8 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
             data_time_m.reset()
     # end for
     if is_master(args):
-        train_loss = losses_m["loss"].avg
+        train_loss_meter = losses_m.get("loss", None)
+        train_loss = train_loss_meter.avg if train_loss_meter is not None else float("inf")
         log_path = Path(args.checkpoint_path) / "train_loss.jsonl"
 
         record = {
@@ -418,6 +436,8 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
 
         with open(log_path, "a") as f:
             f.write(json.dumps(record) + "\n")
+
+    return early_stop_info
 
 
 def _run_split_eval(metrics, split_name, data, model, device, autocast, input_dtype, epoch, args):

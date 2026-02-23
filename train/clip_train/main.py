@@ -517,14 +517,21 @@ def main(args):
     loss = create_loss(args)
 
     start_time = time.time()
+    early_stop_info = None
 
     for epoch in range(start_epoch, args.epochs):
         if is_master(args):
             logging.info(f'Start epoch {epoch}')
 
         epoch_start = time.time()
-        train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args,
-                        tb_writer=writer)
+        early_stop_info = train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args,
+                                          tb_writer=writer)
+
+        stop_training = early_stop_info is not None
+        if stop_training:
+            if is_master(args):
+                logging.info(f"Early stopping triggered: {early_stop_info}")
+            break
 
         completed_epoch = epoch + 1
         if is_master(args):
@@ -633,21 +640,41 @@ def main(args):
         if args.downstream_eval:
             downstream_evaluation_results = evaluate_benchmarks(args.model, log_base_path, args.seed)
 
-        training_loss = read_last_json_line(args.checkpoint_path + "/train_loss.jsonl")["train_loss"]
+        training_loss = read_last_json_line(args.checkpoint_path + "/train_loss.jsonl")[
+            "train_loss"] if early_stop_info is None else 1e6
 
-        # Calculate model compute
-        compute = get_model_flops(model, data["train"].dataloader.num_samples * args.epochs,
-                                  dtype=precision_to_dtype(args.precision))
-        compute_per_epoch = compute / args.epochs
-        compute_per_sample = compute_per_epoch / data["train"].dataloader.num_samples
+        samples_per_epoch = data["train"].dataloader.num_samples
+
+        compute_per_epoch = get_model_flops(model, samples_per_epoch, dtype=precision_to_dtype(args.precision))
+        compute_per_sample = compute_per_epoch / samples_per_epoch
+
+        if early_stop_info is None:
+            total_samples = samples_per_epoch * args.epochs
+            failed_epoch = None
+            samples_in_failed_epoch = None
+        else:
+            failed_epoch = int(early_stop_info["epoch"]) # 0 based, logs are 1 based
+            samples_in_failed_epoch = int(early_stop_info["samples_processed_current_epoch"])
+            total_samples = failed_epoch * samples_per_epoch + samples_in_failed_epoch
+
+        compute = compute_per_sample * total_samples
 
         compute_info = {
-            "total_samples": data["train"].dataloader.num_samples * args.epochs,
+            "total_samples": total_samples,
             "epochs": args.epochs,
             "total_compute": compute,
             "compute_per_epoch": compute_per_epoch,
             "compute_per_sample": compute_per_sample,
         }
+
+        if early_stop_info is not None:
+            compute_info.update(
+                {
+                    "failed_epoch": failed_epoch,
+                    "samples_processed_current_epoch": samples_in_failed_epoch,
+                    "samples_per_epoch": samples_per_epoch,
+                }
+            )
 
         compute_path = os.path.join(args.checkpoint_path, "compute_info.json")
 
