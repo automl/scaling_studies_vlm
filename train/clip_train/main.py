@@ -722,7 +722,7 @@ def main(args):
                 "text_mparams": text_mparams,
                 "n_param": total_mparams,
                 "flops": compute,
-                "n_data": data["train"].dataloader.num_samples * args.epochs,
+                "n_data": total_samples,
                 "compute_per_epoch": compute_per_epoch,
                 "compute_per_sample": compute_per_sample,
             },
