@@ -160,7 +160,7 @@ def flop_estimator(**kwargs) -> float:
             return cached_value
     
     # Compute FLOPs
-    configs_denormalized = normalize_scan_space(kwargs, bias_scale_sampling=False, alpha=0)
+    configs_denormalized = normalize_scan_space(kwargs, bias_scale_sampling=False, alpha=0, rng=None)
     model_cfg_dir = build_model_cfg_temp(**configs_denormalized)
     model_cfg = get_local_model_str(model_cfg_dir)
     result = get_total_compute(
@@ -217,12 +217,13 @@ chinchilla_optimizer = lambda space: chinchilla_guided_scaling(
     )
 )
 
-chinchilla_rs_optimizer = lambda space: chinchilla_guided_scaling(space,
-                                                                  params_estimator=None,
-                                                                  seen_datapoints_estimator=None,
-                                                                  flops_estimator=flop_estimator,
-                                                                  max_evaluation_flops=209161783,
-                                                                  base_optimizer=random_search(space, use_priors=False))
+def chinchilla_rs_optimizer(max_evaluation_flops=209161783):
+    return lambda space: chinchilla_guided_scaling(space,
+                                                    params_estimator=None,
+                                                    seen_datapoints_estimator=None,
+                                                    flops_estimator=flop_estimator,
+                                                    max_evaluation_flops=max_evaluation_flops,
+                                                    base_optimizer=random_search(space, use_priors=False))
 
 
 chinchilla_optimizer_fine_grained_dp = lambda space: chinchilla_guided_scaling(
@@ -236,27 +237,33 @@ chinchilla_optimizer_fine_grained_dp = lambda space: chinchilla_guided_scaling(
     )
 )
 
-chinchilla_optimizer_aproach1 = lambda space: chinchilla_guided_scaling(
-    space,
-    params_estimator=parameters_estimator,
-    seen_datapoints_estimator=seen_datapoints_estimator,
-    flops_estimator=flop_estimator,
-    base_optimizer=grid_search(
+def chinchilla_optimizer_aproach1(
+        max_evaluation_flops: float = 209161783, 
+        size_per_numerical_dimension: int | dict[str, int] = 5,
+    ):
+    return lambda space: chinchilla_guided_scaling(
         space,
-        size_per_numerical_dimension=dict(train_num_samples=4, vision_width=4, text_width=4),
+        params_estimator=parameters_estimator,
+        seen_datapoints_estimator=seen_datapoints_estimator,
+        flops_estimator=flop_estimator,
+        max_evaluation_flops=max_evaluation_flops,
+        base_optimizer=grid_search(
+        space,
+        size_per_numerical_dimension=size_per_numerical_dimension,
     )
 )
 
-def bo_guided_scaling_optimizer(max_evaluation_flops: float, cost_aware: str | bool = False):
+def bo_guided_scaling_optimizer(max_evaluation_flops: float, max_target_flops: float | None = None, cost_aware: str | bool = False, sampling_strategy: str = "space_expansion"):
     return lambda pipeline_space: bo_guided_scaling(
     pipeline_space,
     params_estimator=parameters_estimator,
     seen_datapoints_estimator=seen_datapoints_estimator,
     flops_estimator=flop_estimator,
     max_evaluation_flops=max_evaluation_flops,
-    max_target_flops=max_evaluation_flops,
+    max_target_flops=max_target_flops,
     device='cpu',
     cost_aware=cost_aware,
+    sampling_strategy=sampling_strategy,
 )
 
 if __name__ == "__main__":

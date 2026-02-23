@@ -123,6 +123,7 @@ def build_model_cfg_temp(
         context_length: int = 77,
         vocab_size: int = 49408,
         text_heads: int = 8,
+        vision_head_width: int = 64,
         text_layers: int = 12,
         **kwargs
 ) -> str:
@@ -137,6 +138,7 @@ def build_model_cfg_temp(
                 "image_size": image_size,
                 "layers": vision_layers,
                 "width": vision_width,
+                "head_width": vision_head_width,
                 "patch_size": patch_size,
             },
             "text_cfg": {

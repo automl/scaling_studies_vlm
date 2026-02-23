@@ -61,7 +61,7 @@ HPO_CONFIGS = {
         pipeline_space=ScanPipeline.with_overrides()
     ),
     "experimental": NePSConfig(
-        optimizer=chinchilla_rs_optimizer,
+        optimizer=chinchilla_rs_optimizer(),
         evaluations_to_spend=20,
         pipeline_space=ScanPipeline.with_overrides()
     ),
@@ -164,7 +164,7 @@ HPO_CONFIGS = {
         )
     ),
     "scale_space_only_minimal_capacity_probe": NePSConfig(
-        optimizer=chinchilla_optimizer_aproach1,
+        optimizer=chinchilla_optimizer_aproach1(size_per_numerical_dimension=dict(train_num_samples=4, vision_width=4, text_width=4)),
         evaluations_to_spend=100,
         pipeline_space=
         ScanPipeline.with_overrides(
@@ -216,7 +216,7 @@ HPO_CONFIGS = {
         ),
     ),
     "constrained_rs": NePSConfig(
-        optimizer=chinchilla_rs_optimizer,
+        optimizer=chinchilla_rs_optimizer(),
         cost_to_spend=209161783,  # GFLOPS
         pipeline_space=
         ScanPipeline.with_overrides(
@@ -241,7 +241,122 @@ HPO_CONFIGS = {
                                                     evaluations_to_spend=100,
                                                     pipeline_space=
                                                     ScanPipeline.with_overrides()
-                                                    )
+                                                    ),
+    "bo_const_cost": NePSConfig(
+        optimizer=bo_guided_scaling_optimizer(max_evaluation_flops=16 * 4 * 10**7, max_target_flops=4 * 10**7, cost_aware=False, sampling_strategy="const_cost"),
+        pipeline_space=
+        ScanPipeline.with_overrides(
+            warmup_fraction=0, 
+            beta1 = 0.9,
+            beta2 = 0.999,
+            eps = 1e-8,
+            train_num_samples = neps.Float(
+                lower=1,
+                upper=80.0,
+            ),
+            vision_width = neps.Integer(
+                lower=-3, upper=1,
+            ),
+            text_width = neps.Integer(
+                lower=-3, upper=1,
+            )
+        ),
+    ),
+    "bo_space_expansion_micro": NePSConfig(
+        optimizer=bo_guided_scaling_optimizer(max_evaluation_flops=16 * 4 * 10**6, max_target_flops=4 * 10**6, cost_aware=False, sampling_strategy="space_expansion"),
+        evaluations_to_spend=5,
+        pipeline_space=
+        ScanPipeline.with_overrides(
+            warmup_fraction=0, 
+            beta1 = 0.9,
+            beta2 = 0.999,
+            eps = 1e-8,
+            train_num_samples = neps.Float(
+                lower=1,
+                upper=80.0,
+            ),
+            vision_width = neps.Integer(
+                lower=-3, upper=1,
+            ),
+            text_width = neps.Integer(
+                lower=-3, upper=1,
+            )
+        ),
+    ),
+    "rs_micro": NePSConfig(
+        optimizer=chinchilla_rs_optimizer(max_evaluation_flops=16 * 4 * 10**6),
+        cost_to_spend=16 * 4 * 10**6,
+        pipeline_space=
+        ScanPipeline.with_overrides(
+            warmup_fraction=0, 
+            beta1 = 0.9,
+            beta2 = 0.999,
+            eps = 1e-8,
+            train_num_samples = neps.Float(
+                lower=1,
+                upper=80.0,
+            ),
+            vision_width = neps.Integer(
+                lower=-3, upper=1,
+            ),
+            text_width = neps.Integer(
+                lower=-3, upper=1,
+            )
+        ),
+    ),
+    "gs_micro": NePSConfig(
+        optimizer=chinchilla_optimizer_aproach1(
+            max_evaluation_flops=16 * 4 * 10**6, 
+            size_per_numerical_dimension=dict(
+                train_num_samples=4, 
+                vision_width=3, 
+                text_width=3,
+                lr=2,
+                wd=1,
+            ),
+        ),
+        cost_to_spend=16 * 4 * 10**6,
+        pipeline_space=
+        ScanPipeline.with_overrides(
+            warmup_fraction=0, 
+            beta1 = 0.9,
+            beta2 = 0.999,
+            eps = 1e-8,
+            train_num_samples = neps.Float(
+                lower=1,
+                upper=80.0,
+            ),
+            vision_width = neps.Integer(
+                lower=-3, upper=1,
+            ),
+            text_width = neps.Integer(
+                lower=-3, upper=1,
+            )
+        ),
+    ),
+
+    "bo_space_expansion": NePSConfig(
+        optimizer=bo_guided_scaling_optimizer(max_evaluation_flops=16 * 4 * 10**8, max_target_flops=4 * 10**8, cost_aware=False, sampling_strategy="space_expansion"),
+        pipeline_space=
+        ScanPipeline.with_overrides(
+            warmup_fraction=0.5, 
+            beta1 = 0.9,
+            beta2 = 0.98,
+            eps = 1e-8,
+            wd=1.0e-6,
+            train_num_samples = neps.Float(
+                lower=1,
+                upper=160.0,
+            ),
+            vision_width = neps.Integer(
+                lower=-3, upper=2,
+            ),
+            text_width = neps.Integer(
+                lower=-3, upper=2,
+            )
+        ),
+    ),
+
 }
 
 

@@ -86,17 +86,31 @@ def build_scan_space(row, bias_scale_sampling, alpha, rng) -> Dict[str, Any]:
 
 def _decode_text(idx: int) -> tuple[int, int]:
     # width, heads
-    if idx == 0:
-        return 32, 1
-    return idx * 64, idx
-
+    match idx:
+        case -3:
+            return 4, 1
+        case -2:
+            return 8, 1
+        case -1:
+            return 16, 1
+        case 0:
+            return 32, 1
+        case _:
+            return idx * 64, idx
 
 def _decode_vision(idx: int) -> tuple[int, int]:
     # width, head_width
-    if idx == 0:
-        return 32, 32
-    return idx * 64, 64
-
+    match idx:
+        case -3:
+            return 4, 4
+        case -2:
+            return 8, 8
+        case -1:
+            return 16, 16
+        case 0:
+            return 32, 32
+        case _:
+            return idx * 64, 64
 
 def normalize_scan_space(
         scan_space: Dict[str, Any],
