@@ -3,7 +3,6 @@ import json
 import re
 from pathlib import Path
 
-import neps
 import pandas as pd
 import yaml
 
@@ -26,7 +25,7 @@ def read_json(path: Path):
         return json.load(f)
 
 
-def extract_zeroshot_acc1(root_dir: Path) -> dict:
+def extract_zeroshot_acc1(root_dir: Path, latest_epoch: int) -> dict:
     zero_shot_dir = root_dir / "zero_shot"
 
     out = {
@@ -34,14 +33,14 @@ def extract_zeroshot_acc1(root_dir: Path) -> dict:
         "imagenet1k_acc1": None,
     }
 
-    cifar_path = zero_shot_dir / f"cifar10_epoch_1.json"
+    cifar_path = zero_shot_dir / f"cifar10_epoch_{latest_epoch}.json"
     if cifar_path.is_file():
         try:
             out["cifar10_acc1"] = read_json(cifar_path).get("metrics", {}).get("acc1")
         except Exception:
             pass
 
-    imagenet_path = zero_shot_dir / f"imagenet1k_epoch_1.json"
+    imagenet_path = zero_shot_dir / f"imagenet1k_epoch_{latest_epoch}.json"
     if imagenet_path.is_file():
         try:
             out["imagenet1k_acc1"] = read_json(imagenet_path).get("metrics", {}).get("acc1")
@@ -51,7 +50,7 @@ def extract_zeroshot_acc1(root_dir: Path) -> dict:
     return out
 
 
-def extract_mscoco_retrieval(root_dir: Path) -> dict:
+def extract_mscoco_retrieval(root_dir: Path, latest_epoch: int) -> dict:
     retrieval_dir = root_dir / "retrieval"
 
     out = {
@@ -59,7 +58,7 @@ def extract_mscoco_retrieval(root_dir: Path) -> dict:
         "mscoco_text_recall@5": None,
     }
 
-    mscoco_path = retrieval_dir / f"mscoco_captions_epoch_1.json"
+    mscoco_path = retrieval_dir / f"mscoco_captions_epoch_{latest_epoch}.json"
     if mscoco_path.is_file():
         try:
             metrics = read_json(mscoco_path).get("metrics", {})
@@ -71,13 +70,13 @@ def extract_mscoco_retrieval(root_dir: Path) -> dict:
     return out
 
 
-def fetch_downstream_eval_results(path):
-    zero_shot_results = extract_zeroshot_acc1(path)
-    retrieval_results = extract_mscoco_retrieval(path)
+def fetch_downstream_eval_results(path, latest_epoch):
+    zero_shot_results = extract_zeroshot_acc1(path, latest_epoch)
+    retrieval_results = extract_mscoco_retrieval(path, latest_epoch)
     return {**zero_shot_results, **retrieval_results}
 
 
-def fetch_scale_parameters(config_dir: Path) -> dict:
+def fetch_hyperparameters(config_dir: Path) -> dict:
     config_path = config_dir / "config.yaml"
     if not config_path.is_file():
         return {}
@@ -89,6 +88,7 @@ def fetch_scale_parameters(config_dir: Path) -> dict:
 
     return params
 
+
 def fetch_text_vision_width(model_cfg):
     with open(model_cfg, "r") as f:
         cfg = json.load(f)
@@ -97,28 +97,49 @@ def fetch_text_vision_width(model_cfg):
     text_width = cfg["model_cfg"]["text_cfg"]["width"]
     return {"text_width": text_width, "vision_width": vision_width}
 
-def fetch_train_num_samples(train_scripts_dir: Path, config_id: int):
+
+def fetch_train_num_samples_epochs(train_scripts_dir: Path, config_id: int):
     script_path = train_scripts_dir / f"train_config{config_id}.sh"
     text = Path(script_path).read_text()
 
-    match = re.search(r'--train-num-samples\s+(\S+)', text)
-    if match:
-        return {"train_num_samples": int(match.group(1))}
-    return None
+    samples_match = re.search(r'--train-num-samples\s+(\S+)', text)
+    epochs_match = re.search(r'--epochs\s+(\S+)', text)
+
+    result = {}
+
+    if samples_match:
+        result["train_num_samples"] = int(samples_match.group(1))
+
+    if epochs_match:
+        result["epochs"] = int(epochs_match.group(1))
+
+    return result if result else None
 
 
-def fetch_total_compute_and_nparams(config_dir: Path) -> dict:
-    config_path = config_dir / "report.yaml"
-    if not config_path.is_file():
-        return {}
-    with config_path.open("r") as f:
-        data = yaml.safe_load(f) or {}
+def fetch_total_compute_and_nparams(checkpoints_dir: Path) -> dict:
+    result = {}
+
+    params_path = checkpoints_dir / "model_params.txt"
+    if params_path.is_file():
+        with params_path.open("r") as f:
+            for line in f:
+                if ":" not in line:
+                    continue
+                key, value = line.strip().split(":", 1)
+                result[key.strip()] = float(value.strip())
+
+    compute_path = checkpoints_dir / "compute_info.json"
+    if compute_path.is_file():
+        with compute_path.open("r") as f:
+            compute_data = json.load(f)
+            result["Total compute(GLOPs)"] = compute_data.get("total_compute")
 
     return {
-        "Total compute(GLOPs)": data.get("cost"),
-        "mparams": data.get("extra", {}).get("total_mparams"),
-        "vision_mparams": data.get("extra", {}).get("image_mparams"),
-        "text_mparams": data.get("extra", {}).get("text_mparams")
+        "Total compute(GLOPs)": result.get("Total compute(GLOPs)"),
+        "mparams": result.get("total_mparams"),
+        "vision_mparams": result.get("image_mparams"),
+        "text_mparams": result.get("text_mparams"),
+        "text_mparams_non_emb": result.get("text_mparams_non_emb"),
     }
 
 
@@ -182,6 +203,46 @@ def fetch_gpu_names_and_world_size(checkpoints_dir: Path) -> dict:
     return out
 
 
+def find_latest_epoch(checkpoints_dir: Path) -> int | None:
+    _epoch_re = re.compile(r"^epoch_(\d+)\.pt$")
+
+    epochs = []
+    for p in checkpoints_dir.glob("epoch_*.pt"):
+        m = _epoch_re.match(p.name)
+        if m:
+            epochs.append(int(m.group(1)))
+    return max(epochs) if epochs else None
+
+
+def has_diverged(checkpoints_dir: Path) -> bool:
+    if not checkpoints_dir.is_dir():
+        return False
+    return any(checkpoints_dir.glob("nan_*.pt"))
+
+
+def is_completed_trial(checkpoints_dir: Path, min_epochs: int = 2) -> bool:
+    required_files = [
+        "compute_info.json",
+        "epoch_steps_info.jsonl",
+        "model_params.txt",
+        "results.jsonl",
+        "train_loss.jsonl",
+        "train_time.jsonl",
+        "train_loss_over_data_seen.jsonl",
+    ]
+    if not checkpoints_dir.is_dir():
+        return False
+
+    epoch_pts = [p for p in checkpoints_dir.glob("epoch_*.pt")]
+    if len(epoch_pts) < min_epochs:
+        return False
+
+    if any(not (checkpoints_dir / fname).is_file() for fname in required_files):
+        return False
+
+    return True
+
+
 if __name__ == "__main__":
     args = parse_args()
 
@@ -192,10 +253,10 @@ if __name__ == "__main__":
     train_scripts_dir = root_dir / "train_scripts"
     model_cfgs_dir = root_dir / "model_cfg"
 
-    full_df, _ = neps.status(str(root_dir))
-    trial_ids = [int(i) for i in full_df.index.tolist()]
     completed_trial_ids = []
     rows = []
+
+    trial_ids = list(range(1, 101))
 
     for trial_id in trial_ids:
         trial_dir = train_logs_root / f"train_config{trial_id}"
@@ -203,25 +264,31 @@ if __name__ == "__main__":
         downstream_eval_path = trial_dir / "eval"
         config_dir = configs_dir / f"config_{trial_id}"
         model_cfg = model_cfgs_dir / f"config_{trial_id}/open_clip_config.json"
+        latest_epoch = find_latest_epoch(checkpoints_dir)
 
-        if (checkpoints_dir / "epoch_1.pt").is_file():
+        if is_completed_trial(checkpoints_dir):
             completed_trial_ids.append(trial_id)
+
+        diverged = has_diverged(checkpoints_dir)
 
         row = {
             "config_id": trial_id,
+            "diverged": diverged,
             **fetch_losses(checkpoints_dir),
-            **fetch_downstream_eval_results(downstream_eval_path),
-            **fetch_scale_parameters(config_dir),
-            **fetch_total_compute_and_nparams(config_dir),
+            **fetch_downstream_eval_results(downstream_eval_path, latest_epoch),
+            **fetch_hyperparameters(config_dir),
+            **fetch_total_compute_and_nparams(checkpoints_dir),
             **fetch_text_vision_width(model_cfg),
             **fetch_training_gpu_used_gpu_training_time(checkpoints_dir),
-            **fetch_train_num_samples(train_scripts_dir, int(trial_id)),
-            # fetch gpu used during evaluations, time it took
+            **fetch_train_num_samples_epochs(train_scripts_dir, int(trial_id)),
         }
         rows.append(row)
 
     failed_trial_ids = sorted(set(trial_ids) - set(completed_trial_ids))
     print("Failed trials:", failed_trial_ids)
+
+    diverged_trials = [r["config_id"] for r in rows if r["diverged"]]
+    print("Diverged trials:", diverged_trials)
 
     df = pd.DataFrame(rows).set_index("config_id")
     df.to_csv(out_csv)
