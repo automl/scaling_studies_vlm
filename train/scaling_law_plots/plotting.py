@@ -596,6 +596,51 @@ def plot_flops_vs_params_from_pareto(
     plt.tight_layout(rect=[0, 0.05, 1, 1])
     return fig
 
+def plot_compute_vs_hyperparam_from_pareto(
+        pareto_csv_path: str,
+        *,
+        hyperparam_col: str = "lr",
+        flops_col: str = "Total compute(GLOPs)",
+        log_x: bool = True,
+        log_y: bool = True,
+) -> plt.Figure | None:
+    df = pd.read_csv(pareto_csv_path)
+
+    if flops_col not in df.columns or hyperparam_col not in df.columns:
+        print(f"Missing required columns: {flops_col!r} or {hyperparam_col!r}")
+        return None
+
+    flops = pd.to_numeric(df[flops_col], errors="coerce").to_numpy(dtype=float)
+    hp = pd.to_numeric(df[hyperparam_col], errors="coerce").to_numpy(dtype=float)
+
+    mask = np.isfinite(flops) & np.isfinite(hp) & (flops > 0)
+    if log_y:
+        mask &= (hp > 0)
+
+    flops = flops[mask]
+    hp = hp[mask]
+
+    if flops.size == 0:
+        print("No valid points to plot.")
+        return None
+
+    fig, ax = plt.subplots(figsize=(6, 4))
+
+    ax.scatter(flops, hp, marker="o", alpha=0.9)
+
+    if log_x:
+        ax.set_xscale("log")
+    if log_y:
+        ax.set_yscale("log")
+
+    ax.set_xlabel("Compute (GFLOPs)")
+    ax.set_ylabel(hyperparam_col)
+    ax.set_title(f"{hyperparam_col} vs Compute (Pareto)")
+    ax.grid(True, linestyle="--", alpha=0.4, which="both")
+
+    plt.tight_layout()
+    return fig
+
 
 OBJECTIVE_DIRNAME = {
     "imagenet1k_acc1": "imagenet1k_acc1",
@@ -700,6 +745,21 @@ def plot_all_scaling_law_figures(csv_path: str, objective_col: str, dpi: int = 2
                 if flops_vs_n_params_pareto is not None:
                     flops_vs_n_params_pareto.savefig(obj_dir / "pareto_flops_vs_n_params.png", dpi=dpi,
                                                      bbox_inches="tight")
+
+                for hp in ["lr", "wd", "warmup_fraction", "vision_width", "text_width", "beta1", "beta2", "eps"]:
+                    fig_hp = plot_compute_vs_hyperparam_from_pareto(
+                        str(csv_out),
+                        hyperparam_col=hp,
+                        flops_col="Total compute(GLOPs)",
+                        log_x=True,
+                        log_y=(hp in {"lr", "wd"}),
+                    )
+                    if fig_hp is not None:
+                        fig_hp.savefig(
+                            obj_dir / f"pareto_compute_vs_{hp}.png",
+                            dpi=dpi,
+                            bbox_inches="tight",
+                        )
 
     return figures
 
