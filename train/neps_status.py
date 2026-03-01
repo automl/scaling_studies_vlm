@@ -17,6 +17,22 @@ def parse_args():
         required=True,
         help='Example: "results/model=ViT-S-32/optimizer=experimental/seed=10"',
     )
+
+    p.add_argument(
+        "--start_from",
+        type=int,
+        required=False,
+        help='First config id from which the status is generated',
+        default=1,
+    )
+
+    p.add_argument(
+        "--end_at",
+        type=int,
+        required=False,
+        help='Last config id from which the status is generated',
+        default=100,
+    )
     return p.parse_args()
 
 
@@ -220,21 +236,14 @@ def has_diverged(checkpoints_dir: Path) -> bool:
     return any(checkpoints_dir.glob("nan_*.pt"))
 
 
-def is_completed_trial(checkpoints_dir: Path, min_epochs: int = 2) -> bool:
+def is_completed_trial(checkpoints_dir: Path) -> bool:
     required_files = [
         "compute_info.json",
-        "epoch_steps_info.jsonl",
         "model_params.txt",
-        "results.jsonl",
         "train_loss.jsonl",
-        "train_time.jsonl",
         "train_loss_over_data_seen.jsonl",
     ]
     if not checkpoints_dir.is_dir():
-        return False
-
-    epoch_pts = [p for p in checkpoints_dir.glob("epoch_*.pt")]
-    if len(epoch_pts) < min_epochs:
         return False
 
     if any(not (checkpoints_dir / fname).is_file() for fname in required_files):
@@ -256,7 +265,7 @@ if __name__ == "__main__":
     completed_trial_ids = []
     rows = []
 
-    trial_ids = list(range(1, 101))
+    trial_ids = list(range(args.start_from, args.end_at))
 
     for trial_id in trial_ids:
         trial_dir = train_logs_root / f"train_config{trial_id}"
