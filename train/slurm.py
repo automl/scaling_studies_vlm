@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from config import TrainConfig, EvalConfig
+    from config import TrainConfig
 
 
 class DatasetShards(str, Enum):
@@ -37,17 +37,6 @@ CLUSTER_DATASET_SHARDS: dict[str, dict[DatasetShards, str]] = {
 
 def shards(shard: DatasetShards, cluster: str) -> str:
     return CLUSTER_DATASET_SHARDS[cluster][shard]
-
-
-def build_eval_cmd_defaults(cluster: str) -> list[str]:
-    return [
-        f'--val-data "{shards(DatasetShards.LAION400M_VAL, cluster)}"',
-        f'--test-data "{shards(DatasetShards.LAION400M_TEST, cluster)}"',
-        "--dataset-type webdataset",
-        "--precision fp32",
-        "--resume latest",
-        "--epochs 1",
-    ]
 
 
 def build_cmd(config: "TrainConfig", wandb_project_name, cluster) -> str:
@@ -84,51 +73,6 @@ def build_cmd(config: "TrainConfig", wandb_project_name, cluster) -> str:
     return cmd_parts
 
 
-def eval_cmd(config: "EvalConfig", cluster) -> str:
-    args = asdict(config)
-
-    cmd_parts = build_eval_cmd_defaults(cluster)
-
-    for key, value in args.items():
-        cli_key = key.replace("_", "-")
-
-        if isinstance(value, bool):
-            if value:
-                cmd_parts.append(f"--{cli_key}")
-            continue
-
-        if isinstance(value, dict):
-            if not value:
-                continue
-            json_value = json.dumps(value)
-            cmd_parts.append(f"--{cli_key} '{json_value}'")
-        else:
-            cmd_parts.append(f"--{cli_key} {value}")
-
-    return cmd_parts
-
-
-def eval_array_job_cmd(seed, logs_dir, cluster):
-    cmd_parts = build_eval_cmd_defaults(cluster)
-
-    cmd_parts.append(f"--seed {seed}")
-    cmd_parts.append(f"--logs {logs_dir}")
-
-    return (
-            "python -u -m clip_train.main \\\n    "
-            + " \\\n    ".join(cmd_parts)
-    )
-
-
-def build_eval_cmd(config: "EvalConfig", cluster) -> str:
-    cmd_parts = eval_cmd(config, cluster)
-    return (
-            "srun --cpu-bind=v --accel-bind=gn "
-            "python -u -m clip_train.main \\\n    "
-            + " \\\n    ".join(cmd_parts)
-    )
-
-
 def build_srun_cmd(config: "TrainConfig", wandb_project_name, cluster) -> str:
     cmd_parts = build_cmd(config, wandb_project_name, cluster)
 
@@ -136,16 +80,6 @@ def build_srun_cmd(config: "TrainConfig", wandb_project_name, cluster) -> str:
             "srun --cpu-bind=v --accel-bind=gn "
             "python -u -m clip_train.main \\\n    "
             + " \\\n    ".join(cmd_parts)
-    )
-
-
-def build_torchrun_cmd(config: "TrainConfig", nproc_per_node) -> str:
-    cmd_parts = build_cmd(config)
-
-    return (
-            f"torchrun --nproc_per_node {nproc_per_node} "
-            "-m clip_train.main -- "
-            + " ".join(cmd_parts)
     )
 
 
@@ -322,22 +256,24 @@ ml Stages/2026 GCCcore/14.3.0 PyTorch/2.9.1
 
     def build_evaluation_script(self, eval_cfg, job_name, cluster, save_to: Path = None):
         account = self._account()
-        val_data = {shards(DatasetShards.LAION400M_VAL, cluster)}
-        test_data = {shards(DatasetShards.LAION400M_TEST, cluster)}
+        val_data = shards(DatasetShards.LAION400M_VAL, cluster)
+        test_data = shards(DatasetShards.LAION400M_TEST, cluster)
+        python_ws_paths = self._slurm_ws_python_path_setup()
+
+        model_cfg = str(eval_cfg.model).replace("local-dir:", "")
+        models_cfg_dir = self.workspace_dir + "/train/" + model_cfg
+        logs = self.workspace_dir + "/train/" + eval_cfg.logs
 
         cmd = f"""
-        python -u eval/upstream_eval.py \
-          --config-id {eval_cfg.config_id} \
-          --models-cfg-dir {eval_cfg.models_cfg} \
-          --logs-dir {eval_cfg.logs_dir} \
-          --val-data "{val_data}" \
-          --test-data "{test_data}" \
-          --precision fp32 \
-          --dataset-type webdataset \
-          --seed {eval_cfg.seed} \
-          --pipeline-id {eval_cfg.pipeline_id} \
-          --train-dir {self.workspace_dir}/train \
-          --command-dir {self.command_dir} \
+        python -u -m eval.upstream_eval \\
+          --config-id {eval_cfg.pipeline_id} \\
+          --models-cfg-dir {models_cfg_dir} \\
+          --logs-dir {logs} \\
+          --val-data "{val_data}" \\
+          --test-data "{test_data}" \\
+          --seed {eval_cfg.seed} \\
+          --train-dir {self.workspace_dir}/train \\
+          --command-dir {self.command_dir}
         """.strip()
 
         script = f"""#!/bin/bash
@@ -346,7 +282,7 @@ ml Stages/2026 GCCcore/14.3.0 PyTorch/2.9.1
 #SBATCH --cpus-per-task={self.cpus_per_task}
 #SBATCH --job-name={job_name}
 {account}#SBATCH -p {self.partition}
-#SBATCH --time=24:00:00
+#SBATCH --time=02:00:00
 
 #SBATCH --output evaluator_logs/%x-%A.out
 #SBATCH --error evaluator_logs/%x-%A.err
@@ -355,7 +291,7 @@ ml Stages/2026 GCCcore/14.3.0 PyTorch/2.9.1
 
 echo "Started at $(date)";
 
-cd {self.command_dir}
+{python_ws_paths}
 
 {cmd}
 

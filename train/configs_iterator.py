@@ -293,7 +293,7 @@ def generate_eval_script(
     job_name = f"eval_config{config_id}"
 
     eval_script_path = Path(eval_scripts_dir + "/" + f"{job_name}.sh")
-    slurmManager.build_evaluation_script(eval_cfg=eval_cfg, job_name=job_name, save_to=eval_script_path)
+    slurmManager.build_evaluation_script(eval_cfg=eval_cfg,cluster=cluster, job_name=job_name, save_to=eval_script_path)
     return eval_script_path
 
 

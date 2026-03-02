@@ -38,12 +38,18 @@ def main():
 
     config_id = args.config_id
 
-    model_cfg_dir = Path(args.models_cfg_dir) / f"config_{config_id}"
+    model_cfg_base_path = Path(args.models_cfg_dir)
+
+    if model_cfg_base_path.name == f"config_{config_id}":
+        model_cfg_dir = model_cfg_base_path
+    else:
+        model_cfg_dir = model_cfg_base_path / f"config_{config_id}"
+
+    if not str(model_cfg_dir).startswith("local-dir:"):
+        model_cfg_dir = f"local-dir:{model_cfg_dir}"
+
     ckpt_dir = Path(args.logs_dir) / f"train_config{config_id}" / "checkpoints"
     eval_logs_dir = Path(args.logs_dir)
-
-    if not model_cfg_dir.exists():
-        raise FileNotFoundError(f"Model config directory not found: {model_cfg_dir}")
 
     if not ckpt_dir.exists():
         raise FileNotFoundError(f"Checkpoint directory not found: {ckpt_dir}")
@@ -66,7 +72,7 @@ def main():
             "--test-data", args.test_data,
             "--dataset-type", "webdataset",
             "--precision", "fp32",
-            "--model", f"local-dir:{model_cfg_dir}",
+            "--model", str(model_cfg_dir),
             "--seed", str(args.seed),
             "--name", run_name,
             "--logs", str(args.logs_dir),
