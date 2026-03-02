@@ -27,6 +27,11 @@ CLUSTER_DATASET_SHARDS: dict[str, dict[DatasetShards, str]] = {
         DatasetShards.LAION400M_VAL: "/p/data1/mmlaion/relaion_400m_subset/67m_samples/validation_data/{00000000..00000015}.tar",
         DatasetShards.LAION400M_TEST: "/p/data1/mmlaion/relaion_400m_subset/67m_samples/test_data/{00000000..00000015}.tar",
     },
+    "horeka": {
+        DatasetShards.LAION400M_TRAIN: "/hkfs/work/workspace/scratch/fr_ds677-vlm_scan/pre_training_data/train_data/{00000000..00012136}.tar",
+        DatasetShards.LAION400M_VAL: "/hkfs/work/workspace/scratch/fr_ds677-vlm_scan/pre_training_data/validation_data/{00000000..00000015}.tar",
+        DatasetShards.LAION400M_TEST: "/hkfs/work/workspace/scratch/fr_ds677-vlm_scan/pre_training_data/test_data/{00000000..00000015}.tar",
+    },
 }
 
 
@@ -273,6 +278,9 @@ ml Stages/2026 GCCcore/14.3.0 PyTorch/2.9.1
         if self.cluster == "meta":
             return "source ~/miniconda3/bin/activate && conda activate test_scaling_laws"
 
+        if self.cluster == "horeka":
+            return "source /hkfs/work/workspace/scratch/fr_ds677-vlm_scan/env/miniconda3/etc/profile.d/conda.sh && conda activate test_scaling_laws"
+
         raise ValueError(f"Unknown cluster: {self.cluster}")
 
     def submit_job(self, cmd: str):
@@ -312,10 +320,25 @@ ml Stages/2026 GCCcore/14.3.0 PyTorch/2.9.1
         self.job_id = job_id
         print("Job ID:", job_id)
 
-    def build_evaluation_script(self, cmd: str, job_name,
-                                save_to: Path = None):
-        ws_python_paths = self._slurm_ws_python_path_setup()
+    def build_evaluation_script(self, eval_cfg, job_name, cluster, save_to: Path = None):
         account = self._account()
+        val_data = {shards(DatasetShards.LAION400M_VAL, cluster)}
+        test_data = {shards(DatasetShards.LAION400M_TEST, cluster)}
+
+        cmd = f"""
+        python -u eval/upstream_eval.py \
+          --config-id {eval_cfg.config_id} \
+          --models-cfg-dir {eval_cfg.models_cfg} \
+          --logs-dir {eval_cfg.logs_dir} \
+          --val-data "{val_data}" \
+          --test-data "{test_data}" \
+          --precision fp32 \
+          --dataset-type webdataset \
+          --seed {eval_cfg.seed} \
+          --pipeline-id {eval_cfg.pipeline_id} \
+          --train-dir {self.workspace_dir}/train \
+          --command-dir {self.command_dir} \
+        """.strip()
 
         script = f"""#!/bin/bash
 #SBATCH --nodes=1
@@ -332,7 +355,7 @@ ml Stages/2026 GCCcore/14.3.0 PyTorch/2.9.1
 
 echo "Started at $(date)";
 
-{ws_python_paths}
+cd {self.command_dir}
 
 {cmd}
 
@@ -370,12 +393,23 @@ python post_hoc_iterator.py --root {root} --model {model} --seed {seed} --pipeli
         else:
             self.script_path.write_text(script)
 
-    def build_array_job_for_evaluation(self, cmd: str, models_cfg_dir, nr_total_configs, save_to: Path = None,
+    def build_array_job_for_evaluation(self, eval_cfg, nr_total_configs, cluster, save_to: Path = None,
                                        bundle: int = 4):
-
         array_size = math.ceil(nr_total_configs / bundle)
+        val_data = shards(DatasetShards.LAION400M_VAL, cluster)
+        test_data = shards(DatasetShards.LAION400M_TEST, cluster)
 
-        cmd = cmd.strip()
+        cmd = f"""
+                python -u -m eval.upstream_eval \\
+                  --models-cfg-dir {eval_cfg.model} \\
+                  --logs-dir {eval_cfg.logs} \\
+                  --val-data "{val_data}" \\
+                  --test-data "{test_data}" \\
+                  --seed {eval_cfg.seed} \\
+                  --train-dir {self.workspace_dir}/train \\
+                  --command-dir {self.command_dir} \\
+                  --config-id "${{config_ID}}"
+                """.strip()
         python_ws_paths = self._slurm_ws_python_path_setup()
         account = self._account()
 
@@ -388,7 +422,7 @@ python post_hoc_iterator.py --root {root} --model {model} --seed {seed} --pipeli
 #SBATCH --ntasks=4
 #SBATCH --cpus-per-task={self.cpus_per_task}
 {account}#SBATCH -p {self.partition}
-#SBATCH --time=24:00:00
+#SBATCH --time=02:00:00
 
 #SBATCH --array=1-{array_size}
 
@@ -406,8 +440,6 @@ echo "Array task id: ${{SLURM_ARRAY_TASK_ID}}"
 LOG_DIR="{step_jobs_logs_dir}"
 mkdir -p "${{LOG_DIR}}"
 
-MODELS_CFG_DIR="{models_cfg_dir}"
-
 BASE_ID=$(( (SLURM_ARRAY_TASK_ID - 1) * {bundle} + 1 ))
 
 echo "Array task ${{SLURM_ARRAY_TASK_ID}} uses config ids: ${{BASE_ID}}..$((BASE_ID+{bundle}-1))"
@@ -415,24 +447,13 @@ echo "Array task ${{SLURM_ARRAY_TASK_ID}} uses config ids: ${{BASE_ID}}..$((BASE
 run_one () {{
   local step_idx="$1"
   local config_ID="$2"
-  
-  if [ "${{config_ID}}" -gt "{nr_total_configs}" ]; then
-        echo "Skipping step ${{step_idx}} because config_ID=${{config_ID}} exceeds nr_total_configs={nr_total_configs}"
-        return 0
-      fi
-
-  RUN_NAME="train_config${{config_ID}}"
-  MODEL_NAME="local-dir:${{MODELS_CFG_DIR}}/config_${{config_ID}}"
 
   echo "Starting eval step ${{step_idx}} (config_ID=${{config_ID}}) at $(date)"
 
   srun --exclusive --ntasks=1 --cpus-per-task=8 --gres=gpu:1 \\
     --output "${{LOG_DIR}}/array_eval_logs/step_${{step_idx}}_%x-%A_%a.out" \\
     --error  "${{LOG_DIR}}/array_eval_logs/step_${{step_idx}}_%x-%A_%a.err" \\
-    {cmd} \\
-    --model "${{MODEL_NAME}}" \\
-    --name "${{RUN_NAME}}" \\
-    --pipeline-id "${{config_ID}}" &
+    {cmd} &
 }}
 
 for step_idx in 0 1 2 3; do

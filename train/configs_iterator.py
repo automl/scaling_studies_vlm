@@ -1,4 +1,3 @@
-import csv
 import gc
 import math
 import os
@@ -13,8 +12,9 @@ import torch
 
 import iterator_params
 from clip_train.profiler import get_model_flops
+from config import EvalConfig
 from probe_max_bs import probe_max_bs
-from slurm import SlurmManager, build_srun_cmd, build_eval_cmd
+from slurm import SlurmManager, build_srun_cmd
 from utils import query_bs, build_model_cfg, get_local_model_str, precision_to_dtype, create_default_model, \
     sample_warped_log_uniform, sample_small_favoring_index
 
@@ -255,7 +255,7 @@ def generate_train_script(model_cfg, local_bs, config_id, logs_dir, train_script
     config = TrainConfig(
         model=model_cfg,
         seed=seed,
-        epochs=1, # will be overwritten
+        epochs=1,  # will be overwritten
         name=slurmManager.job_name,
         batch_size=local_bs,
         sync_neps=False,
@@ -281,8 +281,6 @@ def generate_eval_script(
         eval_scripts_dir,
         cluster
 ):
-    from config import EvalConfig
-
     run_name = f"train_config{config_id}"
 
     eval_cfg = EvalConfig(
@@ -292,11 +290,10 @@ def generate_eval_script(
         name=run_name,
         pipeline_id=config_id,
     )
-    eval_cmd = build_eval_cmd(eval_cfg, cluster)
     job_name = f"eval_config{config_id}"
 
     eval_script_path = Path(eval_scripts_dir + "/" + f"{job_name}.sh")
-    slurmManager.build_evaluation_script(cmd=eval_cmd, job_name=job_name, save_to=eval_script_path)
+    slurmManager.build_evaluation_script(eval_cfg=eval_cfg, job_name=job_name, save_to=eval_script_path)
     return eval_script_path
 
 

@@ -110,11 +110,11 @@ def main(args):
         os.makedirs(log_base_path, exist_ok=True)
         log_filename = f'out-{args.rank}' if args.log_local else 'out.log'
         args.log_path = os.path.join(log_base_path, log_filename)
-        if os.path.exists(args.log_path) and not resume_latest:
-            print(
-                "Error. Experiment already exists. Use --name {} to specify a new experiment."
-            )
-            return -1
+        # if os.path.exists(args.log_path) and not resume_latest:
+        #     print(
+        #         "Error. Experiment already exists. Use --name {} to specify a new experiment."
+        #     )
+        #     return -1
 
     # Setup text logger
     args.log_level = logging.DEBUG if args.debug else logging.INFO
@@ -384,7 +384,7 @@ def main(args):
         if 'epoch' in checkpoint:
             # resuming a train checkpoint w/ epoch and optimizer state
             start_epoch = checkpoint["epoch"]
-            sd = checkpoint["state_dict"]
+            sd = checkpoint["state_dict"] if "consecutive_nan_steps" not in checkpoint else checkpoint["model"]
             if not args.distributed and next(iter(sd.items()))[0].startswith('module'):
                 sd = {k[len('module.'):]: v for k, v in sd.items()}
             model.load_state_dict(sd)
@@ -480,7 +480,7 @@ def main(args):
             from open_clip.utils import convert_int8_model_to_inference_mode
             convert_int8_model_to_inference_mode(model)
         # Evaluate.
-        metrics = evaluate(model, data, start_epoch, args, tb_writer=writer, tokenizer=tokenizer)
+        metrics = evaluate(model, data, start_epoch, args, tb_writer=writer, tokenizer=tokenizer, checkpoint=args.resume)
 
         neps_dir = Path(args.logs).parent
 

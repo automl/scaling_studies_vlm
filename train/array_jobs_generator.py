@@ -11,10 +11,9 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-import neps
-
 import iterator_params
-from slurm import eval_array_job_cmd, SlurmManager
+from config import EvalConfig
+from slurm import SlurmManager
 
 
 def create_directories(neps_dir: Path):
@@ -45,13 +44,11 @@ def generate_eval_array_script(
     if out_path.exists():
         return
 
-    array_cmd = eval_array_job_cmd(seed, str(logs_dir), cluster)
-    slurm.build_array_job_for_evaluation(
-        cmd=array_cmd,
-        models_cfg_dir=models_cfg_dir,
-        nr_total_configs=nr_configs,
-        save_to=out_path,
-    )
+    eval_cfg = EvalConfig(model=str(models_cfg_dir), seed=seed, name="", logs=str(logs_dir), pipeline_id=1)
+
+    slurm.build_array_job_for_evaluation(eval_cfg=eval_cfg, cluster=cluster,
+                                         nr_total_configs=nr_configs,
+                                         save_to=out_path)
 
 
 def generate_downstream_eval_array_script(
@@ -297,15 +294,15 @@ if __name__ == "__main__":
 
     root_dir = args.root_dir
     neps_dir = Path(args.workspace_dir + "/train/" + args.root_dir).resolve()
-    full_df, _ = neps.status(neps_dir)
-    nr_configs = len(full_df)
+    # full_df, _ = neps.status(neps_dir)
+    # nr_configs = len(full_df)
 
     generate_array_scripts(
         neps_dir=neps_dir,
         root_dir=root_dir,
         seed=args.seed,
         partition=args.partition,
-        nr_configs=nr_configs,
+        nr_configs=500,
         workspace_dir=args.workspace_dir,
         cluster=args.cluster,
         command_dir=args.command_dir,

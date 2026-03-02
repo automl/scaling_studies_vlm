@@ -192,7 +192,8 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                                     "epoch": epoch,
                                     "consecutive_nan_steps": consecutive_nan_steps,
                                 },
-                                os.path.join(args.checkpoint_path, f"nan_checkpoint_step{step - max_consecutive_nans}.pt"),
+                                os.path.join(args.checkpoint_path,
+                                             f"nan_checkpoint_step{step - max_consecutive_nans}.pt"),
                             )
                             logging.error(
                                 f"Stopping training after {consecutive_nan_steps} consecutive NaN/Inf losses "
@@ -209,13 +210,16 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                                 "epoch": epoch,
                                 "step": step - 5,
                                 "samples_processed_current_epoch": num_samples - batch_size * args.world_size * consecutive_nan_steps,
-                                "target_samples": samples_per_epoch ,
+                                "target_samples": samples_per_epoch,
                             }
 
                             with open(early_stopping, "w", encoding="utf-8") as f:
                                 json.dump(early_stop_info, f, indent=2)
+
+                        del total_loss, losses, model_out, images, texts
                         break
 
+                    del total_loss, losses, model_out, images, texts
                     end = time.time()
                     continue
                 else:
@@ -292,7 +296,8 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                                         "epoch": epoch,
                                         "consecutive_nan_steps": consecutive_nan_steps,
                                     },
-                                    os.path.join(args.checkpoint_path, f"nan_checkpoint_step{step - consecutive_nan_steps}.pt"),
+                                    os.path.join(args.checkpoint_path,
+                                                 f"nan_checkpoint_step{step - consecutive_nan_steps}.pt"),
                                 )
                             raise RuntimeError(
                                 f"Stopping training after {consecutive_nan_steps} consecutive NaN/Inf losses "
@@ -510,7 +515,7 @@ def _run_split_eval(metrics, split_name, data, model, device, autocast, input_dt
     return metrics
 
 
-def evaluate(model, data, epoch, args, tb_writer=None, tokenizer=None):
+def evaluate(model, data, epoch, args, tb_writer=None, tokenizer=None, checkpoint=None):
     metrics = {}
     if not is_master(args):
         return metrics
@@ -523,10 +528,10 @@ def evaluate(model, data, epoch, args, tb_writer=None, tokenizer=None):
     autocast = get_autocast(args.precision, device_type=device.type)
     input_dtype = get_input_dtype(args.precision)
 
-    if 'val' in data and (args.val_frequency and ((epoch % args.val_frequency) == 0 or epoch == args.epochs)):
+    if 'val' in data:
         _run_split_eval(metrics, "val", data, model, device, autocast, input_dtype, epoch, args)
 
-    if 'test' in data and epoch == args.epochs:
+    if 'test' in data:
         _run_split_eval(metrics, "test", data, model, device, autocast, input_dtype, epoch, args)
 
     if not metrics:
@@ -552,14 +557,22 @@ def evaluate(model, data, epoch, args, tb_writer=None, tokenizer=None):
         if tb_writer is not None:
             for name, val in log_data.items():
                 tb_writer.add_scalar(name, val, epoch)
-    try:
+
+    if hasattr(args, "gpu_name"):
         metrics["gpu_name"] = args.gpu_name
-    except AttributeError:
-        pass
+    else:
+        logging.warning("Argument 'gpu_name' not found. Skipping gpu_name logging.")
+
+    if checkpoint is not None:
+        metrics["checkpoint"] = checkpoint
+
+    logging.info(f"Writing metrics to: {args.checkpoint_path}")
 
     with open(os.path.join(args.checkpoint_path, "results.jsonl"), "a+") as f:
         f.write(json.dumps(metrics))
         f.write("\n")
+
+    logging.info("Metrics written successfully.")
 
     if args.wandb:
         assert wandb is not None, "Please install wandb."
