@@ -102,7 +102,7 @@ if __name__ == "__main__":
     optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
 
     for epoch in range(1, 120):
-        train(net, device, train_loader, optimizer, epoch, log_interval=1)
+        train(net, device, train_loader, optimizer, epoch, log_interval=10)
 
     y_true, y_pred = net.validate(test_loader, device)
     metrics = compute_regression_metrics(y_true, y_pred)

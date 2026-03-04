@@ -51,10 +51,11 @@ class TorchSurrogateDataset(Dataset):
 class SurrogateDataset:
     """
     Loads train/test CSVs and provides deterministic config based subsets.
-    Returns pandas frames or numpy arrays.
+    Returns numpy arrays.
     """
 
-    DEFAULT_TARGET = "clip_val_loss"
+    DEFAULT_TARGETS = ["clip_val_loss"]
+
     DEFAULT_FEATURES = [
         "lr", "wd", "beta1", "beta2", "eps", "warmup_fraction",
         "vision_width", "text_width", "mparams",
@@ -63,16 +64,16 @@ class SurrogateDataset:
     ]
 
     def __init__(
-            self,
-            train_csv_path: str,
-            test_csv_path: str,
-            features: list[str] | None = None,
-            target: str | None = None,
-            seed: int = 42,
-            config_id_col: str = "config_id",
+        self,
+        train_csv_path: str,
+        test_csv_path: str,
+        features: list[str] | None = None,
+        targets: list[str] | None = None,
+        seed: int = 42,
+        config_id_col: str = "config_id",
     ):
         self.features = features if features is not None else self.DEFAULT_FEATURES
-        self.target = target if target is not None else self.DEFAULT_TARGET
+        self.targets = targets if targets is not None else self.DEFAULT_TARGETS
         self.seed = int(seed)
         self.config_id_col = config_id_col
 
@@ -86,12 +87,12 @@ class SurrogateDataset:
 
     def get_test_data(self):
         X_test = self.test_df[self.features].to_numpy()
-        y_test = self.test_df[self.target].to_numpy()
+        y_test = self.test_df[self.targets].to_numpy()
         return X_test, y_test
 
     def get_train_data(self):
         X_train = self.train_df[self.features].to_numpy()
-        y_train = self.train_df[self.target].to_numpy()
+        y_train = self.train_df[self.targets].to_numpy()
         return X_train, y_train
 
     def get_train_subset_df(self, n_cfg: int) -> pd.DataFrame:
@@ -101,7 +102,7 @@ class SurrogateDataset:
     def get_train_subset(self, n_cfg: int):
         subset = self.get_train_subset_df(n_cfg)
         X = subset[self.features].to_numpy()
-        y = subset[self.target].to_numpy()
+        y = subset[self.targets].to_numpy()
         return X, y
 
     def get_default_sizes(self):

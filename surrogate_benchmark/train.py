@@ -7,6 +7,7 @@ import torch
 
 from surrogate_benchmark.data import SurrogateDataset
 from surrogate_benchmark.predictors.autogluon import AutoGluonModel
+from surrogate_benchmark.predictors.base import MultiLabelSurrogateModel
 from surrogate_benchmark.predictors.ensembles import BaggingEnsemble, EnsembleType
 from surrogate_benchmark.predictors.pfn import TabPFNModel
 
@@ -23,7 +24,8 @@ def parse_args():
     p.add_argument("--train_csv", default="splits/train.csv")
     p.add_argument("--test_csv", default="splits/test.csv")
     p.add_argument("--seed", type=int, default=42)
-    p.add_argument("--model", choices=["tabpfn", "ensemble", "autogluon"], default="autogluon")
+    p.add_argument("--labels", nargs="+", default=["clip_val_loss", "clip_test_loss"])
+    p.add_argument("--model", choices=["tabpfn", "ensemble", "autogluon"], default="ensemble")
     p.add_argument("--ensemble_type", choices=["xgb", "lightgbm", "mix"], default="mix")
     p.add_argument("--device", default="cuda")
     p.add_argument("--out", default="results.json")
@@ -38,27 +40,41 @@ if __name__ == "__main__":
     dataset = SurrogateDataset(
         train_csv_path=args.train_csv,
         test_csv_path=args.test_csv,
+        targets=args.labels,
         seed=args.seed,
     )
 
     sizes = dataset.get_default_sizes()
+    labels = args.labels
 
     if args.model == "tabpfn":
-        model = TabPFNModel(seed=args.seed, device=args.device)
-        model_name = f"tabpfn_{args.device}"
+        model = MultiLabelSurrogateModel(
+            labels=labels,
+            model_factory=lambda label: TabPFNModel(seed=args.seed, device=args.device),
+        )
+        model_name = "tabpfn"
 
     elif args.model == "ensemble":
-        model = BaggingEnsemble(EnsembleType(args.ensemble_type), seed=args.seed)
+        model = MultiLabelSurrogateModel(
+            labels=args.labels,
+            model_factory=lambda label: BaggingEnsemble(
+                EnsembleType(args.ensemble_type),
+                seed=args.seed,
+            ),
+        )
         model_name = f"ensemble_{args.ensemble_type}"
 
     elif args.model == "autogluon":
 
-        model = AutoGluonModel(
-            features=dataset.features,
-            label=dataset.target,
-            time_limit=200,
+        MultiLabelSurrogateModel(
+            labels=args.labels,
+            model_factory=lambda label: AutoGluonModel(
+                features=dataset.features,
+                label=label,
+                time_limit=200,
+                base_path=f"AutogluonModels/{label}"
+            ),
         )
-
         model_name = "autogluon"
 
     else:
