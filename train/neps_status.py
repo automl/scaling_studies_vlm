@@ -1,7 +1,10 @@
 import argparse
 import json
+import math
 import re
+from copy import deepcopy
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 import yaml
@@ -114,25 +117,67 @@ def fetch_text_vision_width(model_cfg):
     return {"text_width": text_width, "vision_width": vision_width}
 
 
-def fetch_train_num_samples_epochs(train_scripts_dir: Path, config_id: int):
+def fetch_train_num_samples_per_epoch(
+        train_scripts_dir: Path,
+        config_id: int,
+        epoch: int
+):
     script_path = train_scripts_dir / f"train_config{config_id}.sh"
-    text = Path(script_path).read_text()
+
+    if not script_path.exists():
+        return {}
+
+    text = script_path.read_text()
 
     samples_match = re.search(r'--train-num-samples\s+(\S+)', text)
     epochs_match = re.search(r'--epochs\s+(\S+)', text)
 
-    result = {}
+    if not samples_match or not epochs_match:
+        return {}
 
-    if samples_match:
-        result["train_num_samples"] = int(samples_match.group(1))
+    train_num_samples = int(float(samples_match.group(1)))
+    total_epochs = int(float(epochs_match.group(1)))
 
-    if epochs_match:
-        result["epochs"] = int(epochs_match.group(1))
+    total_samples_planned = train_num_samples * total_epochs
+    samples_seen = epoch * train_num_samples
+    samples_seen_frac = samples_seen / total_samples_planned
 
-    return result if result else None
+    return {
+        "train_num_samples_per_epoch": train_num_samples,
+        "total_epochs": total_epochs,
+        "total_samples_planned": total_samples_planned,
+        "samples_seen": samples_seen,
+        "samples_seen_frac": samples_seen_frac,
+    }
 
 
-def fetch_total_compute_and_nparams(checkpoints_dir: Path) -> dict:
+def fetch_global_bs(train_scripts_dir: Path, config_id: int):
+    script_path = train_scripts_dir / f"train_config{config_id}.sh"
+
+    if not script_path.exists():
+        return {}
+
+    text = script_path.read_text()
+
+    nodes_match = re.search(r"#SBATCH\s+--nodes=(\d+)", text)
+    nodes = int(nodes_match.group(1)) if nodes_match else 1
+
+    gpu_match = re.search(r"#SBATCH\s+--gres=gpu:(\d+)", text)
+    gpus_per_node = int(gpu_match.group(1)) if gpu_match else 1
+
+    bs_match = re.search(r"--batch-size\s+(\d+)", text)
+    batch_size = int(bs_match.group(1)) if bs_match else None
+
+    if batch_size is None:
+        return {}
+
+    global_batch_size = nodes * gpus_per_node * batch_size
+    return {
+        "global_batch_size": global_batch_size,
+    }
+
+
+def fetch_nparams(checkpoints_dir: Path) -> dict:
     result = {}
 
     params_path = checkpoints_dir / "model_params.txt"
@@ -144,14 +189,7 @@ def fetch_total_compute_and_nparams(checkpoints_dir: Path) -> dict:
                 key, value = line.strip().split(":", 1)
                 result[key.strip()] = float(value.strip())
 
-    compute_path = checkpoints_dir / "compute_info.json"
-    if compute_path.is_file():
-        with compute_path.open("r") as f:
-            compute_data = json.load(f)
-            result["Total compute(GLOPs)"] = compute_data.get("total_compute")
-
     return {
-        "Total compute(GLOPs)": result.get("Total compute(GLOPs)"),
         "mparams": result.get("total_mparams"),
         "vision_mparams": result.get("image_mparams"),
         "text_mparams": result.get("text_mparams"),
@@ -159,7 +197,7 @@ def fetch_total_compute_and_nparams(checkpoints_dir: Path) -> dict:
     }
 
 
-def fetch_training_gpu_used_gpu_training_time(checkpoints_dir: Path) -> dict:
+def fetch_training_gpu_used_gpu_training_time(checkpoints_dir: Path, epoch) -> dict:
     out = {"train_gpu_name": None, "world_size": None, "train_duration(s)": None}
     train_results_path = checkpoints_dir / "train_loss.jsonl"
     train_time_path = checkpoints_dir / "train_time.jsonl"
@@ -252,53 +290,181 @@ def is_completed_trial(checkpoints_dir: Path) -> bool:
     return True
 
 
+def fetch_progress_per_epoch(checkpoints_dir: Path, epoch) -> dict:
+    out = {
+        "global_steps_completed": None,
+        "total_global_steps": None,
+        "in_warmup": None,
+        "warmup_steps": None,
+        "warmup_progress": None,
+        "training_progress": None,
+    }
+
+    results_path = checkpoints_dir / "epoch_steps_info.jsonl"
+
+    if not results_path.exists():
+        return out
+
+    with open(results_path, "r") as f:
+        for line in f:
+            if not line.strip():
+                continue
+
+            data = json.loads(line)
+
+            if int(data.get("epoch")) == int(epoch):
+                for key in out.keys():
+                    out[key] = data.get(key)
+
+                if out["in_warmup"] is not None:
+                    out["in_warmup"] = int(out["in_warmup"])
+
+                return out
+
+    return out
+
+
+def fetch_losses_for_epoch(checkpoints_dir: Path, target_epoch: int) -> dict:
+    jsonl_path = checkpoints_dir / "results.jsonl"
+
+    if not jsonl_path.exists():
+        return {}
+
+    with open(jsonl_path, "r") as f:
+        for line in f:
+            record = json.loads(line)
+
+            if record.get("epoch") == target_epoch:
+                return {
+                    "clip_val_loss": record.get("clip_val_loss"),
+                    "clip_test_loss": record.get("clip_test_loss"),
+                }
+
+    return {}
+
+
+def compute_lr_value_for_epoch(progress: dict, base_row: dict) -> float:
+    base_lr = base_row["lr"]
+    step = progress["global_steps_completed"]
+    total_steps = progress["total_global_steps"]
+    warmup_steps = progress["warmup_steps"]
+
+    e = step - warmup_steps
+    es = total_steps - warmup_steps
+
+    return 0.5 * (1.0 + math.cos(math.pi * e / es)) * base_lr
+
+
+def list_available_epochs(checkpoints_dir: Path):
+    epochs = []
+
+    for file in checkpoints_dir.glob("epoch_*.pt"):
+        match = re.match(r"epoch_(\d+)\.pt", file.name)
+        if match:
+            epochs.append(int(match.group(1)))
+
+    return sorted(epochs)
+
+
+def build_rows_per_trial(trial_id: str, root_dir: Path):
+    train_logs_root = root_dir / "individual_training_logs"
+    trial_dir = train_logs_root / f"train_config{trial_id}"
+
+    train_scripts_dir = root_dir / "train_scripts"
+    checkpoints_dir = trial_dir / "checkpoints"
+    configs_dir = root_dir / "configs"
+    model_cfgs_dir = root_dir / "model_cfg"
+    config_dir = configs_dir / f"config_{trial_id}"
+    model_cfg = model_cfgs_dir / f"config_{trial_id}/open_clip_config.json"
+
+    diverged = has_diverged(checkpoints_dir)
+
+    if diverged: # ignore for now
+        return []
+
+    # Fields agnostic to epoch
+    base_row: dict[str, Any] = {
+        "config_id": trial_id,
+        "diverged": diverged,
+        **fetch_global_bs(train_scripts_dir, config_id=int(trial_id)),
+        **fetch_hyperparameters(config_dir),
+        **fetch_text_vision_width(model_cfg),
+        **fetch_nparams(checkpoints_dir),
+    }
+    epochs = list_available_epochs(checkpoints_dir)
+    rows = []
+    for epoch in epochs:
+        progress = fetch_progress_per_epoch(checkpoints_dir, epoch)
+        samples = fetch_train_num_samples_per_epoch(train_scripts_dir=train_scripts_dir, config_id=int(trial_id),
+                                                    epoch=epoch)
+        losses = fetch_losses_for_epoch(checkpoints_dir, epoch)
+
+        lr_value = compute_lr_value_for_epoch(progress, base_row)
+
+        row = deepcopy(base_row)
+        row.update({
+            "epoch": epoch,
+            "current_lr_value": lr_value,
+            "lr_ratio": lr_value / base_row["lr"],
+            **progress,
+            **losses,
+            **samples
+        })
+
+        rows.append(row)
+
+    return rows
+
+
 if __name__ == "__main__":
     args = parse_args()
 
     root_dir: Path = args.root_dir
-    train_logs_root = root_dir / "individual_training_logs"
-    configs_dir = root_dir / "configs"
     out_csv = root_dir / "configs_summary.csv"
-    train_scripts_dir = root_dir / "train_scripts"
-    model_cfgs_dir = root_dir / "model_cfg"
-
-    completed_trial_ids = []
-    rows = []
 
     trial_ids = list(range(args.start_from, args.end_at))
 
+    rows: list[dict[str, Any]] = []
+    completed_trial_ids: list[int] = []
+    diverged_trial_ids: list[int] = []
+    failed_trial_ids: list[int] = []
+
     for trial_id in trial_ids:
-        trial_dir = train_logs_root / f"train_config{trial_id}"
-        checkpoints_dir = trial_dir / "checkpoints"
-        downstream_eval_path = trial_dir / "eval"
-        config_dir = configs_dir / f"config_{trial_id}"
-        model_cfg = model_cfgs_dir / f"config_{trial_id}/open_clip_config.json"
-        latest_epoch = find_latest_epoch(checkpoints_dir)
+        try:
+            trial_rows = build_rows_per_trial(str(trial_id), root_dir)
 
-        if is_completed_trial(checkpoints_dir):
-            completed_trial_ids.append(trial_id)
+            if not trial_rows:
+                failed_trial_ids.append(trial_id)
+                continue
 
-        diverged = has_diverged(checkpoints_dir)
+            rows.extend(trial_rows)
 
-        row = {
-            "config_id": trial_id,
-            "diverged": diverged,
-            **fetch_losses(checkpoints_dir),
-            **fetch_downstream_eval_results(downstream_eval_path, latest_epoch),
-            **fetch_hyperparameters(config_dir),
-            **fetch_total_compute_and_nparams(checkpoints_dir),
-            **fetch_text_vision_width(model_cfg),
-            **fetch_training_gpu_used_gpu_training_time(checkpoints_dir),
-            **fetch_train_num_samples_epochs(train_scripts_dir, int(trial_id)),
-        }
-        rows.append(row)
+            if any(r.get("diverged", False) for r in trial_rows):
+                diverged_trial_ids.append(trial_id)
 
-    failed_trial_ids = sorted(set(trial_ids) - set(completed_trial_ids))
+            checkpoints_dir = root_dir / "individual_training_logs" / f"train_config{trial_id}" / "checkpoints"
+            if is_completed_trial(checkpoints_dir):
+                completed_trial_ids.append(trial_id)
+
+        except Exception as e:
+            failed_trial_ids.append(trial_id)
+            print(f"Trial {trial_id} failed with error: {e}")
+
+    failed_trial_ids = sorted(set(failed_trial_ids))
     print("Failed trials:", failed_trial_ids)
 
-    diverged_trials = [r["config_id"] for r in rows if r["diverged"]]
-    print("Diverged trials:", diverged_trials)
+    diverged_trial_ids = sorted(set(diverged_trial_ids))
+    print("Diverged trials:", diverged_trial_ids)
 
-    df = pd.DataFrame(rows).set_index("config_id")
+    completed_trial_ids = sorted(set(completed_trial_ids))
+    print("Completed trials:", completed_trial_ids)
+
+    df = pd.DataFrame(rows)
+
+    if "epoch" in df.columns:
+        df = df.set_index(["config_id", "epoch"]).sort_index()
+    else:
+        df = df.set_index("config_id").sort_index()
+
     df.to_csv(out_csv)
     print("Summary csv file has been written to:", out_csv)
