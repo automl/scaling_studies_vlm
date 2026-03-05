@@ -25,7 +25,7 @@ def parse_args():
     p.add_argument("--test_csv", default="splits/test.csv")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--labels", nargs="+", default=["clip_val_loss", "clip_test_loss"])
-    p.add_argument("--model", choices=["tabpfn", "ensemble", "autogluon"], default="ensemble")
+    p.add_argument("--model", choices=["tabpfn", "ensemble", "autogluon"], default="tabpfn")
     p.add_argument("--ensemble_type", choices=["xgb", "lightgbm", "mix"], default="mix")
     p.add_argument("--device", default="cuda")
     p.add_argument("--out", default="results.json")
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
     elif args.model == "autogluon":
 
-        MultiLabelSurrogateModel(
+        model = MultiLabelSurrogateModel(
             labels=args.labels,
             model_factory=lambda label: AutoGluonModel(
                 features=dataset.features,
