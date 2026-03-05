@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import spearmanr, pearsonr
+from scipy.stats import spearmanr, pearsonr, kendalltau
 from sklearn.metrics import mean_squared_error, mean_absolute_error, median_absolute_error, r2_score
 
 
@@ -38,3 +38,27 @@ def compute_regression_metrics(y_true, y_pred):
         "r": float(r),
         "spearman": float(spearman_corr),
     }
+
+
+def calculate_correlation_matrix(data_dict):
+    """
+   Compute a Kendall tau correlation matrix.
+
+   Expects:
+       data_dict: dict where keys are column/metric names and values are lists (or arrays) of numeric values of equal length.
+
+   Returns:
+       corr_mat: NxN matrix with pairwise Kendall tau correlations
+       keys: list of metric names corresponding to the matrix rows/columns
+   """
+    keys = list(data_dict.keys())
+    n = len(keys)
+
+    corr_mat = np.zeros((n, n))
+
+    for i in range(n):
+        for j in range(n):
+            corr, _ = kendalltau(data_dict[keys[i]], data_dict[keys[j]])
+            corr_mat[i, j] = round(corr, 2)
+
+    return corr_mat, keys
