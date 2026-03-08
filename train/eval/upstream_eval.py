@@ -1,4 +1,6 @@
+import json
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -31,6 +33,37 @@ def _prepare_runtime(train_dir: str, command_dir: str) -> dict:
     env = os.environ.copy()
     env["PYTHONPATH"] = f"{command_dir_p}:{env.get('PYTHONPATH', '')}"
     return env
+
+
+def _should_skip_eval_on_epoch(epoch, checkpoints_dir):
+    results_path = Path(checkpoints_dir) / "results.jsonl"
+
+    if not results_path.exists():
+        return False
+
+    with results_path.open("r") as f:
+        for line in f:
+            try:
+                rec = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            if rec.get("epoch") == epoch:
+                has_val = any(k in rec for k in ["val_loss", "clip_val_loss"])
+                has_test = any(k in rec for k in ["test_loss", "clip_test_loss"])
+
+                if has_val and has_test:
+                    return True
+
+    return False
+
+
+def _get_epoch_from_checkpoint(ckpt_path):
+    name = ckpt_path.name
+    match = re.search(r"epoch[_\-]?(\d+)", name)
+    if match:
+        return int(match.group(1))
+    return None
 
 
 def main():
@@ -66,6 +99,12 @@ def main():
     run_name = f"train_config{config_id}"
 
     for ckpt in checkpoints:
+        epoch = _get_epoch_from_checkpoint(ckpt)
+
+        if epoch is not None and _should_skip_eval_on_epoch(epoch, ckpt_dir):
+            print(f"Skipping checkpoint {ckpt.name}, epoch {epoch} already evaluated")
+            continue
+
         cmd = [
             "python", "-u", "-m", "clip_train.main",
             "--val-data", args.val_data,
