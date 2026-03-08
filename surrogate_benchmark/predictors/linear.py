@@ -10,7 +10,7 @@ from surrogate_benchmark.metrics import compute_regression_metrics
 def train_test_loaders():
     TRAIN_CSV_PATH = "../splits/train.csv"
     TEST_CSV_PATH = "../splits/test.csv"
-    TARGET_COL = "clip_val_loss"
+    TARGET_COL = "val_loss"
 
     train_dataset = TorchSurrogateDataset(TRAIN_CSV_PATH, target_col=TARGET_COL)
     train_loader = DataLoader(train_dataset, batch_size=1024, shuffle=True, num_workers=0)

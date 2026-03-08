@@ -13,7 +13,7 @@ class TorchSurrogateDataset(Dataset):
 
         self.feature_cols = [
             "lr", "wd", "beta1", "beta2", "eps", "warmup_fraction",
-            "vision_width", "text_width", "mparams",
+            "vision_width", "text_width", "global_batch_size",
             "total_samples_planned", "training_progress", "lr_ratio",
         ]
         missing = [c for c in self.feature_cols + [target_col] if c not in self.df.columns]
@@ -54,7 +54,7 @@ class SurrogateDataset:
     Returns numpy arrays.
     """
 
-    DEFAULT_TARGETS = ["clip_val_loss"]
+    DEFAULT_TARGETS = ["val_loss"]
 
     DEFAULT_FEATURES = [
         "lr", "wd", "beta1", "beta2", "eps", "warmup_fraction",

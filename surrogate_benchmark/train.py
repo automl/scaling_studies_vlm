@@ -24,7 +24,7 @@ def parse_args():
     p.add_argument("--train_csv", default="splits/train.csv")
     p.add_argument("--test_csv", default="splits/test.csv")
     p.add_argument("--seed", type=int, default=42)
-    p.add_argument("--labels", nargs="+", default=["clip_val_loss", "clip_test_loss"])
+    p.add_argument("--labels", nargs="+", default=["val_loss", "test_loss"])
     p.add_argument("--model", choices=["tabpfn", "ensemble", "autogluon"], default="tabpfn")
     p.add_argument("--ensemble_type", choices=["xgb", "lightgbm", "mix"], default="mix")
     p.add_argument("--device", default="cuda")
