@@ -9,8 +9,6 @@ from typing import Any
 import pandas as pd
 import yaml
 
-from utils import read_last_json_line
-
 
 def parse_args():
     p = argparse.ArgumentParser()
@@ -197,64 +195,43 @@ def fetch_nparams(checkpoints_dir: Path) -> dict:
     }
 
 
-def fetch_training_gpu_used_gpu_training_time(checkpoints_dir: Path, epoch) -> dict:
-    out = {"train_gpu_name": None, "world_size": None, "train_duration(s)": None}
-    train_results_path = checkpoints_dir / "train_loss.jsonl"
+def fetch_epoch_training_time(checkpoints_dir: Path, epoch: int) -> dict:
     train_time_path = checkpoints_dir / "train_time.jsonl"
 
-    try:
-        out["train_gpu_name"] = read_last_json_line(train_results_path).get("GPU_trained_on")
-        out["world_size"] = read_last_json_line(train_results_path).get("world_size")
-        out["train_duration(s)"] = read_last_json_line(train_time_path).get("epoch_training_duration_seconds")
-    except Exception:
-        pass
+    if not train_time_path.exists():
+        return {}
 
-    return out
+    with open(train_time_path, "r") as f:
+        for line in f:
+            record = json.loads(line)
 
+            if record.get("epoch") == epoch:
+                return {
+                    "train_duration(s)": record.get("epoch_training_duration_seconds")
+                }
 
-def fetch_losses(checkpoints_dir: Path) -> dict:
-    out = {"train_loss": None, "val_loss": None, "test_loss": None}
-
-    epoch1_path = checkpoints_dir / "epoch_1.pt"
-    results_path = checkpoints_dir / "results.jsonl"
-    train_results_path = checkpoints_dir / "train_loss.jsonl"
-
-    if not (epoch1_path.is_file() and results_path.is_file() and train_results_path.is_file()):
-        return out
-
-    try:
-        train_results = read_last_json_line(train_results_path) or {}
-        val_test_results = read_last_json_line(results_path) or {}
-
-        out["train_loss"] = train_results.get("train_loss")
-        out["val_loss"] = val_test_results.get("clip_val_loss")
-        out["test_loss"] = val_test_results.get("clip_test_loss")
-
-    except Exception:
-        pass
-
-    return out
+    return {}
 
 
-def fetch_gpu_names_and_world_size(checkpoints_dir: Path) -> dict:
-    out = {"train_gpu": None, "val_test_gpu": None, "downstream_gpu": None}
-    results_path = checkpoints_dir / "results.jsonl"
-    train_results_path = checkpoints_dir / "train_loss.jsonl"
-    downstream_eval_results_path = checkpoints_dir / "eval_gpu_info.jsonl"
+def fetch_compute_per_epoch(checkpoints_dir: Path, epoch: int) -> dict:
+    compute_path = checkpoints_dir / "compute_info.json"
 
-    try:
-        train_results = read_last_json_line(train_results_path) or {}
-        val_test_results = read_last_json_line(results_path) or {}
-        downstream_eval_results = read_last_json_line(downstream_eval_results_path) or {}
-        out["train_gpu"] = train_results.get("GPU_trained_on")
-        out["val_test_gpu"] = val_test_results.get("gpu_name")
-        out["downstream_gpu"] = downstream_eval_results.get("gpu_name")
-        out["train_world_size"] = train_results.get("world_size")
+    if not compute_path.exists():
+        return {}
 
-    except Exception:
-        pass
+    with open(compute_path, "r") as f:
+        record = json.load(f)
 
-    return out
+    compute_per_epoch = record.get("compute_per_epoch")
+    total_compute = record.get("total_compute")
+
+    if compute_per_epoch is None:
+        return {}
+
+    return {
+        "compute_seen": compute_per_epoch * epoch,
+        "Total compute(GLOPs)": total_compute,
+    }
 
 
 def find_latest_epoch(checkpoints_dir: Path) -> int | None:
@@ -325,9 +302,12 @@ def fetch_progress_per_epoch(checkpoints_dir: Path, epoch) -> dict:
 
 
 def fetch_losses_for_epoch(checkpoints_dir: Path, target_epoch: int) -> dict:
-    jsonl_path = checkpoints_dir / "results.jsonl"
+    losses = {}
 
-    if not jsonl_path.exists():
+    jsonl_path = checkpoints_dir / "results.jsonl"
+    train_loss_path = checkpoints_dir / "train_loss.jsonl"
+
+    if not jsonl_path.exists() or not train_loss_path.exists():
         return {}
 
     with open(jsonl_path, "r") as f:
@@ -335,12 +315,21 @@ def fetch_losses_for_epoch(checkpoints_dir: Path, target_epoch: int) -> dict:
             record = json.loads(line)
 
             if record.get("epoch") == target_epoch:
-                return {
-                    "clip_val_loss": record.get("clip_val_loss"),
-                    "clip_test_loss": record.get("clip_test_loss"),
-                }
+                losses["val_loss"] = record.get("clip_val_loss")
+                losses["test_loss"] = record.get("clip_test_loss")
+                break
 
-    return {}
+    with open(train_loss_path, "r") as f:
+        for line in f:
+            record = json.loads(line)
+
+            if record.get("epoch") == target_epoch - 1:
+                losses["train_loss"] = record.get("train_loss")
+                losses["world_size"] = record.get("world_size")
+                losses["train_gpu_name"] = record.get("GPU_trained_on")
+                break
+
+    return losses
 
 
 def compute_lr_value_for_epoch(progress: dict, base_row: dict) -> float:
@@ -379,7 +368,7 @@ def build_rows_per_trial(trial_id: str, root_dir: Path):
 
     diverged = has_diverged(checkpoints_dir)
 
-    if diverged: # ignore for now
+    if diverged:  # ignore for now
         return []
 
     # Fields agnostic to epoch
@@ -408,7 +397,9 @@ def build_rows_per_trial(trial_id: str, root_dir: Path):
             "lr_ratio": lr_value / base_row["lr"],
             **progress,
             **losses,
-            **samples
+            **samples,
+            **fetch_compute_per_epoch(checkpoints_dir, epoch),
+            **fetch_epoch_training_time(checkpoints_dir, epoch),
         })
 
         rows.append(row)
