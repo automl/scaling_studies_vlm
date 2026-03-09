@@ -116,9 +116,11 @@ def fetch_text_vision_width(model_cfg):
 
 
 def fetch_train_num_samples_per_epoch(
+        checkpoints_dir: Path,
         train_scripts_dir: Path,
         config_id: int,
-        epoch: int
+        epoch: int,
+        is_diverged_epoch: bool,
 ):
     script_path = train_scripts_dir / f"train_config{config_id}.sh"
 
@@ -137,8 +139,24 @@ def fetch_train_num_samples_per_epoch(
     total_epochs = int(float(epochs_match.group(1)))
 
     total_samples_planned = train_num_samples * total_epochs
-    samples_seen = epoch * train_num_samples
-    samples_seen_frac = samples_seen / total_samples_planned
+
+    if is_diverged_epoch:
+        early_stop_path = checkpoints_dir / "early_stop_info.json"
+
+        samples_processed_current_epoch = None
+
+        if early_stop_path.exists():
+            with open(early_stop_path, "r") as f:
+                data = json.load(f)
+                samples_processed_current_epoch = data.get("samples_processed_current_epoch")
+        if samples_processed_current_epoch is None:
+            return {}
+
+        samples_seen = ((epoch - 1) * train_num_samples) + samples_processed_current_epoch
+    else:
+        samples_seen = epoch * train_num_samples
+
+    samples_seen_frac = samples_seen / total_samples_planned if total_samples_planned > 0 else 0.0
 
     return {
         "train_num_samples_per_epoch": train_num_samples,
@@ -267,7 +285,102 @@ def is_completed_trial(checkpoints_dir: Path) -> bool:
     return True
 
 
-def fetch_progress_per_epoch(checkpoints_dir: Path, epoch) -> dict:
+def fetch_workers(params_dir: Path):
+    params_path = params_dir / "params.txt"
+
+    if not params_path.exists():
+        return None
+
+    text = params_path.read_text()
+
+    match = re.search(r"workers:\s*(\d+)", text)
+    return int(match.group(1)) if match else None
+
+
+def fetch_completed_steps_from_nan_checkpoint(checkpoints_dir: Path):
+    for file in checkpoints_dir.glob("*.pt"):
+        if "nan" in file.name.lower():
+            match = re.search(r"step(\d+)", file.name)
+            if match:
+                return int(match.group(1))
+    return None
+
+
+def fetch_progress_for_diverged_epoch(train_scripts_dir: Path, config_id: int, checkpoints_dir: Path,
+                                      params_dir) -> dict:
+    out = {
+        "global_steps_completed": None,
+        "total_global_steps": None,
+        "in_warmup": None,
+        "warmup_steps": None,
+        "warmup_progress": None,
+        "training_progress": None,
+    }
+
+    script_path = train_scripts_dir / f"train_config{config_id}.sh"
+
+    if not script_path.exists():
+        return out
+
+    text = script_path.read_text()
+
+    nodes_match = re.search(r"#SBATCH\s+--nodes=(\d+)", text)
+    nodes = int(nodes_match.group(1)) if nodes_match else 1
+
+    gpu_match = re.search(r"#SBATCH\s+--gres=gpu:(\d+)", text)
+    gpus_per_node = int(gpu_match.group(1)) if gpu_match else 1
+
+    bs_match = re.search(r"--batch-size\s+(\d+)", text)
+    batch_size = int(bs_match.group(1)) if bs_match else None
+
+    epochs_match = re.search(r"--epochs\s+(\d+)", text)
+    epochs = int(epochs_match.group(1)) if epochs_match else None
+
+    samples_match = re.search(r"--train-num-samples\s+(\d+)", text)
+    train_num_samples = int(samples_match.group(1)) if samples_match else None
+
+    warmup_match = re.search(r"--warmup-fraction\s+([\d.]+)", text)
+    warmup_fraction = float(warmup_match.group(1)) if warmup_match else 0.0
+
+    if None in (batch_size, epochs, train_num_samples):
+        return out
+
+    workers = fetch_workers(params_dir)
+    completed_steps = fetch_completed_steps_from_nan_checkpoint(checkpoints_dir)
+
+    global_batch_size = nodes * gpus_per_node * batch_size
+
+    num_batches = math.ceil(train_num_samples / global_batch_size)
+    num_worker_batches = math.ceil(num_batches / workers)
+    num_batches = num_worker_batches * workers
+
+    steps_per_epoch = num_batches
+    total_steps = steps_per_epoch * epochs
+
+    warmup_steps = int(total_steps * warmup_fraction)
+
+    in_warmup = int(warmup_steps > 0 and completed_steps <= warmup_steps)
+    warmup_progress = (
+        min(completed_steps / warmup_steps, 1.0) if warmup_steps > 0 else 0.0
+    )
+
+    training_progress = completed_steps / total_steps if total_steps > 0 else 0.0
+
+    out["global_steps_completed"] = completed_steps
+    out["total_global_steps"] = total_steps
+    out["in_warmup"] = in_warmup
+    out["warmup_steps"] = warmup_steps
+    out["warmup_progress"] = warmup_progress
+    out["training_progress"] = training_progress
+
+    return out
+
+
+def fetch_progress_per_epoch(checkpoints_dir: Path, epoch, has_diverged, train_scripts_dir, trial_dir,
+                             trial_id) -> dict:
+    if has_diverged:
+        return fetch_progress_for_diverged_epoch(train_scripts_dir=train_scripts_dir, config_id=trial_id,
+                                                 checkpoints_dir=checkpoints_dir, params_dir=trial_dir)
     out = {
         "global_steps_completed": None,
         "total_global_steps": None,
@@ -301,7 +414,7 @@ def fetch_progress_per_epoch(checkpoints_dir: Path, epoch) -> dict:
     return out
 
 
-def fetch_losses_for_epoch(checkpoints_dir: Path, target_epoch: int) -> dict:
+def fetch_losses_for_epoch(checkpoints_dir: Path, target_epoch: int, is_diverged_epoch: bool) -> dict:
     losses = {}
 
     jsonl_path = checkpoints_dir / "results.jsonl"
@@ -314,10 +427,17 @@ def fetch_losses_for_epoch(checkpoints_dir: Path, target_epoch: int) -> dict:
         for line in f:
             record = json.loads(line)
 
-            if record.get("epoch") == target_epoch:
-                losses["val_loss"] = record.get("clip_val_loss")
-                losses["test_loss"] = record.get("clip_test_loss")
-                break
+            if is_diverged_epoch:
+                checkpoint_name = str(record.get("checkpoint", "")).lower()
+                if "nan" in checkpoint_name:
+                    losses["val_loss"] = record.get("clip_val_loss")
+                    losses["test_loss"] = record.get("clip_test_loss")
+                    break
+            else:
+                if record.get("epoch") == target_epoch:
+                    losses["val_loss"] = record.get("clip_val_loss")
+                    losses["test_loss"] = record.get("clip_test_loss")
+                    break
 
     with open(train_loss_path, "r") as f:
         for line in f:
@@ -346,13 +466,24 @@ def compute_lr_value_for_epoch(progress: dict, base_row: dict) -> float:
 
 def list_available_epochs(checkpoints_dir: Path):
     epochs = []
+    has_nan_checkpoint = False
 
-    for file in checkpoints_dir.glob("epoch_*.pt"):
-        match = re.match(r"epoch_(\d+)\.pt", file.name)
+    for file in checkpoints_dir.glob("*.pt"):
+        name = file.name
+
+        match = re.match(r"epoch_(\d+)\.pt$", name)
         if match:
             epochs.append(int(match.group(1)))
+        elif "nan" in file.stem.lower():
+            has_nan_checkpoint = True
 
-    return sorted(epochs)
+    epochs = sorted(set(epochs))
+
+    if has_nan_checkpoint:
+        next_epoch = (max(epochs) + 1) if epochs else 1
+        epochs.append(next_epoch)
+
+    return epochs, has_nan_checkpoint
 
 
 def build_rows_per_trial(trial_id: str, root_dir: Path):
@@ -366,33 +497,33 @@ def build_rows_per_trial(trial_id: str, root_dir: Path):
     config_dir = configs_dir / f"config_{trial_id}"
     model_cfg = model_cfgs_dir / f"config_{trial_id}/open_clip_config.json"
 
-    diverged = has_diverged(checkpoints_dir)
-
-    if diverged:  # ignore for now
-        return []
-
     # Fields agnostic to epoch
     base_row: dict[str, Any] = {
         "config_id": trial_id,
-        "diverged": diverged,
         **fetch_global_bs(train_scripts_dir, config_id=int(trial_id)),
         **fetch_hyperparameters(config_dir),
         **fetch_text_vision_width(model_cfg),
         **fetch_nparams(checkpoints_dir),
     }
-    epochs = list_available_epochs(checkpoints_dir)
+    epochs, has_nan_checkpoint = list_available_epochs(checkpoints_dir)
+
     rows = []
     for epoch in epochs:
-        progress = fetch_progress_per_epoch(checkpoints_dir, epoch)
-        samples = fetch_train_num_samples_per_epoch(train_scripts_dir=train_scripts_dir, config_id=int(trial_id),
-                                                    epoch=epoch)
-        losses = fetch_losses_for_epoch(checkpoints_dir, epoch)
+        is_diverged_epoch = has_nan_checkpoint and epoch == epochs[-1]
+
+        progress = fetch_progress_per_epoch(checkpoints_dir, epoch, is_diverged_epoch, train_scripts_dir, trial_dir,
+                                            trial_id)
+        samples = fetch_train_num_samples_per_epoch(checkpoints_dir=checkpoints_dir,
+                                                    train_scripts_dir=train_scripts_dir, config_id=int(trial_id),
+                                                    epoch=epoch, is_diverged_epoch=is_diverged_epoch)
+        losses = fetch_losses_for_epoch(checkpoints_dir, epoch, is_diverged_epoch)
 
         lr_value = compute_lr_value_for_epoch(progress, base_row)
 
         row = deepcopy(base_row)
         row.update({
             "epoch": epoch,
+            "epoch_diverged": is_diverged_epoch,
             "current_lr_value": lr_value,
             "lr_ratio": lr_value / base_row["lr"],
             **progress,
@@ -440,15 +571,6 @@ if __name__ == "__main__":
         except Exception as e:
             failed_trial_ids.append(trial_id)
             print(f"Trial {trial_id} failed with error: {e}")
-
-    failed_trial_ids = sorted(set(failed_trial_ids))
-    print("Failed trials:", failed_trial_ids)
-
-    diverged_trial_ids = sorted(set(diverged_trial_ids))
-    print("Diverged trials:", diverged_trial_ids)
-
-    completed_trial_ids = sorted(set(completed_trial_ids))
-    print("Completed trials:", completed_trial_ids)
 
     df = pd.DataFrame(rows)
 
