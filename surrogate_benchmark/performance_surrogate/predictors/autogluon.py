@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from autogluon.tabular import TabularPredictor
 
-from surrogate_benchmark.predictors.base import SurrogateModel
+from surrogate_benchmark.performance_surrogate.predictors.base import SurrogateModel
 
 
 class AutoGluonModel(SurrogateModel):
@@ -10,8 +10,8 @@ class AutoGluonModel(SurrogateModel):
     def __init__(
             self,
             features: list[str],
-            label: str = "clip_val_loss",
-            time_limit: int = 30*60,
+            label: str = "val_loss",
+            time_limit: int = 30 * 60,
             presets: str = "best_quality",
             base_path: str = "AutogluonModels",
     ):

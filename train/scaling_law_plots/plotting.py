@@ -3,22 +3,31 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from matplotlib.colors import Normalize
 
+def load_final_non_diverged(csv_path):
+    df = pd.read_csv(csv_path)
+
+    mask = (
+        (df["epoch"] == df["total_epochs"]) &
+        (df["epoch_diverged"] == False)
+    )
+
+    return df[mask].copy()
 
 def plot_flops_vs_params_from_csv(
         csv_path: str,
         *,
-        flops_col: str = "Total compute(GLOPs)",
+        flops_col: str = "compute_seen",
         params_col: str = "mparams",
         params_are_millions: bool = True,
 ) -> plt.Figure | None:
     """
     Read a CSV and plot FLOPs vs Params (log-log).
     Expects columns like:
-      - Total compute(GLOPs)
+      - compute_seen
       - mparams (millions of parameters)
     """
 
-    df = pd.read_csv(csv_path)
+    df = load_final_non_diverged(csv_path)
 
     if flops_col not in df.columns or params_col not in df.columns:
         print(f"Missing required columns. Need: {flops_col!r} and {params_col!r}")
@@ -55,7 +64,7 @@ def plot_flops_per_objective_from_csv(
         csv_path: str,
         *,
         objective_col: str = "val_loss",
-        flops_col: str = "Total compute(GLOPs)",
+        flops_col: str = "compute_seen",
         mparams_col: str = "mparams",
         params_are_millions: bool = True,
 ) -> plt.Figure | None:
@@ -63,12 +72,12 @@ def plot_flops_per_objective_from_csv(
     Plot Objective vs FLOPs (log-log), colored by parameter count, from a CSV.
 
     Expected columns (defaults):
-      - Total compute(GLOPs)
+      - compute_seen
       - mparams
       - objective_col (e.g. val_loss, train_loss, imagenet1k_acc1, ...)
     """
 
-    df = pd.read_csv(csv_path)
+    df = load_final_non_diverged(csv_path)
 
     needed = {objective_col, flops_col, mparams_col}
     missing = [c for c in needed if c not in df.columns]
@@ -128,7 +137,7 @@ def plot_params_vs_loss_from_csv(
       - train_duration(s)
       - val_loss (or any objective_col you pass)
     """
-    df = pd.read_csv(csv_path)
+    df = load_final_non_diverged(csv_path)
 
     needed = {objective_col, params_col, time_col}
     missing = [c for c in needed if c not in df.columns]
@@ -171,18 +180,18 @@ def plot_data_vs_loss_from_csv(
         csv_path: str,
         *,
         objective_col: str = "val_loss",
-        data_col: str = "train_num_samples",
-        flops_col: str = "Total compute(GLOPs)",
+        data_col: str = "samples_seen",
+        flops_col: str = "compute_seen",
 ) -> plt.Figure | None:
     """
     Data points vs objective (colored by FLOPs) from CSV.
 
     Defaults assume your runs CSV has:
-      - train_num_samples
-      - Total compute(GLOPs)
+      - samples_seen
+      - compute_seen
       - val_loss (or any objective_col you pass)
     """
-    df = pd.read_csv(csv_path)
+    df = load_final_non_diverged(csv_path)
 
     needed = {objective_col, data_col, flops_col}
     missing = [c for c in needed if c not in df.columns]
@@ -222,7 +231,7 @@ def plot_accumulated_flops_per_objective_from_csv(
         csv_path: str,
         *,
         objective_col: str = "val_loss",
-        flops_col: str = "Total compute(GLOPs)",
+        flops_col: str = "compute_seen",
         sort_by: str = "config_id",
 ) -> plt.Figure | None:
     """
@@ -235,7 +244,7 @@ def plot_accumulated_flops_per_objective_from_csv(
     Note: if objective is a loss, lower is better; for accuracy, higher is better.
     """
 
-    df = pd.read_csv(csv_path)
+    df = load_final_non_diverged(csv_path)
 
     needed = {objective_col, flops_col}
     missing = [c for c in needed if c not in df.columns]
@@ -292,9 +301,9 @@ def plot_pareto_front_from_csv(
         csv_path: str,
         *,
         objective_col: str = "val_loss",
-        flops_col: str = "Total compute(GLOPs)",
+        flops_col: str = "compute_seen",
         params_col: str = "mparams",
-        data_col: str = "train_num_samples",
+        data_col: str = "samples_seen",
         params_are_millions: bool = True,
         compare_csv_path: str | None = None,
 ) -> tuple[plt.Figure, pd.DataFrame]:
@@ -304,7 +313,7 @@ def plot_pareto_front_from_csv(
     Colored by parameter count.
     """
 
-    df = pd.read_csv(csv_path)
+    df = load_final_non_diverged(csv_path)
 
     needed = {objective_col, flops_col, params_col, data_col}
     missing = [c for c in needed if c not in df.columns]
@@ -476,10 +485,10 @@ def plot_pareto_front_from_csv(
 def plot_flop_vs_data_from_pareto_frontier(
         csv_path: str,
         *,
-        flops_col: str = "Total compute(GLOPs)",
-        data_col: str = "train_num_samples",
+        flops_col: str = "compute_seen",
+        data_col: str = "samples_seen",
 ) -> plt.Figure | None:
-    df = pd.read_csv(csv_path)
+    df = load_final_non_diverged(csv_path)
 
     if flops_col not in df.columns or data_col not in df.columns:
         print(f"Missing required columns. Need: {flops_col!r} and {data_col!r}")
@@ -535,11 +544,11 @@ def plot_flop_vs_data_from_pareto_frontier(
 def plot_flops_vs_params_from_pareto(
         csv_path: str,
         *,
-        flops_col: str = "Total compute(GLOPs)",
+        flops_col: str = "compute_seen",
         params_col: str = "mparams",
         params_are_millions: bool = True,
 ) -> plt.Figure | None:
-    df = pd.read_csv(csv_path)
+    df = load_final_non_diverged(csv_path)
 
     if flops_col not in df.columns or params_col not in df.columns:
         return None
@@ -596,11 +605,12 @@ def plot_flops_vs_params_from_pareto(
     plt.tight_layout(rect=[0, 0.05, 1, 1])
     return fig
 
+
 def plot_compute_vs_hyperparam_from_pareto(
         pareto_csv_path: str,
         *,
         hyperparam_col: str = "lr",
-        flops_col: str = "Total compute(GLOPs)",
+        flops_col: str = "compute_seen",
         log_x: bool = True,
         log_y: bool = True,
 ) -> plt.Figure | None:
@@ -680,7 +690,7 @@ def _prepare_objective_csv(csv_path: str, objective_col: str) -> tuple[str, str]
     if objective_col not in ACCURACY_OBJECTIVES:
         return csv_path, objective_col
 
-    df = pd.read_csv(csv_path)
+    df = load_final_non_diverged(csv_path)
 
     error_col = f"{objective_col}_error_rate"
     df[error_col] = 1.0 - pd.to_numeric(df[objective_col], errors="coerce")
@@ -750,13 +760,13 @@ def plot_all_scaling_law_figures(csv_path: str, objective_col: str, dpi: int = 2
                     fig_hp = plot_compute_vs_hyperparam_from_pareto(
                         str(csv_out),
                         hyperparam_col=hp,
-                        flops_col="Total compute(GLOPs)",
+                        flops_col="compute_seen",
                         log_x=True,
                         log_y=(hp in {"lr", "wd"}),
                     )
                     if fig_hp is not None:
                         fig_hp.savefig(
-                            obj_dir / f"pareto_compute_vs_{hp}.png",
+                            obj_dir / f"pareto_vs_{hp}.png",
                             dpi=dpi,
                             bbox_inches="tight",
                         )
@@ -770,9 +780,9 @@ def plot_all_objectives(csv_path: str, dpi: int = 200):
     into their own folders. Objective-independent plots are still saved once to parent.
     """
     objectives = [
-        "imagenet1k_acc1",
-        "mscoco_image_recall@5",
-        "mscoco_text_recall@5",
+        # "imagenet1k_acc1",
+        # "mscoco_image_recall@5",
+        # "mscoco_text_recall@5",
         "val_loss",
         "test_loss",
     ]

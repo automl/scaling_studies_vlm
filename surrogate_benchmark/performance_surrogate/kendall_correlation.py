@@ -2,8 +2,8 @@ import argparse
 
 import pandas as pd
 
-from surrogate_benchmark.metrics import calculate_correlation_matrix
-from surrogate_benchmark.utils import plot_correlation_matrix
+from surrogate_benchmark.performance_surrogate.metrics import calculate_correlation_matrix
+from surrogate_benchmark.performance_surrogate.utils import plot_correlation_matrix
 
 
 def main():

@@ -3,7 +3,7 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset
 
-from surrogate_benchmark.utils import convert_width_to_one_hot
+from surrogate_benchmark.performance_surrogate.utils import convert_width_to_one_hot
 
 
 class TorchSurrogateDataset(Dataset):
@@ -58,32 +58,72 @@ class SurrogateDataset:
 
     DEFAULT_FEATURES = [
         "lr", "wd", "beta1", "beta2", "eps", "warmup_fraction",
-        "vision_width", "text_width", "mparams",
+        "vision_width", "text_width", "global_batch_size",
         "total_samples_planned",
         "training_progress", "lr_ratio",
     ]
 
+    DEFAULT_LOG_COLUMNS = [
+        "lr", "wd", "eps", "total_samples_planned"
+    ]
+
     def __init__(
-        self,
-        train_csv_path: str,
-        test_csv_path: str,
-        features: list[str] | None = None,
-        targets: list[str] | None = None,
-        seed: int = 42,
-        config_id_col: str = "config_id",
+            self,
+            train_csv_path: str,
+            test_csv_path: str,
+            features: list[str] | None = None,
+            targets: list[str] | None = None,
+            seed: int = 42,
+            config_id_col: str = "config_id",
+            include_intermediate_points: bool = True,
+            epoch_col: str = "epoch",
+            epochs_col: str = "total_epochs",
+            apply_log_transform: bool = False,
     ):
         self.features = features if features is not None else self.DEFAULT_FEATURES
         self.targets = targets if targets is not None else self.DEFAULT_TARGETS
         self.seed = int(seed)
         self.config_id_col = config_id_col
+        self.include_intermediate_points = include_intermediate_points
+        self.epoch_col = epoch_col
+        self.epochs_col = epochs_col
+        self.apply_log_transform = apply_log_transform
 
         self.train_df = pd.read_csv(train_csv_path)
         self.test_df = pd.read_csv(test_csv_path)
+
+        self.train_df = self._filter_intermediate_points(self.train_df)
+        self.test_df = self._filter_intermediate_points(self.test_df)
+
+        if self.apply_log_transform:
+            self._apply_log_transform()
 
         configs = np.array(sorted(self.train_df[self.config_id_col].unique()))
         rng = np.random.default_rng(self.seed)
         rng.shuffle(configs)
         self._configs = configs
+
+    def _filter_intermediate_points(self, df: pd.DataFrame) -> pd.DataFrame:
+        if self.include_intermediate_points:
+            return df
+
+        if self.epoch_col not in df.columns:
+            raise ValueError(f"Column '{self.epoch_col}' not found.")
+        if self.epochs_col not in df.columns:
+            raise ValueError(f"Column '{self.epochs_col}' not found.")
+        if "epoch_diverged" not in df.columns:
+            raise ValueError("Column 'diverged' not found.")
+
+        mask = (df[self.epoch_col] == df[self.epochs_col]) | (df["epoch_diverged"] == True)
+
+        return df[mask].copy()
+
+    def _apply_log_transform(self):
+        for col in self.DEFAULT_LOG_COLUMNS:
+            if col in self.train_df.columns:
+                self.train_df[col] = np.log(self.train_df[col])
+            if col in self.test_df.columns:
+                self.test_df[col] = np.log(self.test_df[col])
 
     def get_test_data(self):
         X_test = self.test_df[self.features].to_numpy()
@@ -107,7 +147,7 @@ class SurrogateDataset:
 
     def get_default_sizes(self):
         total = len(self._configs)
-        sizes = [10, 20, 50, 100, 200]
+        sizes = [10, 20, 50, 100, 200, 300, 400, 500]
         sizes = [s for s in sizes if s <= total]
         if total not in sizes:
             sizes.append(total)

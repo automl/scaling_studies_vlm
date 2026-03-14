@@ -189,7 +189,7 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                                     "model": model.state_dict(),
                                     "optimizer": optimizer.state_dict(),
                                     "step": step,
-                                    "epoch": epoch,
+                                    "epoch": epoch + 1,
                                     "consecutive_nan_steps": consecutive_nan_steps,
                                 },
                                 os.path.join(args.checkpoint_path,

@@ -3,8 +3,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from surrogate_benchmark.data import TorchSurrogateDataset
-from surrogate_benchmark.metrics import compute_regression_metrics
+from surrogate_benchmark.performance_surrogate.data import TorchSurrogateDataset
+from surrogate_benchmark.performance_surrogate.metrics import compute_regression_metrics
 
 
 def train_test_loaders():

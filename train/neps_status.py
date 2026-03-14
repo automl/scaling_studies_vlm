@@ -242,13 +242,15 @@ def fetch_compute_per_epoch(checkpoints_dir: Path, epoch: int) -> dict:
 
     compute_per_epoch = record.get("compute_per_epoch")
     total_compute = record.get("total_compute")
+    total_epochs = record.get("epochs")
 
     if compute_per_epoch is None:
         return {}
 
     return {
-        "compute_seen": compute_per_epoch * epoch,
+        "compute_seen": compute_per_epoch * epoch if epoch != total_epochs else total_compute,
         "Total compute(GLOPs)": total_compute,
+        "total_compute_planned": total_epochs * compute_per_epoch
     }
 
 
@@ -414,7 +416,7 @@ def fetch_progress_per_epoch(checkpoints_dir: Path, epoch, has_diverged, train_s
     return out
 
 
-def fetch_losses_for_epoch(checkpoints_dir: Path, target_epoch: int, is_diverged_epoch: bool) -> dict:
+def fetch_losses_for_epoch(checkpoints_dir: Path, target_epoch: int) -> dict:
     losses = {}
 
     jsonl_path = checkpoints_dir / "results.jsonl"
@@ -427,17 +429,18 @@ def fetch_losses_for_epoch(checkpoints_dir: Path, target_epoch: int, is_diverged
         for line in f:
             record = json.loads(line)
 
-            if is_diverged_epoch:
-                checkpoint_name = str(record.get("checkpoint", "")).lower()
-                if "nan" in checkpoint_name:
-                    losses["val_loss"] = record.get("clip_val_loss")
-                    losses["test_loss"] = record.get("clip_test_loss")
-                    break
-            else:
-                if record.get("epoch") == target_epoch:
-                    losses["val_loss"] = record.get("clip_val_loss")
-                    losses["test_loss"] = record.get("clip_test_loss")
-                    break
+            if record.get("epoch") == target_epoch:
+                val = record.get("clip_val_loss")
+                test = record.get("clip_test_loss")
+
+                if val is None or math.isnan(val) or math.isinf(val):
+                    val = 5.0
+                if test is None or math.isnan(test) or math.isinf(test):
+                    test = 5.0
+
+                losses["val_loss"] = val
+                losses["test_loss"] = test
+                break
 
     with open(train_loss_path, "r") as f:
         for line in f:
@@ -452,16 +455,18 @@ def fetch_losses_for_epoch(checkpoints_dir: Path, target_epoch: int, is_diverged
     return losses
 
 
-def compute_lr_value_for_epoch(progress: dict, base_row: dict) -> float:
-    base_lr = base_row["lr"]
-    step = progress["global_steps_completed"]
-    total_steps = progress["total_global_steps"]
-    warmup_steps = progress["warmup_steps"]
+def compute_lr_value_for_step(progress: dict, base_row: dict) -> float:
+    base_lr = float(base_row["lr"])
+    step = int(progress["global_steps_completed"])
+    warmup_steps = int(progress["warmup_steps"])
+    total_steps = int(progress["total_global_steps"])
+
+    if step < warmup_steps:
+        return base_lr * (step + 1) / warmup_steps
 
     e = step - warmup_steps
     es = total_steps - warmup_steps
-
-    return 0.5 * (1.0 + math.cos(math.pi * e / es)) * base_lr
+    return 0.5 * (1 + math.cos(math.pi * e / es)) * base_lr
 
 
 def list_available_epochs(checkpoints_dir: Path):
@@ -516,9 +521,9 @@ def build_rows_per_trial(trial_id: str, root_dir: Path):
         samples = fetch_train_num_samples_per_epoch(checkpoints_dir=checkpoints_dir,
                                                     train_scripts_dir=train_scripts_dir, config_id=int(trial_id),
                                                     epoch=epoch, is_diverged_epoch=is_diverged_epoch)
-        losses = fetch_losses_for_epoch(checkpoints_dir, epoch, is_diverged_epoch)
+        losses = fetch_losses_for_epoch(checkpoints_dir, epoch)
 
-        lr_value = compute_lr_value_for_epoch(progress, base_row)
+        lr_value = compute_lr_value_for_step(progress, base_row)
 
         row = deepcopy(base_row)
         row.update({
@@ -561,7 +566,7 @@ if __name__ == "__main__":
 
             rows.extend(trial_rows)
 
-            if any(r.get("diverged", False) for r in trial_rows):
+            if any(r.get("epoch_diverged", False) for r in trial_rows):
                 diverged_trial_ids.append(trial_id)
 
             checkpoints_dir = root_dir / "individual_training_logs" / f"train_config{trial_id}" / "checkpoints"
@@ -579,5 +584,7 @@ if __name__ == "__main__":
     else:
         df = df.set_index("config_id").sort_index()
 
+    print("Diverged trial ids:", diverged_trial_ids)
+    print("Trial ids not seen:", failed_trial_ids)
     df.to_csv(out_csv)
     print("Summary csv file has been written to:", out_csv)

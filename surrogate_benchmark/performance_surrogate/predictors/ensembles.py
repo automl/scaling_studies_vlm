@@ -6,7 +6,7 @@ from lightgbm import LGBMRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression, Ridge
 
-from surrogate_benchmark.predictors.base import SurrogateModel
+from surrogate_benchmark.performance_surrogate.predictors.base import SurrogateModel
 
 
 def xgb_ensemble(seed):

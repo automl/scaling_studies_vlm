@@ -5,11 +5,11 @@ import random
 import numpy as np
 import torch
 
-from surrogate_benchmark.data import SurrogateDataset
-from surrogate_benchmark.predictors.autogluon import AutoGluonModel
-from surrogate_benchmark.predictors.base import MultiLabelSurrogateModel
-from surrogate_benchmark.predictors.ensembles import BaggingEnsemble, EnsembleType
-from surrogate_benchmark.predictors.pfn import TabPFNModel
+from surrogate_benchmark.performance_surrogate.data import SurrogateDataset
+from surrogate_benchmark.performance_surrogate.predictors.autogluon import AutoGluonModel
+from surrogate_benchmark.performance_surrogate.predictors.base import MultiLabelSurrogateModel
+from surrogate_benchmark.performance_surrogate.predictors.ensembles import BaggingEnsemble, EnsembleType
+from surrogate_benchmark.performance_surrogate.predictors.pfn import TabPFNModel
 
 
 def set_seed(seed: int = 42):
@@ -25,10 +25,11 @@ def parse_args():
     p.add_argument("--test_csv", default="splits/test.csv")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--labels", nargs="+", default=["val_loss", "test_loss"])
-    p.add_argument("--model", choices=["tabpfn", "ensemble", "autogluon"], default="tabpfn")
-    p.add_argument("--ensemble_type", choices=["xgb", "lightgbm", "mix"], default="mix")
+    p.add_argument("--model", choices=["tabpfn", "ensemble", "autogluon"], default="ensemble")
+    p.add_argument("--ensemble_type", choices=["xgb", "lightgbm", "mix"], default="xgb")
     p.add_argument("--device", default="cuda")
     p.add_argument("--out", default="results.json")
+    p.add_argument("--include_intermediate_points", action="store_true")
 
     return p.parse_args()
 
@@ -42,6 +43,8 @@ if __name__ == "__main__":
         test_csv_path=args.test_csv,
         targets=args.labels,
         seed=args.seed,
+        include_intermediate_points=True,
+        apply_log_transform=True,
     )
 
     sizes = dataset.get_default_sizes()
