@@ -543,6 +543,76 @@ def build_rows_per_trial(trial_id: str, root_dir: Path):
     return rows
 
 
+def downstream_report(root_dir, trial_id):
+    if root_dir is None or trial_id is None:
+        return None
+
+    trial_dir = Path(root_dir) / "individual_training_logs" / f"train_config{trial_id}"
+    checkpoints_dir = trial_dir / "checkpoints"
+    downstream_dir = trial_dir / "downstream"
+
+    if not checkpoints_dir.exists() or not downstream_dir.exists():
+        return None
+
+    checkpoint_files = list(checkpoints_dir.glob("*.pt"))
+
+    if not checkpoint_files:
+        return None
+
+    if any("nan" in ckpt.name.lower() for ckpt in checkpoint_files if ckpt and ckpt.name):
+        return None
+
+    epoch_pattern = re.compile(r"^epoch_(\d+)\.pt$")
+    missing = []
+
+    for ckpt in checkpoint_files:
+        if ckpt is None or ckpt.name is None:
+            continue
+
+        match = epoch_pattern.match(ckpt.name)
+        if not match:
+            continue
+
+        epoch = match.group(1)
+        eval_file = downstream_dir / f"epoch_{epoch}" / "eval_results.jsonl"
+
+        if not eval_file.exists():
+            missing.append(f"epoch_{epoch}")
+            continue
+
+        try:
+            with open(eval_file, "r", encoding="utf-8") as f:
+                lines = [line for line in f if line.strip()]
+
+            parsed = []
+            for line in lines:
+                try:
+                    parsed.append(json.loads(line))
+                except:
+                    pass
+
+            if len(parsed) != 40:
+                missing.append(f"epoch_{epoch}")
+
+        except Exception:
+            missing.append(f"epoch_{epoch}")
+
+    if missing:
+        return {
+            "trial_id": trial_id,
+            "missing_epochs": missing
+        }
+
+    return None
+
+def save_reports(reports, root_dir):
+    output_path = root_dir/ "downstream_missing_report.json"
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(reports, f, indent=2)
+
+    print(f"Saved {len(reports)} trials to {output_path.resolve()}")
+
 if __name__ == "__main__":
     args = parse_args()
 
@@ -555,9 +625,12 @@ if __name__ == "__main__":
     completed_trial_ids: list[int] = []
     diverged_trial_ids: list[int] = []
     failed_trial_ids: list[int] = []
+    reports = []
 
     for trial_id in trial_ids:
         try:
+            report = downstream_report(root_dir, trial_id)
+            reports.append(report)
             trial_rows = build_rows_per_trial(str(trial_id), root_dir)
 
             if not trial_rows:
@@ -584,6 +657,8 @@ if __name__ == "__main__":
     else:
         df = df.set_index("config_id").sort_index()
 
+    reports = [r for r in reports if r]
+    save_reports(reports, root_dir)
     print("Diverged trial ids:", diverged_trial_ids)
     print("Trial ids not seen:", failed_trial_ids)
     df.to_csv(out_csv)
