@@ -607,12 +607,13 @@ def plot_flops_vs_params_from_pareto(
 
 
 def plot_compute_vs_hyperparam_from_pareto(
-        pareto_csv_path: str,
-        *,
-        hyperparam_col: str = "lr",
-        flops_col: str = "compute_seen",
-        log_x: bool = True,
-        log_y: bool = True,
+    pareto_csv_path: str,
+    *,
+    hyperparam_col: str = "lr",
+    flops_col: str = "compute_seen",
+    log_x: bool = True,
+    log_y: bool = True,
+    hp_bounds: dict[str, tuple[float, float]] | None = None,
 ) -> plt.Figure | None:
     df = pd.read_csv(pareto_csv_path)
 
@@ -631,24 +632,41 @@ def plot_compute_vs_hyperparam_from_pareto(
     hp = hp[mask]
 
     if flops.size == 0:
-        print("No valid points to plot.")
+        print(f"No valid points to plot for {hyperparam_col}.")
         return None
 
     fig, ax = plt.subplots(figsize=(6, 4))
 
-    ax.scatter(flops, hp, marker="o", alpha=0.9)
+    ax.scatter(flops, hp, marker="o", alpha=0.9, label="Pareto points")
 
     if log_x:
         ax.set_xscale("log")
     if log_y:
         ax.set_yscale("log")
 
+    if hp_bounds is not None and hyperparam_col in hp_bounds:
+        lower, upper = hp_bounds[hyperparam_col]
+
+        draw_lower = np.isfinite(lower) and (lower > 0 if log_y else True)
+        draw_upper = np.isfinite(upper) and (upper > 0 if log_y else True)
+
+        if draw_lower:
+            ax.axhline(lower, linestyle=":", linewidth=1.5, alpha=0.9, label=f"lower bound = {lower:g}")
+        if draw_upper:
+            ax.axhline(upper, linestyle=":", linewidth=1.5, alpha=0.9, label=f"upper bound = {upper:g}")
+        if draw_lower and draw_upper and lower < upper:
+            ax.axhspan(lower, upper, alpha=0.12, label="search space")
+
     ax.set_xlabel("Compute (GFLOPs)")
     ax.set_ylabel(hyperparam_col)
     ax.set_title(f"{hyperparam_col} vs Compute (Pareto)")
     ax.grid(True, linestyle="--", alpha=0.4, which="both")
-
-    plt.tight_layout()
+    ax.legend(
+        loc="upper left",
+        bbox_to_anchor=(1.02, 1),
+        borderaxespad=0.0,
+    )
+    fig.subplots_adjust(right=0.78)
     return fig
 
 
@@ -756,13 +774,25 @@ def plot_all_scaling_law_figures(csv_path: str, objective_col: str, dpi: int = 2
                     flops_vs_n_params_pareto.savefig(obj_dir / "pareto_flops_vs_n_params.png", dpi=dpi,
                                                      bbox_inches="tight")
 
+                SEARCH_SPACE = {
+                    "lr": (1e-5, 5e-2),
+                    "wd": (1e-6, 2e-1),
+                    "warmup_fraction": (0.0, 0.75),
+                    "vision_width": (32, 512),
+                    "text_width": (32, 512),
+                    "beta1": (0.9, 0.99),
+                    "beta2": (0.95, 0.999),
+                    "eps": (1e-8, 1e-6),
+                }
+
                 for hp in ["lr", "wd", "warmup_fraction", "vision_width", "text_width", "beta1", "beta2", "eps"]:
                     fig_hp = plot_compute_vs_hyperparam_from_pareto(
                         str(csv_out),
                         hyperparam_col=hp,
                         flops_col="compute_seen",
                         log_x=True,
-                        log_y=(hp in {"lr", "wd"}),
+                        log_y=(hp in {"lr", "wd", "eps"}),
+                        hp_bounds=SEARCH_SPACE,
                     )
                     if fig_hp is not None:
                         fig_hp.savefig(
