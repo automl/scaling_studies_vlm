@@ -78,7 +78,7 @@ class SurrogateDataset:
             include_intermediate_points: bool = True,
             epoch_col: str = "epoch",
             epochs_col: str = "total_epochs",
-            apply_log_transform: bool = False,
+            apply_log_transform: bool = True,
     ):
         self.features = features if features is not None else self.DEFAULT_FEATURES
         self.targets = targets if targets is not None else self.DEFAULT_TARGETS
@@ -145,10 +145,14 @@ class SurrogateDataset:
         y = subset[self.targets].to_numpy()
         return X, y
 
-    def get_default_sizes(self):
+    def get_default_sizes(self, step: int = 10):
         total = len(self._configs)
-        sizes = [10, 20, 50, 100, 200, 300, 400, 500]
-        sizes = [s for s in sizes if s <= total]
-        if total not in sizes:
+        if total <= 0:
+            return []
+
+        sizes = list(range(2, total + 1, step))
+
+        if sizes[-1] != total:
             sizes.append(total)
+
         return sizes

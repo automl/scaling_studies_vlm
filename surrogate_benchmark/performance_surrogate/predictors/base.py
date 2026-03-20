@@ -44,17 +44,20 @@ class MultiLabelSurrogateModel:
         results = {}
 
         for n_cfg in sizes:
+            print(f"Training on {n_cfg} configs")
             X_sub, y_sub = dataset.get_train_subset(n_cfg)
 
             per_label = {}
             for i, label in enumerate(self.labels):
                 model = self.models[label]
                 model.fit(X_sub, y_sub[:, i])
+
                 y_pred = model.predict(X_test)
-                per_label[label] = compute_regression_metrics(y_test[:, i], y_pred)
+                metrics = compute_regression_metrics(y_test[:, i], y_pred)
+
+                per_label[label] = metrics
 
             results[int(n_cfg)] = per_label
-
         return results
 
     def fit(self, X: np.ndarray, y: np.ndarray):

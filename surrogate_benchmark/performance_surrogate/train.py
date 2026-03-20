@@ -1,6 +1,7 @@
 import argparse
 import json
 import random
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -18,6 +19,26 @@ def set_seed(seed: int = 42):
     torch.manual_seed(seed)
 
 
+def build_out_path(args):
+    if args.model == "ensemble":
+        model_name = args.ensemble_type
+    else:
+        model_name = args.model
+
+    intermediate_flag = "with_intermediate" if args.include_intermediate_points else "no_intermediate"
+
+    out_path = (
+            Path("results")
+            / "predictors"
+            / model_name
+            / f"seed_{args.seed}"
+            / intermediate_flag
+            / "results.json"
+    )
+
+    return out_path
+
+
 def parse_args():
     p = argparse.ArgumentParser()
 
@@ -25,10 +46,9 @@ def parse_args():
     p.add_argument("--test_csv", default="splits/test.csv")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--labels", nargs="+", default=["val_loss", "test_loss"])
-    p.add_argument("--model", choices=["tabpfn", "ensemble", "autogluon"], default="ensemble")
+    p.add_argument("--model", choices=["tabpfn", "ensemble", "autogluon"], default="tabpfn")
     p.add_argument("--ensemble_type", choices=["xgb", "lightgbm", "mix"], default="xgb")
     p.add_argument("--device", default="cuda")
-    p.add_argument("--out", default="results.json")
     p.add_argument("--include_intermediate_points", action="store_true")
 
     return p.parse_args()
@@ -37,14 +57,15 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
     set_seed(args.seed)
+    out_path = build_out_path(args)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
 
     dataset = SurrogateDataset(
         train_csv_path=args.train_csv,
         test_csv_path=args.test_csv,
         targets=args.labels,
         seed=args.seed,
-        include_intermediate_points=True,
-        apply_log_transform=True,
+        include_intermediate_points=args.include_intermediate_points,
     )
 
     sizes = dataset.get_default_sizes()
@@ -74,7 +95,7 @@ if __name__ == "__main__":
             model_factory=lambda label: AutoGluonModel(
                 features=dataset.features,
                 label=label,
-                time_limit=200,
+                time_limit=30 * 60,
                 base_path=f"AutogluonModels/{label}"
             ),
         )
@@ -91,5 +112,5 @@ if __name__ == "__main__":
         "results": results,
     }
 
-    with open(args.out, "w") as f:
+    with open(out_path, "w") as f:
         json.dump(payload, f, indent=4)

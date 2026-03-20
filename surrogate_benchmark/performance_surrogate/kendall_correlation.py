@@ -12,14 +12,14 @@ def main():
     parser.add_argument(
         "--csv_path",
         type=str,
-        default="splits/data.csv",
+        default="../data.csv",
         help="Path to CSV file."
     )
 
     parser.add_argument(
         "--cols",
         nargs="+",
-        default=["clip_val_loss", "clip_test_loss"],
+        default=["val_loss", "test_loss"],
         help="Columns to compute Kendall tau correlation for."
     )
 
