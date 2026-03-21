@@ -27,14 +27,13 @@ def build_out_path(args):
 
     intermediate_flag = "with_intermediate" if args.include_intermediate_points else "no_intermediate"
 
-    out_path = (
-            Path("results")
-            / "predictors"
-            / model_name
-            / f"seed_{args.seed}"
-            / intermediate_flag
-            / "results.json"
-    )
+    path = Path("results") / "predictors" / model_name / f"seed_{args.seed}" / intermediate_flag
+
+    if args.model == "autogluon":
+        ag_flag = "manual" if args.use_manual_ag_settings else "auto"
+        path = path / ag_flag
+
+    out_path = path / "results.json"
 
     return out_path
 
@@ -50,6 +49,8 @@ def parse_args():
     p.add_argument("--ensemble_type", choices=["xgb", "lightgbm", "mix"], default="xgb")
     p.add_argument("--device", default="cuda")
     p.add_argument("--include_intermediate_points", action="store_true")
+    p.add_argument("--ag_time_limit", type=int, default=4 * 60 * 60)
+    p.add_argument("--use_manual_ag_settings", action="store_true")
 
     return p.parse_args()
 
@@ -59,6 +60,7 @@ if __name__ == "__main__":
     set_seed(args.seed)
     out_path = build_out_path(args)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    time_limit = None
 
     dataset = SurrogateDataset(
         train_csv_path=args.train_csv,
@@ -89,14 +91,19 @@ if __name__ == "__main__":
         model_name = f"ensemble_{args.ensemble_type}"
 
     elif args.model == "autogluon":
+        sizes = [sizes[-1]]
+        print(sizes)
+        time_limit = args.ag_time_limit
+
+        ag_flag = "manual" if args.use_manual_ag_settings else "auto"
 
         model = MultiLabelSurrogateModel(
             labels=args.labels,
             model_factory=lambda label: AutoGluonModel(
                 features=dataset.features,
                 label=label,
-                time_limit=30 * 60,
-                base_path=f"AutogluonModels/{label}"
+                time_limit=time_limit,
+                base_path=f"AutogluonModels/{ag_flag}/seed_{args.seed}/{label}"
             ),
         )
         model_name = "autogluon"
@@ -110,6 +117,7 @@ if __name__ == "__main__":
         "model": model_name,
         "seed": args.seed,
         "results": results,
+        "time_limit": time_limit,
     }
 
     with open(out_path, "w") as f:

@@ -14,12 +14,21 @@ class AutoGluonModel(SurrogateModel):
             time_limit: int = 30 * 60,
             presets: str = "best_quality",
             base_path: str = "AutogluonModels",
+            use_manual_bagging: bool = True,
+            num_stack_levels: int = 1,
+            num_bag_folds: int = 8,
+            num_bag_sets: int = 2,
     ):
         self.features = features
         self.label = label
         self.time_limit = time_limit
         self.presets = presets
         self.base_path = base_path
+
+        self.use_manual_bagging = use_manual_bagging
+        self.num_stack_levels = num_stack_levels
+        self.num_bag_folds = num_bag_folds
+        self.num_bag_sets = num_bag_sets
 
         self.predictor = None
         self.run_id = 0
@@ -42,15 +51,21 @@ class AutoGluonModel(SurrogateModel):
             path=path,
         )
 
-        self.predictor.fit(
-            train_data=train_df,
-            time_limit=self.time_limit,
-            presets=self.presets,
-            dynamic_stacking=False,
-            num_stack_levels=1,
-            num_bag_folds=8,
-            num_bag_sets=2,
-        )
+        fit_kwargs = {
+            "train_data": train_df,
+            "time_limit": self.time_limit,
+            "presets": self.presets,
+        }
+
+        if self.use_manual_bagging:
+            fit_kwargs.update({
+                "dynamic_stacking": False,
+                "num_stack_levels": self.num_stack_levels,
+                "num_bag_folds": self.num_bag_folds,
+                "num_bag_sets": self.num_bag_sets,
+            })
+
+        self.predictor.fit(**fit_kwargs)
 
     def predict(self, X: np.ndarray) -> np.ndarray:
         X = np.asarray(X)
