@@ -1,5 +1,4 @@
 import argparse
-import json
 import random
 from pathlib import Path
 
@@ -33,9 +32,7 @@ def build_out_path(args):
         ag_flag = "manual" if args.use_manual_ag_settings else "auto"
         path = path / ag_flag
 
-    out_path = path / "results.json"
-
-    return out_path
+    return path
 
 
 def parse_args():
@@ -92,7 +89,6 @@ if __name__ == "__main__":
 
     elif args.model == "autogluon":
         sizes = [sizes[-1]]
-        print(sizes)
         time_limit = args.ag_time_limit
 
         ag_flag = "manual" if args.use_manual_ag_settings else "auto"
@@ -111,14 +107,4 @@ if __name__ == "__main__":
     else:
         raise ValueError(f"Unknown model: {args.model}")
 
-    results = model.validate(dataset, sizes)
-
-    payload = {
-        "model": model_name,
-        "seed": args.seed,
-        "results": results,
-        "time_limit": time_limit,
-    }
-
-    with open(out_path, "w") as f:
-        json.dump(payload, f, indent=4)
+    results = model.validate(dataset, sizes, out_path)

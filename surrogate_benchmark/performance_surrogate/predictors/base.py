@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from typing import Sequence, Callable
 
 import numpy as np
@@ -38,27 +40,31 @@ class MultiLabelSurrogateModel:
         self.models = {
             label: model_factory(label) for label in self.labels
         }
+        self.is_fitted = False
 
-    def validate(self, dataset: SurrogateDataset, sizes):
+
+    def validate(self, dataset: SurrogateDataset, sizes, out_path: Path):
         X_test, y_test = dataset.get_test_data()
-        results = {}
 
-        for n_cfg in sizes:
-            print(f"Training on {n_cfg} configs")
-            X_sub, y_sub = dataset.get_train_subset(n_cfg)
+        for i, label in enumerate(self.labels):
+            model = self.models[label]
+            label_results = {}
 
-            per_label = {}
-            for i, label in enumerate(self.labels):
-                model = self.models[label]
+            for n_cfg in sizes:
+                print(f"Training surrogate for:{label} on {n_cfg} configs")
+
+                X_sub, y_sub = dataset.get_train_subset(n_cfg)
+
                 model.fit(X_sub, y_sub[:, i])
 
                 y_pred = model.predict(X_test)
                 metrics = compute_regression_metrics(y_test[:, i], y_pred)
 
-                per_label[label] = metrics
+                label_results[int(n_cfg)] = metrics
 
-            results[int(n_cfg)] = per_label
-        return results
+            file_path = out_path / f"{label}.json"
+            with open(file_path, "w") as f:
+                json.dump(label_results, f, indent=4)
 
     def fit(self, X: np.ndarray, y: np.ndarray):
         X = np.asarray(X)
@@ -71,8 +77,11 @@ class MultiLabelSurrogateModel:
 
         for i, label in enumerate(self.labels):
             self.models[label].fit(X, y[:, i])
+        self.is_fitted = True
 
     def predict(self, X: np.ndarray) -> np.ndarray:
+        if not self.is_fitted:
+            raise RuntimeError("Surrogate must be fitted before predict().")
         X = np.asarray(X)
         preds = [np.asarray(self.models[label].predict(X)).reshape(-1) for label in self.labels]
         return np.stack(preds, axis=1)
