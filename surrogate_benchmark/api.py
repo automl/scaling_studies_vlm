@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 
 from surrogate_benchmark.config import VLMConfig, Target
@@ -40,12 +42,35 @@ class VLMBenchmark:
         row = self.config_to_feature_row(config_dict).reshape(1, -1)
         preds = self.surrogate.predict(row)[0]
 
-        all_results = {
-            label: round(float(pred), 4)
+        predictions = {
+            label: round(float(pred), 3)
             for label, pred in zip(self.targets, preds)
         }
 
-        return all_results
+        text_width = config.text_width
+        vision_width = config.vision_width
+        stats_key = f"text_{text_width}_vision_{vision_width}"
+
+        with open("gflops_mparams.json", "r", encoding="utf-8") as f:
+            models_stats = json.load(f)
+
+        model_stats = models_stats.get(stats_key)
+
+        stats = {}
+        if model_stats is not None:
+            stats = {
+                "gflops_per_sample": model_stats.get("gflops_per_sample"),
+                "total_gflops": model_stats.get("gflops_per_sample") * config.total_samples_planned,
+                "mparams": model_stats.get("mparams"),
+                "vision_mparams": model_stats.get("vision_mparams"),
+                "text_mparams": model_stats.get("text_mparams"),
+                "text_mparams_non_emb": model_stats.get("text_mparams_non_emb"),
+            }
+
+        return {
+            "predictions": predictions,
+            "model_stats": stats
+        }
 
     def config_to_feature_row(self, config: dict) -> np.ndarray:
         missing = [name for name in self.feature_order if name not in config]
