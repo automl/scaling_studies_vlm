@@ -3,15 +3,17 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from matplotlib.colors import Normalize
 
+
 def load_final_non_diverged(csv_path):
     df = pd.read_csv(csv_path)
 
     mask = (
-        (df["epoch"] == df["total_epochs"]) &
-        (df["epoch_diverged"] == False)
+            (df["epoch"] == df["total_epochs"]) &
+            (df["epoch_diverged"] == False)
     )
 
     return df[mask].copy()
+
 
 def plot_flops_vs_params_from_csv(
         csv_path: str,
@@ -607,37 +609,51 @@ def plot_flops_vs_params_from_pareto(
 
 
 def plot_compute_vs_hyperparam_from_pareto(
-    pareto_csv_path: str,
-    *,
-    hyperparam_col: str = "lr",
-    flops_col: str = "compute_seen",
-    log_x: bool = True,
-    log_y: bool = True,
-    hp_bounds: dict[str, tuple[float, float]] | None = None,
+        pareto_csv_path: str,
+        *,
+        hyperparam_col: str = "lr",
+        flops_col: str = "compute_seen",
+        objective_col: str = "val_loss",
+        log_x: bool = True,
+        log_y: bool = True,
+        hp_bounds: dict[str, tuple[float, float]] | None = None,
 ) -> plt.Figure | None:
     df = pd.read_csv(pareto_csv_path)
 
-    if flops_col not in df.columns or hyperparam_col not in df.columns:
-        print(f"Missing required columns: {flops_col!r} or {hyperparam_col!r}")
+    required = {flops_col, hyperparam_col, objective_col}
+    missing = [col for col in required if col not in df.columns]
+    if missing:
+        print(f"Missing required columns: {missing}")
         return None
 
     flops = pd.to_numeric(df[flops_col], errors="coerce").to_numpy(dtype=float)
     hp = pd.to_numeric(df[hyperparam_col], errors="coerce").to_numpy(dtype=float)
+    objective = pd.to_numeric(df[objective_col], errors="coerce").to_numpy(dtype=float)
 
-    mask = np.isfinite(flops) & np.isfinite(hp) & (flops > 0)
+    mask = np.isfinite(flops) & np.isfinite(hp) & np.isfinite(objective) & (flops > 0)
     if log_y:
         mask &= (hp > 0)
 
     flops = flops[mask]
     hp = hp[mask]
+    objective = objective[mask]
 
     if flops.size == 0:
         print(f"No valid points to plot for {hyperparam_col}.")
         return None
 
-    fig, ax = plt.subplots(figsize=(6, 4))
+    fig, ax = plt.subplots(figsize=(6, 4), constrained_layout=True)
 
-    ax.scatter(flops, hp, marker="o", alpha=0.9, label="Pareto points")
+    norm = Normalize(vmin=float(objective.min()), vmax=float(objective.max()))
+    sc = ax.scatter(
+        flops,
+        hp,
+        c=objective,
+        cmap="plasma",
+        marker="o",
+        alpha=0.9,
+        norm=norm,
+    )
 
     if log_x:
         ax.set_xscale("log")
@@ -651,22 +667,96 @@ def plot_compute_vs_hyperparam_from_pareto(
         draw_upper = np.isfinite(upper) and (upper > 0 if log_y else True)
 
         if draw_lower:
-            ax.axhline(lower, linestyle=":", linewidth=1.5, alpha=0.9, label=f"lower bound = {lower:g}")
+            ax.axhline(
+                lower,
+                linestyle="-",
+                linewidth=1.2,
+                alpha=0.9,
+                color="gray",
+            )
         if draw_upper:
-            ax.axhline(upper, linestyle=":", linewidth=1.5, alpha=0.9, label=f"upper bound = {upper:g}")
+            ax.axhline(
+                upper,
+                linestyle="-",
+                linewidth=1.2,
+                alpha=0.9,
+                color="gray",
+            )
         if draw_lower and draw_upper and lower < upper:
-            ax.axhspan(lower, upper, alpha=0.12, label="search space")
+            ax.axhspan(lower, upper, alpha=0.1, color="gray")
 
     ax.set_xlabel("Compute (GFLOPs)")
     ax.set_ylabel(hyperparam_col)
     ax.set_title(f"{hyperparam_col} vs Compute (Pareto)")
-    ax.grid(True, linestyle="--", alpha=0.4, which="both")
-    ax.legend(
-        loc="upper left",
-        bbox_to_anchor=(1.02, 1),
-        borderaxespad=0.0,
+    ax.grid(True, linestyle="--", alpha=0.4, which="major")
+
+    # fig.subplots_adjust(right=0.82)
+    cbar = fig.colorbar(sc, ax=ax)
+    cbar.set_label(objective_col)
+
+    return fig
+
+
+def plot_hyperparam_vs_loss(
+        csv_path: str,
+        *,
+        hyperparam_col: str = "lr",
+        objective_col: str = "val_loss",
+        flops_col: str = "compute_seen",
+        log_x: bool = True,
+        log_y: bool = True,
+) -> plt.Figure | None:
+    df = pd.read_csv(csv_path)
+
+    required = {hyperparam_col, objective_col, flops_col}
+    missing = [col for col in required if col not in df.columns]
+    if missing:
+        print(f"Missing required columns: {missing}")
+        return None
+
+    hp = pd.to_numeric(df[hyperparam_col], errors="coerce").to_numpy(dtype=float)
+    objective = pd.to_numeric(df[objective_col], errors="coerce").to_numpy(dtype=float)
+    flops = pd.to_numeric(df[flops_col], errors="coerce").to_numpy(dtype=float)
+
+    mask = np.isfinite(hp) & np.isfinite(objective) & np.isfinite(flops) & (flops > 0)
+
+    if log_x:
+        mask &= (objective > 0)
+    if log_y:
+        mask &= (hp > 0)
+
+    hp = hp[mask]
+    objective = objective[mask]
+    flops = flops[mask]
+
+    if hp.size == 0:
+        print(f"No valid points to plot for {hyperparam_col}.")
+        return None
+
+    fig, ax = plt.subplots(figsize=(6, 4), constrained_layout=True)
+
+    sc = ax.scatter(
+        hp,
+        objective,
+        c=flops,
+        cmap="plasma",
+        marker="o",
+        alpha=0.9,
     )
-    fig.subplots_adjust(right=0.78)
+
+    if log_x:
+        ax.set_xscale("log")
+    if log_y:
+        ax.set_yscale("log")
+
+    ax.set_xlabel(hyperparam_col)
+    ax.set_ylabel(objective_col)
+    ax.set_title(f"{objective_col} vs {hyperparam_col}")
+    ax.grid(True, linestyle="--", alpha=0.4, which="major")
+
+    cbar = fig.colorbar(sc, ax=ax)
+    cbar.set_label("Compute (GFLOPs)")
+
     return fig
 
 
@@ -783,20 +873,44 @@ def plot_all_scaling_law_figures(csv_path: str, objective_col: str, dpi: int = 2
                     "beta1": (0.9, 0.99),
                     "beta2": (0.95, 0.999),
                     "eps": (1e-8, 1e-6),
+                    "samples_seen": (600_000, 60_000_000)
                 }
 
-                for hp in ["lr", "wd", "warmup_fraction", "vision_width", "text_width", "beta1", "beta2", "eps"]:
-                    fig_hp = plot_compute_vs_hyperparam_from_pareto(
+                PARAMS = ["lr", "wd", "warmup_fraction", "vision_width", "text_width",
+                          "beta1", "beta2", "eps", "samples_seen"]
+
+                for hp in PARAMS:
+
+                    hp_is_log = hp in {"lr", "wd", "eps", "samples_seen"}
+
+                    fig_pareto = plot_compute_vs_hyperparam_from_pareto(
                         str(csv_out),
                         hyperparam_col=hp,
                         flops_col="compute_seen",
                         log_x=True,
-                        log_y=(hp in {"lr", "wd", "eps"}),
+                        log_y=hp_is_log,
                         hp_bounds=SEARCH_SPACE,
                     )
-                    if fig_hp is not None:
-                        fig_hp.savefig(
+
+                    if fig_pareto is not None:
+                        fig_pareto.savefig(
                             obj_dir / f"pareto_vs_{hp}.png",
+                            dpi=dpi,
+                            bbox_inches="tight",
+                        )
+
+                    fig_all = plot_hyperparam_vs_loss(
+                        csv_used,
+                        hyperparam_col=hp,
+                        objective_col=obj_used,
+                        flops_col="compute_seen",
+                        log_x=hp_is_log,
+                        log_y=False,
+                    )
+
+                    if fig_all is not None:
+                        fig_all.savefig(
+                            obj_dir / f"{hp}_vs_loss.png",
                             dpi=dpi,
                             bbox_inches="tight",
                         )
