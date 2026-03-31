@@ -33,7 +33,7 @@ class VLMBenchmark:
         self.fit_models()
 
     def fit_models(self):
-        X, y = self.dataset.get_train_data()
+        X, y = self.dataset.get_all_data()
         self.surrogate.fit(X, y)
 
     def query(self, config: VLMConfig) -> dict:
