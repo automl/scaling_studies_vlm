@@ -102,9 +102,10 @@ if __name__ == "__main__":
         eps=1e-8,
         vision_width=384,
         text_width=256,
-        total_samples_planned=128000,
+        total_samples_planned=1280000,
         training_progress=1.0
     )
+
     config2 = VLMConfig(
         lr=1e-4,
         wd=0.01,
@@ -114,7 +115,7 @@ if __name__ == "__main__":
         eps=1e-8,
         vision_width=384,
         text_width=256,
-        total_samples_planned=128000,
+        total_samples_planned=12800000,
         training_progress=0.5
     )
 

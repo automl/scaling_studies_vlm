@@ -2,6 +2,8 @@ import math
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 
+from surrogate_benchmark.spaces import VLM_SEARCH_SPACE
+
 
 @dataclass
 class VLMConfig:
@@ -32,6 +34,8 @@ class VLMConfig:
     ]
 
     def __post_init__(self):
+        self._validate_against_search_space()
+
         self.global_batch_size = self._derive_global_batch_size()
         self.lr_ratio = self.compute_lr_from_progress()
 
@@ -70,6 +74,32 @@ class VLMConfig:
 
     def to_dict(self) -> dict:
         return asdict(self)
+
+    def _validate_against_search_space(self):
+        hp_space = VLM_SEARCH_SPACE["hp_space"]
+        arch_space = VLM_SEARCH_SPACE["arch_space"]
+
+        # --- hyperparameters ---
+        for name, cfg in hp_space.items():
+            attr_name = "total_samples_planned" if name == "train_num_samples" else name
+
+            if not hasattr(self, attr_name):
+                continue
+
+            val = getattr(self, attr_name)
+
+            if "lower" in cfg and val < cfg["lower"]:
+                raise ValueError(f"{attr_name}={val} < lower bound {cfg['lower']}")
+
+            if "upper" in cfg and val > cfg["upper"]:
+                raise ValueError(f"{attr_name}={val} > upper bound {cfg['upper']}")
+
+        # --- architecture ---
+        for name, cfg in arch_space.items():
+            val = getattr(self, name)
+
+            if "choices" in cfg and val not in cfg["choices"]:
+                raise ValueError(f"{name}={val} not in allowed choices {cfg['choices']}")
 
 
 class Target(str, Enum):
