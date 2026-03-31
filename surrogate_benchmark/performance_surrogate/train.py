@@ -46,6 +46,7 @@ def parse_args():
     p.add_argument("--ensemble_type", choices=["xgb", "lightgbm", "mix"], default="xgb")
     p.add_argument("--device", default="cuda")
     p.add_argument("--include_intermediate_points", action="store_true")
+    p.add_argument("--eval_on_intermediate_points", action="store_true")
     p.add_argument("--ag_time_limit", type=int, default=4 * 60 * 60)
     p.add_argument("--use_manual_ag_settings", action="store_true")
 
@@ -65,6 +66,7 @@ if __name__ == "__main__":
         targets=args.labels,
         seed=args.seed,
         include_intermediate_points=args.include_intermediate_points,
+        eval_on_intermediate_points=False,
     )
 
     sizes = dataset.get_default_sizes()

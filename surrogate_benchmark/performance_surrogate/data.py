@@ -76,6 +76,7 @@ class SurrogateDataset:
             seed: int = 42,
             config_id_col: str = "config_id",
             include_intermediate_points: bool = True,
+            eval_on_intermediate_points: bool = False,
             epoch_col: str = "epoch",
             epochs_col: str = "total_epochs",
             apply_log_transform: bool = True,
@@ -85,6 +86,7 @@ class SurrogateDataset:
         self.seed = int(seed)
         self.config_id_col = config_id_col
         self.include_intermediate_points = include_intermediate_points
+        self.eval_on_intermediate_points = eval_on_intermediate_points
         self.epoch_col = epoch_col
         self.epochs_col = epochs_col
         self.apply_log_transform = apply_log_transform
@@ -92,8 +94,14 @@ class SurrogateDataset:
         self.train_df = pd.read_csv(train_csv_path)
         self.test_df = pd.read_csv(test_csv_path)
 
-        self.train_df = self._filter_intermediate_points(self.train_df)
-        self.test_df = self._filter_intermediate_points(self.test_df)
+        self.train_df = self._filter_intermediate_points(
+            self.train_df,
+            keep_intermediate=self.include_intermediate_points,
+        )
+        self.test_df = self._filter_intermediate_points(
+            self.test_df,
+            keep_intermediate=self.eval_on_intermediate_points,
+        )
 
         if self.apply_log_transform:
             self._apply_log_transform()
@@ -103,8 +111,12 @@ class SurrogateDataset:
         rng.shuffle(configs)
         self._configs = configs
 
-    def _filter_intermediate_points(self, df: pd.DataFrame) -> pd.DataFrame:
-        if self.include_intermediate_points:
+    def _filter_intermediate_points(
+            self,
+            df: pd.DataFrame,
+            keep_intermediate: bool,
+    ) -> pd.DataFrame:
+        if keep_intermediate:
             return df
 
         if self.epoch_col not in df.columns:
@@ -112,7 +124,7 @@ class SurrogateDataset:
         if self.epochs_col not in df.columns:
             raise ValueError(f"Column '{self.epochs_col}' not found.")
         if "epoch_diverged" not in df.columns:
-            raise ValueError("Column 'diverged' not found.")
+            raise ValueError("Column 'epoch_diverged' not found.")
 
         mask = (df[self.epoch_col] == df[self.epochs_col]) | (df["epoch_diverged"] == True)
 
