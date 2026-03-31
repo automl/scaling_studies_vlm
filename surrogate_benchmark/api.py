@@ -60,7 +60,8 @@ class VLMBenchmark:
         if model_stats is not None:
             stats = {
                 "gflops_per_sample": model_stats.get("gflops_per_sample"),
-                "total_gflops": model_stats.get("gflops_per_sample") * config.total_samples_planned,
+                "total_gflops": model_stats.get(
+                    "gflops_per_sample") * config.total_samples_planned * config.training_progress,
                 "mparams": model_stats.get("mparams"),
                 "vision_mparams": model_stats.get("vision_mparams"),
                 "text_mparams": model_stats.get("text_mparams"),
@@ -102,7 +103,22 @@ if __name__ == "__main__":
         vision_width=384,
         text_width=256,
         total_samples_planned=128000,
+        training_progress=1.0
+    )
+    config2 = VLMConfig(
+        lr=1e-4,
+        wd=0.01,
+        beta1=0.9,
+        beta2=0.98,
+        warmup_fraction=0.05,
+        eps=1e-8,
+        vision_width=384,
+        text_width=256,
+        total_samples_planned=128000,
+        training_progress=0.5
     )
 
     result = vlm_bench.query(config)
+    result2 = vlm_bench.query(config2)
     print(result)
+    print(result2)

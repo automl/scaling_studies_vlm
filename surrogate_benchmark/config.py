@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 
@@ -13,9 +14,9 @@ class VLMConfig:
     vision_width: int
     text_width: int
     total_samples_planned: int
+    training_progress: float
 
     lr_ratio: float = field(init=False)
-    training_progress: float = field(init=False)
     global_batch_size: int = field(init=False)
 
     BATCH_SIZE_RULES = [
@@ -31,9 +32,8 @@ class VLMConfig:
     ]
 
     def __post_init__(self):
-        self.training_progress = 1.0
-        self.lr_ratio = 0.0
         self.global_batch_size = self._derive_global_batch_size()
+        self.lr_ratio = self.compute_lr_from_progress()
 
     def _derive_global_batch_size(self) -> int:
         n = self.total_samples_planned
@@ -52,6 +52,21 @@ class VLMConfig:
         raise ValueError(
             f"Could not determine global_batch_size for total_samples_planned={n}"
         )
+
+    def compute_lr_from_progress(self):
+        p = self.training_progress
+        w = self.warmup_fraction
+        base_lr = self.lr
+
+        if p < w:
+            current_lr = base_lr * (p / w)
+        else:
+            x = (p - w) / (1 - w)
+            current_lr = base_lr * 0.5 * (1 + math.cos(math.pi * x))
+
+        lr_ratio = current_lr / base_lr
+
+        return lr_ratio
 
     def to_dict(self) -> dict:
         return asdict(self)
