@@ -5,8 +5,7 @@ from surrogate_benchmark.performance_surrogate.predictors.base import SurrogateM
 
 
 class TabPFNModel(SurrogateModel):
-    def __init__(self, seed: int = 42, device: str = "cpu"):
-        self.seed = seed
+    def __init__(self, device: str = "cpu"):
         self.device = device
         self.model = TabPFNRegressor(device=device, random_state=42)
 

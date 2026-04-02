@@ -24,9 +24,10 @@ def build_out_path(args):
     else:
         model_name = args.model
 
-    intermediate_flag = "with_intermediate" if args.include_intermediate_points else "no_intermediate"
-
-    path = Path("results") / "predictors" / model_name / f"seed_{args.seed}" / intermediate_flag
+    intermediate_flag = "fit_with_intermediate" if args.include_intermediate_points else "fit_no_intermediate"
+    predict_on_itermediate = "pred_with_intermediate" if args.eval_on_intermediate_points else "pred_no_intermediate"
+    path = Path(
+        "results") / "predictors" / model_name / f"seed_{args.seed}" / intermediate_flag / predict_on_itermediate
 
     if args.model == "autogluon":
         ag_flag = "manual" if args.use_manual_ag_settings else "auto"
@@ -57,7 +58,7 @@ if __name__ == "__main__":
     args = parse_args()
     set_seed(args.seed)
     out_path = build_out_path(args)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.mkdir(parents=True, exist_ok=True)
     time_limit = None
 
     dataset = SurrogateDataset(
@@ -66,7 +67,7 @@ if __name__ == "__main__":
         targets=args.labels,
         seed=args.seed,
         include_intermediate_points=args.include_intermediate_points,
-        eval_on_intermediate_points=False,
+        eval_on_intermediate_points=args.eval_on_intermediate_points,
     )
 
     sizes = dataset.get_default_sizes()
@@ -75,7 +76,7 @@ if __name__ == "__main__":
     if args.model == "tabpfn":
         model = MultiLabelSurrogateModel(
             labels=labels,
-            model_factory=lambda label: TabPFNModel(seed=args.seed, device=args.device),
+            model_factory=lambda label: TabPFNModel(device=args.device),
         )
         model_name = "tabpfn"
 
@@ -83,8 +84,7 @@ if __name__ == "__main__":
         model = MultiLabelSurrogateModel(
             labels=args.labels,
             model_factory=lambda label: BaggingEnsemble(
-                EnsembleType(args.ensemble_type),
-                seed=args.seed,
+                EnsembleType(args.ensemble_type)
             ),
         )
         model_name = f"ensemble_{args.ensemble_type}"

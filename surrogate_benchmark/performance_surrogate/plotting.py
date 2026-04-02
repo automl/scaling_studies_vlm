@@ -16,15 +16,15 @@ PREDICTOR_COLORS = {
 
 MODES = ["with_intermediate", "no_intermediate"]
 METRICS = ["rmse", "mae", "mdae", "marpd", "r2", "r", "spearman"]
-TARGETS = ["val_loss", "test_loss"]
+TARGETS = ["val_loss"]
 
 
-def get_per_mode_plot_path(base_dir, target, metric, mode):
-    return Path(base_dir) / "per_mode" / target / metric / f"{mode}.png"
+def get_per_mode_plot_path(base_dir, target, metric, mode, fit_mode, eval_mode):
+    return Path(base_dir) / "per_mode" / target / metric / fit_mode / eval_mode / f"{mode}.png"
 
 
-def get_with_vs_without_plot_path(base_dir, target, metric):
-    return Path(base_dir) / "with_vs_without" / target / f"{metric}.png"
+def get_with_vs_without_plot_path(base_dir, target, metric, fit_mode, eval_mode):
+    return Path(base_dir) / "with_vs_without" / target / fit_mode / eval_mode / f"{metric}.png"
 
 
 def load_results(root_dir):
@@ -44,16 +44,20 @@ def load_results(root_dir):
 
             seed = int(seed_dir.name.split("_")[-1])
 
-            for mode_dir in seed_dir.iterdir():
-                results_path = mode_dir / "results.json"
-                if not mode_dir.is_dir() or not results_path.exists():
+            for fit_mode_dir in seed_dir.iterdir():
+                if not fit_mode_dir.is_dir():
                     continue
 
-                with open(results_path) as f:
-                    results_json = json.load(f)
+                for eval_mode_dir in fit_mode_dir.iterdir():
+                    results_path = eval_mode_dir / "results.json"
+                    if not eval_mode_dir.is_dir() or not results_path.exists():
+                        continue
 
-                mode = mode_dir.name
-                data[predictor].setdefault(mode, {})[seed] = results_json
+                    with open(results_path) as f:
+                        results_json = json.load(f)
+
+                    eval_mode = eval_mode_dir.name
+                    data[predictor].setdefault(eval_mode, {}).setdefault(fit_mode_dir.name, {})[seed] = results_json
 
     return data
 
@@ -92,13 +96,13 @@ def aggregate_curves_over_seeds(seed_results, target, metric):
     return xs[mask], mean[mask], std[mask]
 
 
-def setup_ax(ax, title, ylabel):
+def setup_ax(ax, title, ylabel, fit_mode, eval_mode):
     ax.set_xscale("log")
     ax.set_xticks([50, 100, 200, 500, 700])
     ax.xaxis.set_major_formatter(ScalarFormatter())
     ax.set_xlabel("Number of configs", fontsize=12)
     ax.set_ylabel(ylabel.upper(), fontsize=12)
-    ax.set_title(title, fontsize=14, pad=12)
+    ax.set_title(f"{title}\nFit Mode: {fit_mode}, Eval Mode: {eval_mode}", fontsize=14, pad=12)
     ax.grid(True, which="major", alpha=0.35)
     ax.grid(True, which="minor", alpha=0.15)
     ax.spines["top"].set_visible(False)
@@ -114,7 +118,7 @@ def save_and_show(fig, save_path=None):
     plt.show()
 
 
-def plot_metric(all_results, mode, target, metric, save_path=None):
+def plot_metric(all_results, mode, target, metric, save_path=None, fit_mode=None, eval_mode=None):
     fig, ax = plt.subplots(figsize=(10, 6))
 
     for predictor, predictor_data in sorted(all_results.items()):
@@ -133,13 +137,15 @@ def plot_metric(all_results, mode, target, metric, save_path=None):
         ax,
         title=f"{target.replace('_', ' ')} {metric.upper()} across predictors\n{mode.replace('_', ' ')}",
         ylabel=metric,
+        fit_mode=fit_mode,
+        eval_mode=eval_mode
     )
 
     ax.legend(title="Predictor", loc="best", frameon=True, fontsize=10, title_fontsize=10)
     save_and_show(fig, save_path)
 
 
-def plot_metric_with_vs_without(all_results, target, metric, save_path=None):
+def plot_metric_with_vs_without(all_results, target, metric, save_path=None, fit_mode=None, eval_mode=None):
     fig, ax = plt.subplots(figsize=(11, 6))
 
     linestyles = {
@@ -177,6 +183,8 @@ def plot_metric_with_vs_without(all_results, target, metric, save_path=None):
         ax,
         title=f"{target.replace('_', ' ')} {metric.upper()}: with vs without intermediate points",
         ylabel=metric,
+        fit_mode=fit_mode,
+        eval_mode=eval_mode
     )
 
     style_handles = [
@@ -194,21 +202,31 @@ def main():
     for target in TARGETS:
         for mode in MODES:
             for metric in METRICS:
-                plot_metric(
-                    results,
-                    mode=mode,
-                    target=target,
-                    metric=metric,
-                    save_path=get_per_mode_plot_path(plot_root, target, metric, mode),
-                )
+                for predictor, predictor_data in results.items():
+                    for eval_mode, eval_data in predictor_data.items():
+                        for fit_mode, fit_data in eval_data.items():
+                            plot_metric(
+                                fit_data,
+                                mode=mode,
+                                target=target,
+                                metric=metric,
+                                save_path=get_per_mode_plot_path(plot_root, target, metric, mode, fit_mode, eval_mode),
+                                fit_mode=fit_mode,
+                                eval_mode=eval_mode
+                            )
 
         for metric in METRICS:
-            plot_metric_with_vs_without(
-                results,
-                target=target,
-                metric=metric,
-                save_path=get_with_vs_without_plot_path(plot_root, target, metric),
-            )
+            for predictor, predictor_data in results.items():
+                for eval_mode, eval_data in predictor_data.items():
+                    for fit_mode, fit_data in eval_data.items():
+                        plot_metric_with_vs_without(
+                            fit_data,
+                            target=target,
+                            metric=metric,
+                            save_path=get_with_vs_without_plot_path(plot_root, target, metric, fit_mode, eval_mode),
+                            fit_mode=fit_mode,
+                            eval_mode=eval_mode
+                        )
 
 
 if __name__ == "__main__":

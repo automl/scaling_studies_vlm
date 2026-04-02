@@ -1,8 +1,9 @@
 import json
 
-import numpy as np
-
 from surrogate_benchmark.config import VLMConfig, Target
+from surrogate_benchmark.divergence_surrogate.data import DivergenceDataset
+from surrogate_benchmark.divergence_surrogate.predictors.xgb import BinaryBaggingEnsemble
+from surrogate_benchmark.feature_encoder import FeatureEncoder
 from surrogate_benchmark.performance_surrogate.data import SurrogateDataset
 from surrogate_benchmark.performance_surrogate.predictors.base import MultiLabelSurrogateModel
 from surrogate_benchmark.performance_surrogate.predictors.pfn import TabPFNModel
@@ -23,12 +24,20 @@ class VLMBenchmark:
             include_intermediate_points=True,
         )
 
-        self.feature_order = self.dataset.features
+        self.encoder = FeatureEncoder(
+            surrogate_feature_order=self.dataset.features,
+            divergence_feature_order=DivergenceDataset.DEFAULT_FEATURES,
+            apply_log=self.dataset.apply_log_transform,
+            log_columns=self.dataset.DEFAULT_LOG_COLUMNS,
+        )
+
         self.targets = self.dataset.targets
+
+        self.divergence_surrogate = BinaryBaggingEnsemble()
 
         self.surrogate = MultiLabelSurrogateModel(
             labels=self.targets,
-            model_factory=lambda label: TabPFNModel(seed=42, device=device),
+            model_factory=lambda label: TabPFNModel(device=device),
         )
         self.fit_models()
 
@@ -37,15 +46,10 @@ class VLMBenchmark:
         self.surrogate.fit(X, y)
 
     def query(self, config: VLMConfig) -> dict:
-        config_dict = config.to_dict()
+        divergence_row = self.encoder.transform_divergence(config)
 
-        row = self.config_to_feature_row(config_dict).reshape(1, -1)
-        preds = self.surrogate.predict(row)[0]
-
-        predictions = {
-            label: round(float(pred), 3)
-            for label, pred in zip(self.targets, preds)
-        }
+        divergence_prob = float(self.divergence_surrogate.predict_proba(divergence_row)[0])
+        failed = divergence_prob >= 0.5
 
         text_width = config.text_width
         vision_width = config.vision_width
@@ -58,36 +62,38 @@ class VLMBenchmark:
 
         stats = {}
         if model_stats is not None:
+            gflops_per_sample = model_stats.get("gflops_per_sample")
             stats = {
-                "gflops_per_sample": model_stats.get("gflops_per_sample"),
-                "total_gflops": model_stats.get(
-                    "gflops_per_sample") * config.total_samples_planned * config.training_progress,
+                "gflops_per_sample": gflops_per_sample,
+                "total_gflops": gflops_per_sample * config.total_samples_planned * config.training_progress,
                 "mparams": model_stats.get("mparams"),
                 "vision_mparams": model_stats.get("vision_mparams"),
                 "text_mparams": model_stats.get("text_mparams"),
                 "text_mparams_non_emb": model_stats.get("text_mparams_non_emb"),
             }
 
-        return {
-            "predictions": predictions,
-            "model_stats": stats
+        if failed:
+            return {
+                "failed": True,
+                "divergence_probability": round(divergence_prob, 3),
+                "predictions": None,
+                "model_stats": stats,
+            }
+
+        row = self.encoder.transform_surrogate(config)
+
+        preds = self.surrogate.predict(row)[0]
+        predictions = {
+            label: round(float(pred), 3)
+            for label, pred in zip(self.targets, preds)
         }
 
-    def config_to_feature_row(self, config: dict) -> np.ndarray:
-        missing = [name for name in self.feature_order if name not in config]
-        if missing:
-            raise ValueError(f"Missing features in config: {missing}")
-
-        row = []
-        for name in self.feature_order:
-            value = config[name]
-
-            if self.dataset.apply_log_transform and name in self.dataset.DEFAULT_LOG_COLUMNS:
-                value = np.log(value)
-
-            row.append(value)
-
-        return np.array(row, dtype=float)
+        return {
+            "failed": False,
+            "divergence_probability": round(divergence_prob, 3),
+            "predictions": predictions,
+            "model_stats": stats,
+        }
 
 
 if __name__ == "__main__":
