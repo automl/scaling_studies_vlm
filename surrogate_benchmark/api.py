@@ -1,4 +1,5 @@
 import json
+from importlib.resources import files
 
 from surrogate_benchmark.config import VLMConfig, Target
 from surrogate_benchmark.divergence_surrogate.data import DivergenceDataset
@@ -16,9 +17,16 @@ class VLMBenchmark:
             device: str = "auto",
     ):
         targets = Target.all() if targets is None else [t.value for t in targets]
+
+        train_path = files("surrogate_benchmark.performance_surrogate") \
+            .joinpath("splits/train.csv")
+
+        test_path = files("surrogate_benchmark.performance_surrogate") \
+            .joinpath("splits/test.csv")
+
         self.surrogate_dataset = SurrogateDataset(
-            train_csv_path="performance_surrogate/splits/train.csv",
-            test_csv_path="performance_surrogate/splits/test.csv",
+            train_csv_path=str(train_path),
+            test_csv_path=str(test_path),
             targets=targets,
             seed=42,
             include_intermediate_points=True,
@@ -33,7 +41,10 @@ class VLMBenchmark:
 
         self.targets = self.surrogate_dataset.targets
 
-        self.divergence_surrogate = BinaryBaggingEnsemble(model_dir="divergence_surrogate/xgb_models")
+        model_dir = files("surrogate_benchmark.divergence_surrogate") \
+            .joinpath("xgb_models")
+
+        self.divergence_surrogate = BinaryBaggingEnsemble(model_dir=str(model_dir))
 
         self.surrogate = MultiLabelSurrogateModel(
             labels=self.targets,
@@ -55,7 +66,9 @@ class VLMBenchmark:
         vision_width = config.vision_width
         stats_key = f"text_{text_width}_vision_{vision_width}"
 
-        with open("gflops_mparams.json", "r", encoding="utf-8") as f:
+        gflops_mparams_path = files("surrogate_benchmark").joinpath("gflops_mparams.json")
+
+        with open(str(gflops_mparams_path), "r", encoding="utf-8") as f:
             models_stats = json.load(f)
 
         model_stats = models_stats.get(stats_key)

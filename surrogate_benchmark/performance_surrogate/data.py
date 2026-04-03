@@ -1,51 +1,5 @@
 import numpy as np
 import pandas as pd
-import torch
-from torch.utils.data import Dataset
-
-from surrogate_benchmark.performance_surrogate.utils import convert_width_to_one_hot
-
-
-class TorchSurrogateDataset(Dataset):
-    def __init__(self, csv_path: str, target_col: str):
-        self.df = pd.read_csv(csv_path)
-        self.target_col = target_col
-
-        self.feature_cols = [
-            "lr", "wd", "beta1", "beta2", "eps", "warmup_fraction",
-            "vision_width", "text_width", "global_batch_size",
-            "total_samples_planned", "training_progress", "lr_ratio",
-        ]
-        missing = [c for c in self.feature_cols + [target_col] if c not in self.df.columns]
-        if missing:
-            raise ValueError(f"Missing columns in CSV: {missing}")
-
-    def __len__(self):
-        return len(self.df)
-
-    def __getitem__(self, idx: int):
-        row = self.df.iloc[idx]
-
-        numeric = torch.tensor([
-            float(row["lr"]),
-            float(row["wd"]),
-            float(row["beta1"]),
-            float(row["beta2"]),
-            float(row["eps"]),
-            float(row["warmup_fraction"]),
-            float(row["mparams"]),
-            float(row["total_samples_planned"]),
-            float(row["training_progress"]),
-            float(row["lr_ratio"]),
-        ], dtype=torch.float32)
-
-        vision_vec = convert_width_to_one_hot(int(row["vision_width"])).to(torch.float32)
-        text_vec = convert_width_to_one_hot(int(row["text_width"])).to(torch.float32)
-
-        x = torch.cat([numeric, vision_vec, text_vec])
-
-        y = torch.tensor(float(row[self.target_col]), dtype=torch.float32)
-        return x, y
 
 
 class SurrogateDataset:
