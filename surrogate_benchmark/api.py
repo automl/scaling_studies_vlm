@@ -3,7 +3,7 @@ import json
 from surrogate_benchmark.config import VLMConfig, Target
 from surrogate_benchmark.divergence_surrogate.data import DivergenceDataset
 from surrogate_benchmark.divergence_surrogate.predictors.xgb import BinaryBaggingEnsemble
-from surrogate_benchmark.feature_encoder import FeatureEncoder
+from surrogate_benchmark.feature_encoder import ConfigFeatureMapper
 from surrogate_benchmark.performance_surrogate.data import SurrogateDataset
 from surrogate_benchmark.performance_surrogate.predictors.base import MultiLabelSurrogateModel
 from surrogate_benchmark.performance_surrogate.predictors.pfn import TabPFNModel
@@ -16,7 +16,7 @@ class VLMBenchmark:
             device: str = "auto",
     ):
         targets = Target.all() if targets is None else [t.value for t in targets]
-        self.dataset = SurrogateDataset(
+        self.surrogate_dataset = SurrogateDataset(
             train_csv_path="performance_surrogate/splits/train.csv",
             test_csv_path="performance_surrogate/splits/test.csv",
             targets=targets,
@@ -24,16 +24,16 @@ class VLMBenchmark:
             include_intermediate_points=True,
         )
 
-        self.encoder = FeatureEncoder(
-            surrogate_feature_order=self.dataset.features,
+        self.config_feature_mapper = ConfigFeatureMapper(
+            surrogate_feature_order=self.surrogate_dataset.features,
             divergence_feature_order=DivergenceDataset.DEFAULT_FEATURES,
-            apply_log=self.dataset.apply_log_transform,
-            log_columns=self.dataset.DEFAULT_LOG_COLUMNS,
+            apply_log=self.surrogate_dataset.apply_log_transform,
+            log_columns=self.surrogate_dataset.DEFAULT_LOG_COLUMNS,
         )
 
-        self.targets = self.dataset.targets
+        self.targets = self.surrogate_dataset.targets
 
-        self.divergence_surrogate = BinaryBaggingEnsemble()
+        self.divergence_surrogate = BinaryBaggingEnsemble(model_dir="divergence_surrogate/xgb_models")
 
         self.surrogate = MultiLabelSurrogateModel(
             labels=self.targets,
@@ -42,11 +42,11 @@ class VLMBenchmark:
         self.fit_models()
 
     def fit_models(self):
-        X, y = self.dataset.get_all_data()
+        X, y = self.surrogate_dataset.get_all_data()
         self.surrogate.fit(X, y)
 
     def query(self, config: VLMConfig) -> dict:
-        divergence_row = self.encoder.transform_divergence(config)
+        divergence_row = self.config_feature_mapper.to_divergence_features(config)
 
         divergence_prob = float(self.divergence_surrogate.predict_proba(divergence_row)[0])
         failed = divergence_prob >= 0.5
@@ -80,7 +80,7 @@ class VLMBenchmark:
                 "model_stats": stats,
             }
 
-        row = self.encoder.transform_surrogate(config)
+        row = self.config_feature_mapper.to_surrogate_features(config)
 
         preds = self.surrogate.predict(row)[0]
         predictions = {
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     )
 
     config2 = VLMConfig(
-        lr=1e-4,
+        lr=0.03,
         wd=0.01,
         beta1=0.9,
         beta2=0.98,

@@ -6,26 +6,26 @@ ENSEMBLE_TYPES=("xgb" "lightgbm" "mix")
 
 export PYTHONPATH="C:\Users\Donat\Documents\Master\Thesis\vlm scaling laws repository;$PYTHONPATH"
 
-## tabpfn
-#for SEED in "${SEEDS[@]}"; do
-#    python "$SCRIPT" \
-#        --model tabpfn \
-#        --seed "$SEED" \
-#        --labels val_loss
-#
-#    python "$SCRIPT" \
-#        --model tabpfn \
-#        --seed "$SEED" \
-#        --labels val_loss \
-#        --include_intermediate_points
-#
-#    python "$SCRIPT" \
-#        --model tabpfn \
-#        --seed "$SEED" \
-#        --labels val_loss \
-#        --include_intermediate_points \
-#        --eval_on_intermediate_points
-#done
+# tabpfn
+for SEED in "${SEEDS[@]}"; do
+    python "$SCRIPT" \
+        --model tabpfn \
+        --seed "$SEED" \
+        --labels val_loss
+
+    python "$SCRIPT" \
+        --model tabpfn \
+        --seed "$SEED" \
+        --labels val_loss \
+        --include_intermediate_points
+
+    python "$SCRIPT" \
+        --model tabpfn \
+        --seed "$SEED" \
+        --labels val_loss \
+        --include_intermediate_points \
+        --eval_on_intermediate_points
+done
 
 # ensembles
 for SEED in "${SEEDS[@]}"; do

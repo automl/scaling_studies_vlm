@@ -42,17 +42,20 @@ class MultiLabelSurrogateModel:
         }
         self.is_fitted = False
 
-
     def validate(self, dataset: SurrogateDataset, sizes, out_path: Path):
         X_test, y_test = dataset.get_test_data()
 
         for i, label in enumerate(self.labels):
+            file_path = out_path / f"{label}.json"
+
+            if file_path.exists():
+                print(f"Skipping {label}, already exists.")
+                continue
+
             model = self.models[label]
             label_results = {}
 
             for n_cfg in sizes:
-                print(f"Training surrogate for:{label} on {n_cfg} configs")
-
                 X_sub, y_sub = dataset.get_train_subset(n_cfg)
 
                 model.fit(X_sub, y_sub[:, i])
@@ -62,7 +65,6 @@ class MultiLabelSurrogateModel:
 
                 label_results[int(n_cfg)] = metrics
 
-            file_path = out_path / f"{label}.json"
             with open(file_path, "w") as f:
                 json.dump(label_results, f, indent=4)
 

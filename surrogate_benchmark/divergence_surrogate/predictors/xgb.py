@@ -26,7 +26,7 @@ def binary_xgb_ensemble(seed):
 
 
 class BinaryBaggingEnsemble:
-    def __init__(self, seed: int = 42, model_dir: Path = "xgb_models", load: bool = True):
+    def __init__(self, seed: int = 42, model_dir: str = "xgb_models", load: bool = True):
         self.seed = seed
         self.model_dir = Path(model_dir)
         os.makedirs(self.model_dir, exist_ok=True)

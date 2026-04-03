@@ -3,7 +3,7 @@ import numpy as np
 from surrogate_benchmark.config import VLMConfig
 
 
-class FeatureEncoder:
+class ConfigFeatureMapper:
     def __init__(
         self,
         surrogate_feature_order,
@@ -34,8 +34,8 @@ class FeatureEncoder:
 
         return np.array(row, dtype=float).reshape(1, -1)
 
-    def transform_surrogate(self, config: VLMConfig) -> np.ndarray:
+    def to_surrogate_features(self, config: VLMConfig) -> np.ndarray:
         return self._build_row(config, self.surrogate_feature_order)
 
-    def transform_divergence(self, config: VLMConfig) -> np.ndarray:
+    def to_divergence_features(self, config: VLMConfig) -> np.ndarray:
         return self._build_row(config, self.divergence_feature_order)
