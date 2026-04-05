@@ -103,10 +103,51 @@ class VLMConfig:
 
 
 class Target(str, Enum):
+    # upstream
     VAL_LOSS = "val_loss"
     TEST_LOSS = "test_loss"
 
-    # TODO add downstream tasks
+    # downstream
+    VTAB_CALTECH101 = "vtab_caltech101_mean_per_class_recall"
+    CIFAR10 = "cifar10_mean_per_class_recall"
+    VTAB_CIFAR100 = "vtab_cifar100_mean_per_class_recall"
+    VTAB_CLEVR_COUNT_ALL = "vtab_clevr_count_all_acc1"
+    VTAB_CLEVR_CLOSEST_OBJECT_DISTANCE = "vtab_clevr_closest_object_distance_acc1"
+    COUNTRY211 = "country211_acc1"
+    VTAB_DTD = "vtab_dtd_acc1"
+    VTAB_EUROSAT = "vtab_eurosat_acc1"
+    FGVC_AIRCRAFT = "fgvc_aircraft_mean_per_class_recall"
+    FOOD101 = "food101_acc1"
+    GTSRB = "gtsrb_acc1"
+    IMAGENET1K = "imagenet1k_acc1"
+    IMAGENET_SKETCH = "imagenet_sketch_acc1"
+    IMAGENETV2 = "imagenetv2_acc1"
+    IMAGENET_A = "imagenet-a_acc1"
+    IMAGENET_O = "imagenet-o_acc1"
+    IMAGENET_R = "imagenet-r_acc1"
+    VTAB_KITTI_CLOSEST_VEHICLE_DISTANCE = "vtab_kitti_closest_vehicle_distance_acc1"
+    MNIST = "mnist_acc1"
+    OBJECTNET = "objectnet_acc1"
+    VTAB_FLOWERS = "vtab_flowers_mean_per_class_recall"
+    VTAB_PETS = "vtab_pets_mean_per_class_recall"
+    VOC2007 = "voc2007_acc1"
+    VTAB_PCAM = "vtab_pcam_acc1"
+    RENDEREDSST2 = "renderedsst2_acc1"
+    VTAB_RESISC45 = "vtab_resisc45_acc1"
+    CARS = "cars_acc1"
+    STL10 = "stl10_acc1"
+    SUN397 = "sun397_acc1"
+    VTAB_SVHN = "vtab_svhn_acc1"
+    RETRIEVAL_FLICKR = "retrieval_flickr_1k_test_image_text_retrieval_mean_recall@1"
+    RETRIEVAL_MSCOCO = "retrieval_mscoco_2014_5k_test_image_text_retrieval_mean_recall@1"
+    MISC_WINOGAVIL = "misc_winogavil_jaccard_score_10-12"
+    WILDS_IWILDCAM = "wilds_iwildcam_F1-macro_all"
+    WILDS_CAMELYON17 = "wilds_camelyon17_acc1"
+    WILDS_FMOW = "wilds_fmow_acc_worst_region"
+    FAIRNESS_DOLLAR_STREET = "fairness_dollar_street_acc_top5_wg"
+    FAIRNESS_GEODE = "fairness_geode_acc_wg"
+    FAIRNESS_FAIRFACE = "fairness_fairface_acc_race_avg"
+    FAIRNESS_UTKFACE = "fairness_utkface_acc_race_avg"
 
     @classmethod
     def all(cls):

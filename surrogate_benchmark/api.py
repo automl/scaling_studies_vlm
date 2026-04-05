@@ -1,12 +1,13 @@
 import json
 from importlib.resources import files
 
+from tqdm import tqdm
+
 from surrogate_benchmark.config import VLMConfig, Target
 from surrogate_benchmark.divergence_surrogate.data import DivergenceDataset
 from surrogate_benchmark.divergence_surrogate.predictors.xgb import BinaryBaggingEnsemble
 from surrogate_benchmark.feature_encoder import ConfigFeatureMapper
 from surrogate_benchmark.performance_surrogate.data import SurrogateDataset
-from surrogate_benchmark.performance_surrogate.predictors.base import MultiLabelSurrogateModel
 from surrogate_benchmark.performance_surrogate.predictors.pfn import TabPFNModel
 
 
@@ -46,44 +47,11 @@ class VLMBenchmark:
 
         self.divergence_surrogate = BinaryBaggingEnsemble(model_dir=str(model_dir))
 
-        self.surrogate = MultiLabelSurrogateModel(
-            labels=self.targets,
-            model_factory=lambda label: TabPFNModel(device=device),
-        )
-        self.fit_models()
-
-    def fit_models(self):
-        X, y = self.surrogate_dataset.get_all_data()
-        self.surrogate.fit(X, y)
+        self.performance_surrogate = TabPFNModel(device=device)
 
     def query(self, config: VLMConfig) -> dict:
-        divergence_row = self.config_feature_mapper.to_divergence_features(config)
-
-        divergence_prob = float(self.divergence_surrogate.predict_proba(divergence_row)[0])
-        failed = divergence_prob >= 0.5
-
-        text_width = config.text_width
-        vision_width = config.vision_width
-        stats_key = f"text_{text_width}_vision_{vision_width}"
-
-        gflops_mparams_path = files("surrogate_benchmark").joinpath("gflops_mparams.json")
-
-        with open(str(gflops_mparams_path), "r", encoding="utf-8") as f:
-            models_stats = json.load(f)
-
-        model_stats = models_stats.get(stats_key)
-
-        stats = {}
-        if model_stats is not None:
-            gflops_per_sample = model_stats.get("gflops_per_sample")
-            stats = {
-                "gflops_per_sample": gflops_per_sample,
-                "total_gflops": gflops_per_sample * config.total_samples_planned * config.training_progress,
-                "mparams": model_stats.get("mparams"),
-                "vision_mparams": model_stats.get("vision_mparams"),
-                "text_mparams": model_stats.get("text_mparams"),
-                "text_mparams_non_emb": model_stats.get("text_mparams_non_emb"),
-            }
+        divergence_prob, failed = self._predict_divergence(config)
+        stats = self._get_model_stats(config)
 
         if failed:
             return {
@@ -93,13 +61,7 @@ class VLMBenchmark:
                 "model_stats": stats,
             }
 
-        row = self.config_feature_mapper.to_surrogate_features(config)
-
-        preds = self.surrogate.predict(row)[0]
-        predictions = {
-            label: round(float(pred), 3)
-            for label, pred in zip(self.targets, preds)
-        }
+        predictions = self._predict_performance(config)
 
         return {
             "failed": False,
@@ -108,9 +70,53 @@ class VLMBenchmark:
             "model_stats": stats,
         }
 
+    def _get_model_stats(self, config: VLMConfig) -> dict:
+        stats_key = f"text_{config.text_width}_vision_{config.vision_width}"
+
+        path = files("surrogate_benchmark").joinpath("gflops_mparams.json")
+
+        with open(str(path), "r", encoding="utf-8") as f:
+            models_stats = json.load(f)
+
+        model_stats = models_stats.get(stats_key)
+        if model_stats is None:
+            return {}
+
+        gflops_per_sample = model_stats.get("gflops_per_sample")
+
+        return {
+            "gflops_per_sample": gflops_per_sample,
+            "total_gflops": gflops_per_sample * config.total_samples_planned * config.training_progress,
+            "mparams": model_stats.get("mparams"),
+            "vision_mparams": model_stats.get("vision_mparams"),
+            "text_mparams": model_stats.get("text_mparams"),
+            "text_mparams_non_emb": model_stats.get("text_mparams_non_emb"),
+        }
+
+    def _predict_divergence(self, config: VLMConfig) -> tuple[float, bool]:
+        row = self.config_feature_mapper.to_divergence_features(config)
+        prob = float(self.divergence_surrogate.predict_proba(row)[0])
+        return prob, prob >= 0.5
+
+    def _predict_performance(self, config: VLMConfig) -> dict:
+        row = self.config_feature_mapper.to_surrogate_features(config)
+        X, y = self.surrogate_dataset.get_all_data()
+
+        predictions = {}
+
+        for i, target in enumerate(tqdm(self.targets, desc="Evaluating targets")):
+            y_target = y[:, i]
+
+            self.performance_surrogate.fit(X, y_target)
+            pred = self.performance_surrogate.predict(row)[0]
+
+            predictions[target] = round(float(pred), 3)
+
+        return predictions
+
 
 if __name__ == "__main__":
-    vlm_bench = VLMBenchmark(targets=[Target.VAL_LOSS])
+    vlm_bench = VLMBenchmark()
 
     config = VLMConfig(
         lr=1e-4,

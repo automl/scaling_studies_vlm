@@ -15,7 +15,8 @@ dependencies = [
     "tabpfn==6.4.1",
     "matplotlib",
     "seaborn",
-    "torch==2.9.1"
+    "torch==2.9.1",
+    "tqdm"
 ]
 
 [tool.setuptools.packages.find]
