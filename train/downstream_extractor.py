@@ -34,6 +34,7 @@ def has_nan_checkpoint(checkpoints_dir: Path) -> bool:
 def build_results_dict(root_dir, metric_map):
     root_dir = Path(root_dir) / "individual_training_logs"
     results = {}
+    total_eval_time_spent = {}
 
     for config_dir in root_dir.iterdir():
         if not config_dir.is_dir() or not config_dir.name.startswith("train_config"):
@@ -60,6 +61,15 @@ def build_results_dict(root_dir, metric_map):
             if not jsonl_files:
                 continue
 
+            time_record_json = epoch_dir / "eval_time.json"
+            with open(time_record_json, "r") as f:
+                train_data = json.load(f)
+
+            gpu = train_data.get("gpu_name") or "NVIDIA A100-SXM4-40GB"
+            train_time = train_data["eval_time_seconds"] / 3600
+
+            total_eval_time_spent[gpu] = total_eval_time_spent.get(gpu, 0) + train_time
+
             file_path = jsonl_files[0]
 
             data = load_jsonl(file_path)
@@ -72,7 +82,7 @@ def build_results_dict(root_dir, metric_map):
             }
 
             results[config_id][epoch] = epoch_results
-
+    print(total_eval_time_spent)
     return results
 
 
