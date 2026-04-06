@@ -14,20 +14,21 @@ PREDICTOR_COLORS = {
     "autogluon": "#8172B3",
 }
 
-MODES = ["with_intermediate", "no_intermediate"]
+TRAIN_MODES = ["fit_with_intermediate", "fit_no_intermediate"]
+EVAL_MODES = ["pred_no_intermediate", "pred_with_intermediate"]
 METRICS = ["rmse", "mae", "mdae", "marpd", "r2", "r", "spearman"]
 TARGETS = ["val_loss"]
 
 
-def get_per_mode_plot_path(base_dir, target, metric, mode, fit_mode, eval_mode):
-    return Path(base_dir) / "per_mode" / target / metric / fit_mode / eval_mode / f"{mode}.png"
+def get_per_mode_plot_path(base_dir, target, metric, fit_mode, eval_mode):
+    return Path(base_dir) / "per_mode" / target / metric / fit_mode / f"{eval_mode}.png"
 
 
-def get_with_vs_without_plot_path(base_dir, target, metric, fit_mode, eval_mode):
-    return Path(base_dir) / "with_vs_without" / target / fit_mode / eval_mode / f"{metric}.png"
+def get_with_vs_without_plot_path(base_dir, target, metric, predictor, eval_mode):
+    return Path(base_dir) / "with_vs_without" / target / metric / predictor / f"{eval_mode}.png"
 
 
-def load_results(root_dir):
+def load_results(root_dir, targets):
     root = Path(root_dir)
     data = {}
 
@@ -36,136 +37,195 @@ def load_results(root_dir):
             continue
 
         predictor = predictor_dir.name
-        data[predictor] = {}
+        data.setdefault(predictor, {})
 
         for seed_dir in predictor_dir.iterdir():
             if not seed_dir.is_dir():
                 continue
 
-            seed = int(seed_dir.name.split("_")[-1])
+            try:
+                seed = int(seed_dir.name.split("_")[-1])
+            except ValueError:
+                print(f"Skipping seed folder with unexpected name: {seed_dir}")
+                continue
 
             for fit_mode_dir in seed_dir.iterdir():
                 if not fit_mode_dir.is_dir():
                     continue
 
+                fit_mode = fit_mode_dir.name
+                data[predictor].setdefault(fit_mode, {})
+
                 for eval_mode_dir in fit_mode_dir.iterdir():
-                    results_path = eval_mode_dir / "results.json"
-                    if not eval_mode_dir.is_dir() or not results_path.exists():
+                    if not eval_mode_dir.is_dir():
                         continue
 
-                    with open(results_path) as f:
-                        results_json = json.load(f)
-
                     eval_mode = eval_mode_dir.name
-                    data[predictor].setdefault(eval_mode, {}).setdefault(fit_mode_dir.name, {})[seed] = results_json
+                    data[predictor][fit_mode].setdefault(eval_mode, {})
+
+                    for target in targets:
+                        target_path = eval_mode_dir / f"{target}.json"
+                        if not target_path.exists():
+                            continue
+
+                        with open(target_path, "r") as f:
+                            results_json = json.load(f)
+
+                        data[predictor][fit_mode][eval_mode].setdefault(target, {})
+                        data[predictor][fit_mode][eval_mode][target][seed] = results_json
 
     return data
 
 
-def extract_curve(results_json, target, metric):
-    pairs = [
-        (int(n_cfg), values[target][metric])
-        for n_cfg, values in results_json["results"].items()
-        if target in values and metric in values[target]
-    ]
+def extract_curve(results_json, metric):
+    pairs = []
+
+    for n_cfg, metric_values in results_json.items():
+        if metric in metric_values:
+            pairs.append((int(n_cfg), metric_values[metric]))
 
     if not pairs:
-        return [], []
+        return np.array([]), np.array([])
 
-    pairs.sort()
+    pairs.sort(key=lambda x: x[0])
     xs, ys = zip(*pairs)
-    return list(xs), list(ys)
+    return np.array(xs, dtype=float), np.array(ys, dtype=float)
 
 
-def aggregate_curves_over_seeds(seed_results, target, metric):
+def aggregate_curves_over_seeds(seed_results, metric, min_cfg=50):
     values_per_config = {}
 
     for results_json in seed_results.values():
-        xs, ys = extract_curve(results_json, target, metric)
+        xs, ys = extract_curve(results_json, metric)
         for x, y in zip(xs, ys):
             values_per_config.setdefault(x, []).append(y)
 
     if not values_per_config:
         return np.array([]), np.array([]), np.array([])
 
-    xs = np.array(sorted(values_per_config), dtype=float)
+    xs = np.array(sorted(values_per_config.keys()), dtype=float)
     mean = np.array([np.mean(values_per_config[x]) for x in xs], dtype=float)
     std = np.array([np.std(values_per_config[x]) for x in xs], dtype=float)
 
-    mask = xs >= 50
+    mask = xs >= min_cfg
     return xs[mask], mean[mask], std[mask]
 
 
-def setup_ax(ax, title, ylabel, fit_mode, eval_mode):
+def setup_ax(ax, title, ylabel):
     ax.set_xscale("log")
-    ax.set_xticks([50, 100, 200, 500, 700])
+    custom_ticks = [50, 100, 200, 500, 700]
+    ax.set_xticks(custom_ticks)
+    ax.set_xticklabels([str(t) for t in custom_ticks])
     ax.xaxis.set_major_formatter(ScalarFormatter())
-    ax.set_xlabel("Number of configs", fontsize=12)
+    ax.set_xlabel("Number of fitted configs", fontsize=12)
     ax.set_ylabel(ylabel.upper(), fontsize=12)
-    ax.set_title(f"{title}\nFit Mode: {fit_mode}, Eval Mode: {eval_mode}", fontsize=14, pad=12)
+    ax.set_title(title, fontsize=14, pad=12)
     ax.grid(True, which="major", alpha=0.35)
     ax.grid(True, which="minor", alpha=0.15)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
 
-def save_and_show(fig, save_path=None):
+def save_and_close(fig, save_path=None, show=False):
     if save_path is not None:
         save_path = Path(save_path)
         save_path.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(save_path, dpi=200, bbox_inches="tight")
-    plt.tight_layout()
-    plt.show()
+
+    if show:
+        plt.show()
+
+    plt.close(fig)
 
 
-def plot_metric(all_results, mode, target, metric, save_path=None, fit_mode=None, eval_mode=None):
+def plot_metric_across_predictors(
+        all_results,
+        target,
+        metric,
+        fit_mode,
+        eval_mode,
+        save_path=None,
+        min_cfg=50,
+        show=False,
+):
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    for predictor, predictor_data in sorted(all_results.items()):
-        if mode not in predictor_data:
+    plotted_any = False
+
+    for predictor in sorted(all_results.keys()):
+        seed_results = (
+            all_results.get(predictor, {})
+            .get(fit_mode, {})
+            .get(eval_mode, {})
+            .get(target, {})
+        )
+
+        if not seed_results:
             continue
 
-        xs, mean, std = aggregate_curves_over_seeds(predictor_data[mode], target, metric)
+        xs, mean, std = aggregate_curves_over_seeds(seed_results, metric, min_cfg=min_cfg)
         if len(xs) == 0:
             continue
 
         color = PREDICTOR_COLORS.get(predictor, "#333333")
         ax.plot(xs, mean, label=predictor, color=color, linewidth=2.5, alpha=0.95)
         ax.fill_between(xs, mean - std, mean + std, color=color, alpha=0.15)
+        plotted_any = True
+
+    if not plotted_any:
+        plt.close(fig)
+        print(f"No data found for target={target}, metric={metric}, fit_mode={fit_mode}, eval_mode={eval_mode}")
+        return
 
     setup_ax(
         ax,
-        title=f"{target.replace('_', ' ')} {metric.upper()} across predictors\n{mode.replace('_', ' ')}",
+        title=(
+            f"{target} | {metric.upper()}\n"
+            f"Fit mode: {fit_mode} | Eval mode: {eval_mode}"
+        ),
         ylabel=metric,
-        fit_mode=fit_mode,
-        eval_mode=eval_mode
     )
 
     ax.legend(title="Predictor", loc="best", frameon=True, fontsize=10, title_fontsize=10)
-    save_and_show(fig, save_path)
+    save_and_close(fig, save_path=save_path, show=show)
 
 
-def plot_metric_with_vs_without(all_results, target, metric, save_path=None, fit_mode=None, eval_mode=None):
+def plot_metric_with_vs_without(
+        all_results,
+        predictor,
+        target,
+        metric,
+        eval_mode,
+        save_path=None,
+        min_cfg=50,
+        show=False,
+):
     fig, ax = plt.subplots(figsize=(11, 6))
 
-    linestyles = {
-        "with_intermediate": "-",
-        "no_intermediate": "--",
+    linestyle_map = {
+        "fit_with_intermediate": "-",
+        "fit_no_intermediate": "--",
     }
-    band_alpha = {
-        "with_intermediate": 0.12,
-        "no_intermediate": 0.04,
+    alpha_map = {
+        "fit_with_intermediate": 0.14,
+        "fit_no_intermediate": 0.07,
     }
 
-    predictor = "tabpfn"
-    predictor_data = all_results.get(predictor, {})
     color = PREDICTOR_COLORS.get(predictor, "#333333")
+    plotted_any = False
 
-    for mode in MODES:
-        if mode not in predictor_data:
+    for fit_mode in TRAIN_MODES:
+        seed_results = (
+            all_results.get(predictor, {})
+            .get(fit_mode, {})
+            .get(eval_mode, {})
+            .get(target, {})
+        )
+
+        if not seed_results:
             continue
 
-        xs, mean, std = aggregate_curves_over_seeds(predictor_data[mode], target, metric)
+        xs, mean, std = aggregate_curves_over_seeds(seed_results, metric, min_cfg=min_cfg)
         if len(xs) == 0:
             continue
 
@@ -173,60 +233,73 @@ def plot_metric_with_vs_without(all_results, target, metric, save_path=None, fit
             xs,
             mean,
             color=color,
-            linestyle=linestyles[mode],
+            linestyle=linestyle_map[fit_mode],
             linewidth=2.3,
             alpha=0.95,
         )
-        ax.fill_between(xs, mean - std, mean + std, color=color, alpha=band_alpha[mode])
+        ax.fill_between(xs, mean - std, mean + std, color=color, alpha=alpha_map[fit_mode])
+        plotted_any = True
+
+    if not plotted_any:
+        plt.close(fig)
+        print(
+            f"No comparison data found for predictor={predictor}, target={target}, metric={metric}, eval_mode={eval_mode}")
+        return
 
     setup_ax(
         ax,
-        title=f"{target.replace('_', ' ')} {metric.upper()}: with vs without intermediate points",
+        title=(
+            f"{predictor} | {target} | {metric.upper()}\n"
+            f"Compare fit_with_intermediate vs fit_no_intermediate | Eval mode: {eval_mode}"
+        ),
         ylabel=metric,
-        fit_mode=fit_mode,
-        eval_mode=eval_mode
     )
 
-    style_handles = [
-        Line2D([0], [0], color="black", lw=2.3, linestyle="-", label="with intermediate"),
-        Line2D([0], [0], color="black", lw=2.3, linestyle="--", label="without intermediate"),
+    legend_handles = [
+        Line2D([0], [0], color="black", lw=2.3, linestyle="-", label="fit_with_intermediate"),
+        Line2D([0], [0], color="black", lw=2.3, linestyle="--", label="fit_no_intermediate"),
     ]
-    ax.legend(handles=style_handles, title="Mode", loc="best", frameon=True, fontsize=9, title_fontsize=10)
-    save_and_show(fig, save_path)
+    ax.legend(handles=legend_handles, title="Training mode", loc="best", frameon=True, fontsize=9, title_fontsize=10)
+    save_and_close(fig, save_path=save_path, show=show)
 
 
 def main():
-    results = load_results("results/predictors")
+    results = load_results("results/predictors", TARGETS)
     plot_root = Path("plots")
 
+    # 1. Compare predictors for each fixed fit mode and eval mode
     for target in TARGETS:
-        for mode in MODES:
-            for metric in METRICS:
-                for predictor, predictor_data in results.items():
-                    for eval_mode, eval_data in predictor_data.items():
-                        for fit_mode, fit_data in eval_data.items():
-                            plot_metric(
-                                fit_data,
-                                mode=mode,
-                                target=target,
-                                metric=metric,
-                                save_path=get_per_mode_plot_path(plot_root, target, metric, mode, fit_mode, eval_mode),
-                                fit_mode=fit_mode,
-                                eval_mode=eval_mode
-                            )
+        for fit_mode in TRAIN_MODES:
+            for eval_mode in EVAL_MODES:
+                for metric in METRICS:
+                    plot_metric_across_predictors(
+                        all_results=results,
+                        target=target,
+                        metric=metric,
+                        fit_mode=fit_mode,
+                        eval_mode=eval_mode,
+                        save_path=get_per_mode_plot_path(
+                            plot_root, target, metric, fit_mode, eval_mode
+                        ),
+                        show=False,
+                    )
 
-        for metric in METRICS:
-            for predictor, predictor_data in results.items():
-                for eval_mode, eval_data in predictor_data.items():
-                    for fit_mode, fit_data in eval_data.items():
-                        plot_metric_with_vs_without(
-                            fit_data,
-                            target=target,
-                            metric=metric,
-                            save_path=get_with_vs_without_plot_path(plot_root, target, metric, fit_mode, eval_mode),
-                            fit_mode=fit_mode,
-                            eval_mode=eval_mode
-                        )
+    # 2. Compare fit_with_intermediate vs fit_no_intermediate for each predictor
+    for target in TARGETS:
+        for predictor in results.keys():
+            for eval_mode in ["pred_no_intermediate"]:
+                for metric in METRICS:
+                    plot_metric_with_vs_without(
+                        all_results=results,
+                        predictor=predictor,
+                        target=target,
+                        metric=metric,
+                        eval_mode=eval_mode,
+                        save_path=get_with_vs_without_plot_path(
+                            plot_root, target, metric, predictor, eval_mode
+                        ),
+                        show=False,
+                    )
 
 
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
 import json
 from importlib.resources import files
+from pprint import pprint
 
+import numpy as np
 from tqdm import tqdm
 
 from surrogate_benchmark.config import VLMConfig, Target
@@ -108,15 +110,80 @@ class VLMBenchmark:
             y_target = y[:, i]
 
             self.performance_surrogate.fit(X, y_target)
-            pred = self.performance_surrogate.predict(row)[0]
+            pred = self.performance_surrogate.predict_with_uncertainty(row)
 
-            predictions[target] = round(float(pred), 3)
+            predictions[target] = {
+                "mean": round(float(pred["mean"][0]), 3),
+                "uncertainty": round(float(pred["uncertainty_width"][0]), 3)
+            }
 
         return predictions
 
+    def _configs_to_divergence_matrix(self, configs: list[VLMConfig]) -> np.ndarray:
+        rows = [self.config_feature_mapper.to_divergence_features(cfg) for cfg in configs]
+        return np.vstack(rows)
+
+    def _configs_to_surrogate_matrix(self, configs: list[VLMConfig]) -> np.ndarray:
+        rows = [self.config_feature_mapper.to_surrogate_features(cfg) for cfg in configs]
+        return np.vstack(rows)
+
+    def _predict_divergence_many(self, configs: list[VLMConfig]) -> tuple[np.ndarray, np.ndarray]:
+        X = self._configs_to_divergence_matrix(configs)
+        probs = np.asarray(self.divergence_surrogate.predict_proba(X)).reshape(-1)
+        failed = probs >= 0.5
+        return probs, failed
+
+    def _predict_performance_many(self, configs: list[VLMConfig]) -> list[dict]:
+        X_query = self._configs_to_surrogate_matrix(configs)
+        X_train, y_train = self.surrogate_dataset.get_all_data()
+
+        predictions_per_config = [{} for _ in configs]
+
+        for i, target in enumerate(tqdm(self.targets, desc="Evaluating targets")):
+            y_target = y_train[:, i]
+
+            self.performance_surrogate.fit(X_train, y_target)
+            pred = self.performance_surrogate.predict_with_uncertainty(X_query)
+
+            means = pred["mean"]
+            widths = pred.get("uncertainty_width")
+
+            for j in range(len(configs)):
+                predictions_per_config[j][target] = {
+                    "mean": round(float(means[j]), 3),
+                    "uncertainty": round(float(widths[j]), 3) if widths is not None else None,
+                }
+
+        return predictions_per_config
+
+    def query_many(self, configs: list[VLMConfig]) -> list[dict]:
+        divergence_probs, failed_mask = self._predict_divergence_many(configs)
+        stats_list = [self._get_model_stats(cfg) for cfg in configs]
+
+        predictions_list = self._predict_performance_many(configs)
+
+        results = []
+        for i in range(len(configs)):
+            if failed_mask[i]:
+                results.append({
+                    "failed": True,
+                    "divergence_probability": round(float(divergence_probs[i]), 3),
+                    "predictions": None,
+                    "model_stats": stats_list[i],
+                })
+            else:
+                results.append({
+                    "failed": False,
+                    "divergence_probability": round(float(divergence_probs[i]), 3),
+                    "predictions": predictions_list[i],
+                    "model_stats": stats_list[i],
+                })
+
+        return results
+
 
 if __name__ == "__main__":
-    vlm_bench = VLMBenchmark()
+    vlm_bench = VLMBenchmark(targets=[Target.VAL_LOSS, Target.TEST_LOSS])
 
     config = VLMConfig(
         lr=1e-4,
@@ -125,9 +192,9 @@ if __name__ == "__main__":
         beta2=0.98,
         warmup_fraction=0.05,
         eps=1e-8,
-        vision_width=384,
+        vision_width=256,
         text_width=256,
-        total_samples_planned=1280000,
+        total_samples_planned=55000000,
         training_progress=1.0
     )
 
@@ -144,7 +211,6 @@ if __name__ == "__main__":
         training_progress=0.5
     )
 
-    result = vlm_bench.query(config)
-    result2 = vlm_bench.query(config2)
-    print(result)
-    print(result2)
+    results = vlm_bench.query_many([config, config2])
+
+    pprint(results)
