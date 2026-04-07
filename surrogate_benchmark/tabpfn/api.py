@@ -1,10 +1,10 @@
 from importlib.resources import files
 
-from surrogate_benchmark.predictors.pfn import TabPFNModel
 from tqdm import tqdm
 
+from surrogate_benchmark.config_feature_mapper import ConfigFeatureMapper
+from surrogate_benchmark.predictors.pfn import TabPFNModel
 from surrogate_benchmark.tabpfn.config import TabPFNConfig
-from surrogate_benchmark.tabpfn.feature_encoder import ConfigFeatureMapper
 from surrogate_benchmark.tabpfn.performance_surrogate.data import SurrogateDataset
 
 
@@ -30,13 +30,13 @@ class TabPFNBenchmark:
         self.performance_surrogate = TabPFNModel(device=device)
 
         self.config_feature_mapper = ConfigFeatureMapper(
-            surrogate_feature_order=self.surrogate_dataset.features,
+            feature_order=self.surrogate_dataset.features,
             apply_log=self.surrogate_dataset.apply_log_transform,
             log_columns=self.surrogate_dataset.DEFAULT_LOG_COLUMNS,
         )
 
     def _predict_performance(self, config: TabPFNConfig) -> dict:
-        row = self.config_feature_mapper.to_surrogate_features(config)
+        row = self.config_feature_mapper.to_features(config)
         X, y = self.surrogate_dataset.get_all_data()
 
         predictions = {}
@@ -57,6 +57,7 @@ class TabPFNBenchmark:
     def query(self, config: TabPFNConfig) -> dict:
         predictions = self._predict_performance(config)
         return {"predictions": predictions}
+
 
 if __name__ == "__main__":
     tabpfn_bench = TabPFNBenchmark()

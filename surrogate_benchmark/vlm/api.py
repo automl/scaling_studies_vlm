@@ -58,7 +58,7 @@ class VLMBenchmark:
 
     def query(self, config: VLMConfig) -> dict:
         divergence_prob, failed = self._predict_divergence(config)
-        stats = self._get_model_stats(config)
+        stats = self.get_model_stats(config)
 
         if failed:
             return {
@@ -77,7 +77,7 @@ class VLMBenchmark:
             "model_stats": stats,
         }
 
-    def _get_model_stats(self, config: VLMConfig) -> dict:
+    def get_model_stats(self, config: VLMConfig) -> dict:
         stats_key = f"text_{config.text_width}_vision_{config.vision_width}"
 
         path = files("surrogate_benchmark.vlm").joinpath("gflops_mparams.json")
@@ -163,7 +163,7 @@ class VLMBenchmark:
 
     def query_many(self, configs: list[VLMConfig]) -> list[dict]:
         divergence_probs, failed_mask = self._predict_divergence_many(configs)
-        stats_list = [self._get_model_stats(cfg) for cfg in configs]
+        stats_list = [self.get_model_stats(cfg) for cfg in configs]
 
         predictions_list = self._predict_performance_many(configs)
 

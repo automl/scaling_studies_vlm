@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from surrogate_benchmark.predictors.autogluon import TabularPredictor
+from autogluon.tabular import TabularPredictor
 
 from surrogate_benchmark.predictors.base import SurrogateModel
 

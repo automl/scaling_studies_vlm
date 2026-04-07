@@ -2,7 +2,7 @@ import argparse
 
 import pandas as pd
 
-from surrogate_benchmark.vlm.performance_surrogate.metrics import calculate_correlation_matrix
+from surrogate_benchmark.metrics.metrics import calculate_correlation_matrix
 from surrogate_benchmark.vlm.performance_surrogate.utils import plot_correlation_matrix
 
 METRIC_MAP = {

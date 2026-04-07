@@ -29,6 +29,8 @@ class SurrogateDataset:
         self.train_df = pd.read_csv(train_csv_path)
         self.test_df = pd.read_csv(test_csv_path)
 
+        self.train_df = self.train_df.sample(frac=1, random_state=self.seed).reset_index(drop=True)
+
         if self.apply_log_transform:
             self._apply_log_transform()
 
@@ -55,3 +57,25 @@ class SurrogateDataset:
         X_all = all_df[self.features].to_numpy()
         y_all = all_df[self.targets].to_numpy()
         return X_all, y_all
+
+    def get_train_subset_df(self, n_cfg: int) -> pd.DataFrame:
+        return self.train_df.iloc[:int(n_cfg)]
+
+    def get_train_subset(self, n_cfg: int):
+        subset = self.get_train_subset_df(n_cfg)
+        X = subset[self.features].to_numpy()
+        y = subset[self.targets].to_numpy()
+        return X, y
+
+    def get_default_sizes(self, step: int = 1000):
+        total = len(self.train_df)
+
+        if total <= 0:
+            return []
+
+        sizes = list(range(2, total + 1, step))
+
+        if sizes[-1] != total:
+            sizes.append(total)
+
+        return sizes
