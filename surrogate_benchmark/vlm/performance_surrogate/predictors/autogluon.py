@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
-from autogluon.tabular import TabularPredictor
+from surrogate_benchmark.vlm.performance_surrogate.predictors.autogluon import TabularPredictor
 
-from surrogate_benchmark.performance_surrogate.predictors.base import SurrogateModel
+from surrogate_benchmark.vlm.performance_surrogate.predictors.base import SurrogateModel
 
 
 class AutoGluonModel(SurrogateModel):

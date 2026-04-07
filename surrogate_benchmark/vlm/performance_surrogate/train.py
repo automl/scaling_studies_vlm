@@ -5,11 +5,11 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from surrogate_benchmark.performance_surrogate.data import SurrogateDataset
-from surrogate_benchmark.performance_surrogate.predictors.autogluon import AutoGluonModel
-from surrogate_benchmark.performance_surrogate.predictors.base import MultiLabelSurrogateModel
-from surrogate_benchmark.performance_surrogate.predictors.ensembles import BaggingEnsemble, EnsembleType
-from surrogate_benchmark.performance_surrogate.predictors.pfn import TabPFNModel
+from surrogate_benchmark.vlm.performance_surrogate.data import SurrogateDataset
+from surrogate_benchmark.vlm.performance_surrogate.predictors.autogluon import AutoGluonModel
+from surrogate_benchmark.vlm.performance_surrogate.predictors.base import MultiLabelSurrogateModel
+from surrogate_benchmark.vlm.performance_surrogate.predictors.ensembles import BaggingEnsemble, EnsembleType
+from surrogate_benchmark.vlm.performance_surrogate.predictors.pfn import TabPFNModel
 
 
 def set_seed(seed: int = 42):

@@ -1,5 +1,5 @@
-from surrogate_benchmark.divergence_surrogate.data import DivergenceDataset
-from surrogate_benchmark.divergence_surrogate.predictors.xgb import BinaryBaggingEnsemble
+from surrogate_benchmark.vlm.divergence_surrogate.data import DivergenceDataset
+from surrogate_benchmark.vlm.divergence_surrogate.predictors.xgb import BinaryBaggingEnsemble
 
 if __name__ == "__main__":
     dataset = DivergenceDataset(

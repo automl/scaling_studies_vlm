@@ -2,7 +2,7 @@ import math
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 
-from surrogate_benchmark.spaces import VLM_SEARCH_SPACE
+from surrogate_benchmark.vlm.spaces import VLM_SEARCH_SPACE
 
 
 @dataclass

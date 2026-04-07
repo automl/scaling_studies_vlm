@@ -5,12 +5,12 @@ from pprint import pprint
 import numpy as np
 from tqdm import tqdm
 
-from surrogate_benchmark.config import VLMConfig, Target
-from surrogate_benchmark.divergence_surrogate.data import DivergenceDataset
-from surrogate_benchmark.divergence_surrogate.predictors.xgb import BinaryBaggingEnsemble
-from surrogate_benchmark.feature_encoder import ConfigFeatureMapper
-from surrogate_benchmark.performance_surrogate.data import SurrogateDataset
-from surrogate_benchmark.performance_surrogate.predictors.pfn import TabPFNModel
+from surrogate_benchmark.vlm.config import VLMConfig, Target
+from surrogate_benchmark.vlm.divergence_surrogate.data import DivergenceDataset
+from surrogate_benchmark.vlm.divergence_surrogate.predictors.xgb import BinaryBaggingEnsemble
+from surrogate_benchmark.vlm.feature_encoder import ConfigFeatureMapper
+from surrogate_benchmark.vlm.performance_surrogate.data import SurrogateDataset
+from surrogate_benchmark.vlm.performance_surrogate.predictors.pfn import TabPFNModel
 
 
 class VLMBenchmark:
@@ -21,10 +21,10 @@ class VLMBenchmark:
     ):
         targets = Target.all() if targets is None else [t.value for t in targets]
 
-        train_path = files("surrogate_benchmark.performance_surrogate") \
+        train_path = files("surrogate_benchmark.vlm.performance_surrogate") \
             .joinpath("splits/train.csv")
 
-        test_path = files("surrogate_benchmark.performance_surrogate") \
+        test_path = files("surrogate_benchmark.vlm.performance_surrogate") \
             .joinpath("splits/test.csv")
 
         self.surrogate_dataset = SurrogateDataset(
@@ -44,7 +44,7 @@ class VLMBenchmark:
 
         self.targets = self.surrogate_dataset.targets
 
-        model_dir = files("surrogate_benchmark.divergence_surrogate") \
+        model_dir = files("surrogate_benchmark.vlm.divergence_surrogate") \
             .joinpath("xgb_models")
 
         self.divergence_surrogate = BinaryBaggingEnsemble(model_dir=str(model_dir))
@@ -75,7 +75,7 @@ class VLMBenchmark:
     def _get_model_stats(self, config: VLMConfig) -> dict:
         stats_key = f"text_{config.text_width}_vision_{config.vision_width}"
 
-        path = files("surrogate_benchmark").joinpath("gflops_mparams.json")
+        path = files("surrogate_benchmark.vlm").joinpath("gflops_mparams.json")
 
         with open(str(path), "r", encoding="utf-8") as f:
             models_stats = json.load(f)

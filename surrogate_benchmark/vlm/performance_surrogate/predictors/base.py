@@ -4,8 +4,8 @@ from typing import Sequence, Callable
 
 import numpy as np
 
-from surrogate_benchmark.performance_surrogate.data import SurrogateDataset
-from surrogate_benchmark.performance_surrogate.metrics import compute_regression_metrics
+from surrogate_benchmark.vlm.performance_surrogate.data import SurrogateDataset
+from surrogate_benchmark.vlm.performance_surrogate.metrics import compute_regression_metrics
 
 
 class SurrogateModel:

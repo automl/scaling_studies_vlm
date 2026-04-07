@@ -1,6 +1,6 @@
 import numpy as np
 
-from surrogate_benchmark.config import VLMConfig
+from surrogate_benchmark.vlm.config import VLMConfig
 
 
 class ConfigFeatureMapper:
