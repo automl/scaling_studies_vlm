@@ -5,12 +5,12 @@ from pprint import pprint
 import numpy as np
 from tqdm import tqdm
 
+from surrogate_benchmark.config_feature_mapper import ConfigFeatureMapper
+from surrogate_benchmark.predictors.pfn import TabPFNModel
 from surrogate_benchmark.vlm.config import VLMConfig, Target
 from surrogate_benchmark.vlm.divergence_surrogate.data import DivergenceDataset
 from surrogate_benchmark.vlm.divergence_surrogate.predictors.xgb import BinaryBaggingEnsemble
-from surrogate_benchmark.vlm.feature_encoder import ConfigFeatureMapper
 from surrogate_benchmark.vlm.performance_surrogate.data import SurrogateDataset
-from surrogate_benchmark.vlm.performance_surrogate.predictors.pfn import TabPFNModel
 
 
 class VLMBenchmark:
@@ -35,9 +35,14 @@ class VLMBenchmark:
             include_intermediate_points=True,
         )
 
-        self.config_feature_mapper = ConfigFeatureMapper(
-            surrogate_feature_order=self.surrogate_dataset.features,
-            divergence_feature_order=DivergenceDataset.DEFAULT_FEATURES,
+        self.performance_config_feature_mapper = ConfigFeatureMapper(
+            feature_order=self.surrogate_dataset.features,
+            apply_log=self.surrogate_dataset.apply_log_transform,
+            log_columns=self.surrogate_dataset.DEFAULT_LOG_COLUMNS,
+        )
+
+        self.divergence_config_feature_mapper = ConfigFeatureMapper(
+            feature_order=DivergenceDataset.DEFAULT_FEATURES,
             apply_log=self.surrogate_dataset.apply_log_transform,
             log_columns=self.surrogate_dataset.DEFAULT_LOG_COLUMNS,
         )
@@ -120,11 +125,11 @@ class VLMBenchmark:
         return predictions
 
     def _configs_to_divergence_matrix(self, configs: list[VLMConfig]) -> np.ndarray:
-        rows = [self.config_feature_mapper.to_divergence_features(cfg) for cfg in configs]
+        rows = [self.divergence_config_feature_mapper.to_features(cfg) for cfg in configs]
         return np.vstack(rows)
 
     def _configs_to_surrogate_matrix(self, configs: list[VLMConfig]) -> np.ndarray:
-        rows = [self.config_feature_mapper.to_surrogate_features(cfg) for cfg in configs]
+        rows = [self.performance_config_feature_mapper.to_features(cfg) for cfg in configs]
         return np.vstack(rows)
 
     def _predict_divergence_many(self, configs: list[VLMConfig]) -> tuple[np.ndarray, np.ndarray]:

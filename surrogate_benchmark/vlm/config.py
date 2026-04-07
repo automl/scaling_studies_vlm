@@ -2,11 +2,12 @@ import math
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 
+from surrogate_benchmark.base_config import BaseConfig
 from surrogate_benchmark.vlm.spaces import VLM_SEARCH_SPACE
 
 
 @dataclass
-class VLMConfig:
+class VLMConfig(BaseConfig):
     lr: float
     wd: float
     beta1: float

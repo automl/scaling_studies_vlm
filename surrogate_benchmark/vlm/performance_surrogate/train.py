@@ -6,10 +6,10 @@ import numpy as np
 import torch
 
 from surrogate_benchmark.vlm.performance_surrogate.data import SurrogateDataset
-from surrogate_benchmark.vlm.performance_surrogate.predictors.autogluon import AutoGluonModel
-from surrogate_benchmark.vlm.performance_surrogate.predictors.base import MultiLabelSurrogateModel
-from surrogate_benchmark.vlm.performance_surrogate.predictors.ensembles import BaggingEnsemble, EnsembleType
-from surrogate_benchmark.vlm.performance_surrogate.predictors.pfn import TabPFNModel
+from surrogate_benchmark.predictors.autogluon import AutoGluonModel
+from surrogate_benchmark.predictors.base import MultiLabelSurrogateModel
+from surrogate_benchmark.predictors.ensembles import BaggingEnsemble, EnsembleType
+from surrogate_benchmark.predictors.pfn import TabPFNModel
 
 
 def set_seed(seed: int = 42):
