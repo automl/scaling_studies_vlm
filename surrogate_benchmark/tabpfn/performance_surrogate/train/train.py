@@ -5,11 +5,11 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from surrogate_benchmark.vlm.performance_surrogate.data import SurrogateDataset
 from surrogate_benchmark.predictors.autogluon import AutoGluonModel
-from surrogate_benchmark.predictors.base import MultiLabelSurrogateModel
 from surrogate_benchmark.predictors.ensembles import BaggingEnsemble, EnsembleType
-from surrogate_benchmark.predictors.pfn import TabPFNModel
+from surrogate_benchmark.predictors_core.base import MultiLabelSurrogateModel
+from surrogate_benchmark.predictors_core.pfn import TabPFNModel
+from surrogate_benchmark.tabpfn.performance_surrogate.data import SurrogateDataset
 
 
 def set_seed(seed: int = 42):
@@ -24,10 +24,10 @@ def build_out_path(args):
     else:
         model_name = args.model
 
-    intermediate_flag = "fit_with_intermediate" if args.include_intermediate_points else "fit_no_intermediate"
-    predict_on_itermediate = "pred_with_intermediate" if args.eval_on_intermediate_points else "pred_no_intermediate"
+    intermediate_flag = "fit_no_intermediate"
+    predict_on_itermediate = "pred_no_intermediate"
     path = Path(
-        "results") / "predictors" / model_name / f"seed_{args.seed}" / intermediate_flag / predict_on_itermediate
+        "../results") / "predictors" / model_name / f"seed_{args.seed}" / intermediate_flag / predict_on_itermediate
 
     if args.model == "autogluon":
         ag_flag = "manual" if args.use_manual_ag_settings else "auto"
@@ -42,12 +42,10 @@ def parse_args():
     p.add_argument("--train_csv", default="splits/train.csv")
     p.add_argument("--test_csv", default="splits/test.csv")
     p.add_argument("--seed", type=int, default=42)
-    p.add_argument("--labels", nargs="+", default=["val_loss", "test_loss"])
+    p.add_argument("--labels", nargs="+", default=["val/val_loss"])
     p.add_argument("--model", choices=["tabpfn", "ensemble", "autogluon"], default="tabpfn")
     p.add_argument("--ensemble_type", choices=["xgb", "lightgbm", "mix"], default="xgb")
     p.add_argument("--device", default="cuda")
-    p.add_argument("--include_intermediate_points", action="store_true")
-    p.add_argument("--eval_on_intermediate_points", action="store_true")
     p.add_argument("--ag_time_limit", type=int, default=4 * 60 * 60)
     p.add_argument("--use_manual_ag_settings", action="store_true")
 
@@ -66,8 +64,6 @@ if __name__ == "__main__":
         test_csv_path=args.test_csv,
         targets=args.labels,
         seed=args.seed,
-        include_intermediate_points=args.include_intermediate_points,
-        eval_on_intermediate_points=args.eval_on_intermediate_points,
     )
 
     sizes = dataset.get_default_sizes()

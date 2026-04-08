@@ -3,7 +3,7 @@ from importlib.resources import files
 from tqdm import tqdm
 
 from surrogate_benchmark.config_feature_mapper import ConfigFeatureMapper
-from surrogate_benchmark.predictors.pfn import TabPFNModel
+from surrogate_benchmark.predictors_core.pfn import TabPFNModel
 from surrogate_benchmark.tabpfn.config import TabPFNConfig
 from surrogate_benchmark.tabpfn.performance_surrogate.data import SurrogateDataset
 

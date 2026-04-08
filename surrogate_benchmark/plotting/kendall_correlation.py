@@ -3,7 +3,7 @@ import argparse
 import pandas as pd
 
 from surrogate_benchmark.metrics.metrics import calculate_correlation_matrix
-from surrogate_benchmark.vlm.performance_surrogate.utils import plot_correlation_matrix
+from surrogate_benchmark.plotting.utils import plot_correlation_matrix
 
 METRIC_MAP = {
     "vtab_caltech101": "mean_per_class_recall",
@@ -56,8 +56,8 @@ def main():
 
     args = parser.parse_args()
 
-    train_df = pd.read_csv("splits/train.csv")
-    test_df = pd.read_csv("splits/test.csv")
+    train_df = pd.read_csv("../vlm/performance_surrogate/splits/train.csv")
+    test_df = pd.read_csv("../vlm/performance_surrogate/splits/test.csv")
 
     df = pd.concat([train_df, test_df], ignore_index=True)
 

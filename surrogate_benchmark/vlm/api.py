@@ -6,7 +6,7 @@ import numpy as np
 from tqdm import tqdm
 
 from surrogate_benchmark.config_feature_mapper import ConfigFeatureMapper
-from surrogate_benchmark.predictors.pfn import TabPFNModel
+from surrogate_benchmark.predictors_core.pfn import TabPFNModel
 from surrogate_benchmark.vlm.config import VLMConfig, Target
 from surrogate_benchmark.vlm.divergence_surrogate.data import DivergenceDataset
 from surrogate_benchmark.vlm.divergence_surrogate.predictors.xgb import BinaryBaggingEnsemble

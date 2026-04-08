@@ -264,8 +264,8 @@ def plot_metric_with_vs_without(
 
 
 def main():
-    results = load_results("results/predictors", TARGETS)
-    plot_root = Path("plots")
+    results = load_results("../vlm/performance_surrogate/results/predictors", TARGETS)
+    plot_root = Path("../vlm/performance_surrogate/plots")
 
     # 1. Compare predictors for each fixed fit mode and eval mode
     for target in TARGETS:
