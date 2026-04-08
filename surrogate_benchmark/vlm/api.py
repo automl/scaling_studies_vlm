@@ -101,12 +101,12 @@ class VLMBenchmark:
         }
 
     def _predict_divergence(self, config: VLMConfig) -> tuple[float, bool]:
-        row = self.config_feature_mapper.to_divergence_features(config)
+        row = self.divergence_config_feature_mapper.to_features(config)
         prob = float(self.divergence_surrogate.predict_proba(row)[0])
         return prob, prob >= 0.5
 
     def _predict_performance(self, config: VLMConfig) -> dict:
-        row = self.config_feature_mapper.to_surrogate_features(config)
+        row = self.performance_config_feature_mapper.to_features(config)
         X, y = self.surrogate_dataset.get_all_data()
 
         predictions = {}

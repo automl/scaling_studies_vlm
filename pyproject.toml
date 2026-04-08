@@ -26,11 +26,11 @@ include = [
 ]
 
 exclude = [
-    "surrogate_benchmark.performance_surrogate.plots",
-    "surrogate_benchmark.performance_surrogate.results",
-    "surrogate_benchmark.divergence_surrogate.results",
+    "surrogate_benchmark.vlm.performance_surrogate.plots",
+    "surrogate_benchmark.vlm.performance_surrogate.results",
+    "surrogate_benchmark.vlm.divergence_surrogate.results",
 ]
 [tool.setuptools.package-data]
-"surrogate_benchmark" = ["*.json"]
-"surrogate_benchmark.performance_surrogate" = ["splits/*.csv"]
-"surrogate_benchmark.divergence_surrogate" = ["xgb_models/*.json"]
+"surrogate_benchmark.vlm" = ["*.json"]
+"surrogate_benchmark.vlm.performance_surrogate" = ["splits/*.csv"]
+"surrogate_benchmark.vlm.divergence_surrogate" = ["xgb_models/*.json"]
