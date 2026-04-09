@@ -53,21 +53,21 @@ if __name__ == "__main__":
                 dtype=precision_to_dtype("amp"),
             )
 
-            total_mparams = round(count_params(model) / 1e6, 2)
+            total_params = round(count_params(model), 2)
 
             model_for_counts = model.module if hasattr(model, "module") else model
 
-            image_mparams = round(count_params(model_for_counts.visual) / 1e6, 2)
-            text_mparams = round(total_mparams - image_mparams, 2)
-            text_mparams_non_emb = round(count_non_emb_text_params(model_for_counts) / 1e6, 2)
+            image_params = round(count_params(model_for_counts.visual), 2)
+            text_params = round(total_params - image_params, 2)
+            text_params_non_emb = round(count_non_emb_text_params(model_for_counts), 2)
 
             results.setdefault(pair_key, []).append({
                 "arch": cfg.name,
                 "gflops_per_sample": gflops_per_sample,
-                "total_mparams": total_mparams,
-                "image_mparams": image_mparams,
-                "text_mparams": text_mparams,
-                "text_mparams_non_emb": text_mparams_non_emb,
+                "total_params": total_params,
+                "image_params": image_params,
+                "text_params": text_params,
+                "text_params_non_emb": text_params_non_emb,
             })
 
         except Exception as e:
@@ -76,4 +76,4 @@ if __name__ == "__main__":
     with open("model_stats.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
 
-    print("Saved results to gflops_mparams.json")
+    print("Saved results to gflops_params.json")

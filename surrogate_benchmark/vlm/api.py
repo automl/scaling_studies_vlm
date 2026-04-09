@@ -80,7 +80,7 @@ class VLMBenchmark:
     def get_model_stats(self, config: VLMConfig) -> dict:
         stats_key = f"text_{config.text_width}_vision_{config.vision_width}"
 
-        path = files("surrogate_benchmark.vlm").joinpath("gflops_mparams.json")
+        path = files("surrogate_benchmark.vlm").joinpath("gflops_params.json")
 
         with open(str(path), "r", encoding="utf-8") as f:
             models_stats = json.load(f)
@@ -94,10 +94,10 @@ class VLMBenchmark:
         return {
             "gflops_per_sample": gflops_per_sample,
             "total_gflops": gflops_per_sample * config.total_samples_planned * config.training_progress,
-            "mparams": model_stats.get("mparams"),
-            "vision_mparams": model_stats.get("vision_mparams"),
-            "text_mparams": model_stats.get("text_mparams"),
-            "text_mparams_non_emb": model_stats.get("text_mparams_non_emb"),
+            "params": model_stats.get("params"),
+            "vision_params": model_stats.get("vision_params"),
+            "text_params": model_stats.get("text_params"),
+            "text_params_non_emb": model_stats.get("text_params_non_emb"),
         }
 
     def _predict_divergence(self, config: VLMConfig) -> tuple[float, bool]:
@@ -188,7 +188,7 @@ class VLMBenchmark:
 
 
 if __name__ == "__main__":
-    vlm_bench = VLMBenchmark(targets=[Target.VAL_LOSS, Target.TEST_LOSS])
+    vlm_bench = VLMBenchmark(targets=[Target.VAL_LOSS])
 
     config = VLMConfig(
         lr=1e-4,
