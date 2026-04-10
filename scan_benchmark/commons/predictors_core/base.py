@@ -5,7 +5,7 @@ from typing import Sequence, Callable
 import numpy as np
 
 from scan_benchmark.dataset import BaseSurrogateDataset
-from scan_benchmark.metrics.metrics import compute_regression_metrics
+from scan_benchmark.commons.metrics.metrics import compute_regression_metrics
 
 
 class SurrogateModel:

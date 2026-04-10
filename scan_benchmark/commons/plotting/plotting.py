@@ -1,3 +1,4 @@
+import argparse
 import json
 from pathlib import Path
 
@@ -9,6 +10,9 @@ from matplotlib.ticker import ScalarFormatter
 PREDICTOR_COLORS = {
     "tabpfn": "#4C72B0",
     "xgb": "#DD8452",
+    "ensemble_xgb": "#DD8452",
+    "ensemble_lightgbm": "#55A868",
+    "ensemble_mix": "#C44E52",
     "lightgbm": "#55A868",
     "mix": "#C44E52",
     "autogluon": "#8172B3",
@@ -18,6 +22,35 @@ TRAIN_MODES = ["fit_with_intermediate", "fit_no_intermediate"]
 EVAL_MODES = ["pred_no_intermediate", "pred_with_intermediate"]
 METRICS = ["rmse", "mae", "mdae", "marpd", "r2", "r", "spearman"]
 TARGETS = ["val_loss"]
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--results-root",
+        type=str,
+        required=True,
+        help="Path to predictor result folder",
+    )
+    parser.add_argument(
+        "--plot-root",
+        type=str,
+        required=True,
+        help="Path where plots should be saved",
+    )
+    parser.add_argument(
+        "--targets",
+        nargs="+",
+        default=["val_loss"],
+        help="List of targets (e.g. val_loss test_loss)",
+    )
+    parser.add_argument(
+        "--min-cfg",
+        type=int,
+        default=50,
+        help="Minimum number of configs to show on the x axis",
+    )
+    return parser.parse_args()
 
 
 def get_per_mode_plot_path(base_dir, target, metric, fit_mode, eval_mode):
@@ -243,7 +276,8 @@ def plot_metric_with_vs_without(
     if not plotted_any:
         plt.close(fig)
         print(
-            f"No comparison data found for predictor={predictor}, target={target}, metric={metric}, eval_mode={eval_mode}")
+            f"No comparison data found for predictor={predictor}, target={target}, metric={metric}, eval_mode={eval_mode}"
+        )
         return
 
     setup_ax(
@@ -264,11 +298,13 @@ def plot_metric_with_vs_without(
 
 
 def main():
-    results = load_results("../vlm/performance_surrogate/results/predictors", TARGETS)
-    plot_root = Path("../vlm/performance_surrogate/plots")
+    args = parse_args()
 
-    # 1. Compare predictors for each fixed fit mode and eval mode
-    for target in TARGETS:
+    targets = args.targets
+    results = load_results(args.results_root, targets)
+    plot_root = Path(args.plot_root)
+
+    for target in targets:
         for fit_mode in TRAIN_MODES:
             for eval_mode in EVAL_MODES:
                 for metric in METRICS:
@@ -281,11 +317,11 @@ def main():
                         save_path=get_per_mode_plot_path(
                             plot_root, target, metric, fit_mode, eval_mode
                         ),
+                        min_cfg=args.min_cfg,
                         show=False,
                     )
 
-    # 2. Compare fit_with_intermediate vs fit_no_intermediate for each predictor
-    for target in TARGETS:
+    for target in targets:
         for predictor in results.keys():
             for eval_mode in ["pred_no_intermediate"]:
                 for metric in METRICS:
@@ -298,6 +334,7 @@ def main():
                         save_path=get_with_vs_without_plot_path(
                             plot_root, target, metric, predictor, eval_mode
                         ),
+                        min_cfg=args.min_cfg,
                         show=False,
                     )
 

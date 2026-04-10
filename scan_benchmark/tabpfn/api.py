@@ -11,8 +11,8 @@ class TabPFNBenchmark(BasePerformanceBenchmark):
     def __init__(self, targets=None, device="auto"):
         targets = self._normalize_targets(targets)
 
-        train_path = files("scan_benchmark.tabpfn.performance_surrogate").joinpath("splits/train.csv")
-        test_path = files("scan_benchmark.tabpfn.performance_surrogate").joinpath("splits/test.csv")
+        train_path = files("scan_benchmark.tabpfn.performance_surrogate").joinpath("splits/train_small.csv")
+        test_path = files("scan_benchmark.tabpfn.performance_surrogate").joinpath("splits/test_small.csv")
 
         dataset = TabPFNSurrogateDataset(
             train_csv_path=str(train_path),

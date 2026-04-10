@@ -4,10 +4,10 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from scan_benchmark.predictors.autogluon import AutoGluonModel
-from scan_benchmark.predictors.ensembles import BaggingEnsemble, EnsembleType
-from scan_benchmark.predictors_core.base import MultiLabelSurrogateModel
-from scan_benchmark.predictors_core.pfn import TabPFNModel
+from scan_benchmark.commons.predictors.autogluon import AutoGluonModel
+from scan_benchmark.commons.predictors.ensembles import BaggingEnsemble, EnsembleType
+from scan_benchmark.commons.predictors_core.base import MultiLabelSurrogateModel
+from scan_benchmark.commons.predictors_core.pfn import TabPFNModel
 
 
 def set_seed(seed: int = 42):
@@ -22,16 +22,18 @@ def build_out_path(args):
     else:
         model_name = args.model
 
-    intermediate_flag = "fit_with_intermediate" if getattr(args, "include_intermediate_points", False) else "fit_no_intermediate"
-    predict_on_intermediate = "pred_with_intermediate" if getattr(args, "eval_on_intermediate_points", False) else "pred_no_intermediate"
+    intermediate_flag = "fit_with_intermediate" if getattr(args, "include_intermediate_points",
+                                                           False) else "fit_no_intermediate"
+    predict_on_intermediate = "pred_with_intermediate" if getattr(args, "eval_on_intermediate_points",
+                                                                  False) else "pred_no_intermediate"
 
     path = (
-        Path("../results")
-        / "predictors"
-        / model_name
-        / f"seed_{args.seed}"
-        / intermediate_flag
-        / predict_on_intermediate
+            Path("../results")
+            / "predictors"
+            / model_name
+            / f"seed_{args.seed}"
+            / intermediate_flag
+            / predict_on_intermediate
     )
 
     if args.model == "autogluon":

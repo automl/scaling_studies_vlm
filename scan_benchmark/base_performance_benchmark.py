@@ -1,7 +1,7 @@
 import numpy as np
 
+from scan_benchmark.commons.predictors_core.pfn import TabPFNModel
 from scan_benchmark.config_feature_mapper import ConfigFeatureMapper
-from scan_benchmark.predictors_core.pfn import TabPFNModel
 
 
 class BasePerformanceBenchmark:
