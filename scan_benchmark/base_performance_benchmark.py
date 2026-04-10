@@ -5,6 +5,8 @@ from scan_benchmark.predictors_core.pfn import TabPFNModel
 
 
 class BasePerformanceBenchmark:
+    TARGET_ENUM = None
+
     def __init__(self, surrogate_dataset, device="auto"):
         self.surrogate_dataset = surrogate_dataset
         self.targets = surrogate_dataset.targets
@@ -15,6 +17,15 @@ class BasePerformanceBenchmark:
             apply_log=self.surrogate_dataset.apply_log_transform,
             log_columns=self.surrogate_dataset.DEFAULT_LOG_COLUMNS,
         )
+
+    def _normalize_targets(self, targets):
+        if self.TARGET_ENUM is None:
+            raise ValueError("TARGET_ENUM must be set in subclass.")
+
+        if targets is None:
+            return self.TARGET_ENUM.all()
+
+        return [t.value for t in targets]
 
     def _predict_performance(self, config):
         row = self.config_feature_mapper.to_features(config)

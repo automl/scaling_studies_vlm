@@ -6,15 +6,17 @@ import numpy as np
 
 from scan_benchmark.base_performance_benchmark import BasePerformanceBenchmark
 from scan_benchmark.config_feature_mapper import ConfigFeatureMapper
-from scan_benchmark.vlm.config import VLMConfig, Target
+from scan_benchmark.vlm.config import VLMConfig, VLMTarget
 from scan_benchmark.vlm.divergence_surrogate.data import DivergenceDataset
 from scan_benchmark.vlm.divergence_surrogate.predictors.xgb import BinaryBaggingEnsemble
 from scan_benchmark.vlm.performance_surrogate.data import VLMSurrogateDataset
 
 
 class VLMBenchmark(BasePerformanceBenchmark):
+    TARGET_ENUM = VLMTarget
+
     def __init__(self, targets=None, device="auto"):
-        targets = Target.all() if targets is None else [t.value for t in targets]
+        targets = self._normalize_targets(targets)
 
         train_path = files("scan_benchmark.vlm.performance_surrogate").joinpath("splits/train.csv")
         test_path = files("scan_benchmark.vlm.performance_surrogate").joinpath("splits/test.csv")
@@ -107,7 +109,7 @@ class VLMBenchmark(BasePerformanceBenchmark):
 
 # simple example on how to use the surrogate
 if __name__ == "__main__":
-    vlm_bench = VLMBenchmark(targets=[Target.VAL_LOSS])
+    vlm_bench = VLMBenchmark(targets=[VLMTarget.VAL_LOSS])
 
     config = VLMConfig(
         lr=1e-4,

@@ -1,18 +1,23 @@
 from importlib.resources import files
 
 from scan_benchmark.base_performance_benchmark import BasePerformanceBenchmark
-from scan_benchmark.tabpfn.config import TabPFNConfig
+from scan_benchmark.tabpfn.config import TabPFNConfig, TabPFNTarget
 from scan_benchmark.tabpfn.performance_surrogate.data import TabPFNSurrogateDataset
 
 
 class TabPFNBenchmark(BasePerformanceBenchmark):
-    def __init__(self, device="auto"):
+    TARGET_ENUM = TabPFNTarget
+
+    def __init__(self, targets=None, device="auto"):
+        targets = self._normalize_targets(targets)
+
         train_path = files("scan_benchmark.tabpfn.performance_surrogate").joinpath("splits/train.csv")
         test_path = files("scan_benchmark.tabpfn.performance_surrogate").joinpath("splits/test.csv")
 
         dataset = TabPFNSurrogateDataset(
             train_csv_path=str(train_path),
             test_csv_path=str(test_path),
+            targets=targets,
             seed=42,
         )
         super().__init__(surrogate_dataset=dataset, device=device)
