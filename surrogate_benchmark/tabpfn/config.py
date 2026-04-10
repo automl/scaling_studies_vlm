@@ -1,6 +1,7 @@
 from dataclasses import dataclass, asdict
 
 from surrogate_benchmark.base_config import BaseConfig
+from surrogate_benchmark.tabpfn.spaces import TABPFN_SEARCH_SPACE
 
 
 @dataclass
@@ -13,6 +14,9 @@ class TabPFNConfig(BaseConfig):
     num_layers: int
     num_datapoints_max: int
     weight_decay: float
+
+    def __post_init__(self):
+        self._validate_against_search_space()
 
     def to_dict(self) -> dict:
         key_mapping = {
@@ -31,3 +35,16 @@ class TabPFNConfig(BaseConfig):
             key_mapping.get(k, k): v
             for k, v in raw.items()
         }
+
+    def _validate_against_search_space(self):
+        hp_space = TABPFN_SEARCH_SPACE["hp_space"]
+        scale_space = TABPFN_SEARCH_SPACE["scale_space"]
+
+        for name, cfg in {**hp_space, **scale_space}.items():
+            if not hasattr(self, name):
+                continue
+
+            val = getattr(self, name)
+
+            if "choices" in cfg and val not in cfg["choices"]:
+                raise ValueError(f"{name}={val} not in allowed choices {cfg['choices']}")

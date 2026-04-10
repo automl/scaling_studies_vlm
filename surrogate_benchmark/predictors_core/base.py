@@ -4,7 +4,7 @@ from typing import Sequence, Callable
 
 import numpy as np
 
-from surrogate_benchmark.vlm.performance_surrogate.data import SurrogateDataset
+from surrogate_benchmark.dataset import BaseSurrogateDataset
 from surrogate_benchmark.metrics.metrics import compute_regression_metrics
 
 
@@ -15,7 +15,7 @@ class SurrogateModel:
     def predict(self, X: np.ndarray) -> np.ndarray:
         raise NotImplementedError
 
-    def validate(self, dataset: SurrogateDataset, sizes):
+    def validate(self, dataset: BaseSurrogateDataset, sizes):
         X_test, y_test = dataset.get_test_data()
         results = {}
 
@@ -42,7 +42,7 @@ class MultiLabelSurrogateModel:
         }
         self.is_fitted = False
 
-    def validate(self, dataset: SurrogateDataset, sizes, out_path: Path):
+    def validate(self, dataset: BaseSurrogateDataset, sizes, out_path: Path):
         X_test, y_test = dataset.get_test_data()
 
         for i, label in enumerate(self.labels):
@@ -53,9 +53,13 @@ class MultiLabelSurrogateModel:
                 continue
 
             model = self.models[label]
+            print(f"Processing label '{label}' ({i + 1}/{len(self.labels)})")
+
             label_results = {}
 
             for n_cfg in sizes:
+                print(f"[{label}] Training with n_cfg={n_cfg}")
+
                 X_sub, y_sub = dataset.get_train_subset(n_cfg)
 
                 model.fit(X_sub, y_sub[:, i])

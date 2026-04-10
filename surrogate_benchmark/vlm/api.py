@@ -10,7 +10,7 @@ from surrogate_benchmark.predictors_core.pfn import TabPFNModel
 from surrogate_benchmark.vlm.config import VLMConfig, Target
 from surrogate_benchmark.vlm.divergence_surrogate.data import DivergenceDataset
 from surrogate_benchmark.vlm.divergence_surrogate.predictors.xgb import BinaryBaggingEnsemble
-from surrogate_benchmark.vlm.performance_surrogate.data import SurrogateDataset
+from surrogate_benchmark.vlm.performance_surrogate.data import VLMSurrogateDataset
 
 
 class VLMBenchmark:
@@ -27,7 +27,7 @@ class VLMBenchmark:
         test_path = files("surrogate_benchmark.vlm.performance_surrogate") \
             .joinpath("splits/test.csv")
 
-        self.surrogate_dataset = SurrogateDataset(
+        self.surrogate_dataset = VLMSurrogateDataset(
             train_csv_path=str(train_path),
             test_csv_path=str(test_path),
             targets=targets,
@@ -60,20 +60,10 @@ class VLMBenchmark:
         divergence_prob, failed = self._predict_divergence(config)
         stats = self.get_model_stats(config)
 
-        if failed:
-            return {
-                "failed": True,
-                "divergence_probability": round(divergence_prob, 3),
-                "predictions": None,
-                "model_stats": stats,
-            }
-
-        predictions = self._predict_performance(config)
-
         return {
-            "failed": False,
+            "failed": failed,
             "divergence_probability": round(divergence_prob, 3),
-            "predictions": predictions,
+            "predictions": None if failed else self._predict_performance(config),
             "model_stats": stats,
         }
 
@@ -165,28 +155,24 @@ class VLMBenchmark:
         divergence_probs, failed_mask = self._predict_divergence_many(configs)
         stats_list = [self.get_model_stats(cfg) for cfg in configs]
 
-        predictions_list = self._predict_performance_many(configs)
+        valid_idx = [i for i, f in enumerate(failed_mask) if not f]
+        valid_configs = [configs[i] for i in valid_idx]
 
-        results = []
-        for i in range(len(configs)):
-            if failed_mask[i]:
-                results.append({
-                    "failed": True,
-                    "divergence_probability": round(float(divergence_probs[i]), 3),
-                    "predictions": None,
-                    "model_stats": stats_list[i],
-                })
-            else:
-                results.append({
-                    "failed": False,
-                    "divergence_probability": round(float(divergence_probs[i]), 3),
-                    "predictions": predictions_list[i],
-                    "model_stats": stats_list[i],
-                })
+        valid_preds = self._predict_performance_many(valid_configs)
+        pred_map = {i: p for i, p in zip(valid_idx, valid_preds)}
 
-        return results
+        return [
+            {
+                "failed": bool(failed),
+                "divergence_probability": round(float(prob), 3),
+                "predictions": None if failed else pred_map[i],
+                "model_stats": stats,
+            }
+            for i, (prob, failed, stats) in enumerate(zip(divergence_probs, failed_mask, stats_list))
+        ]
 
 
+# simple example on how to use the surrogate
 if __name__ == "__main__":
     vlm_bench = VLMBenchmark(targets=[Target.VAL_LOSS])
 

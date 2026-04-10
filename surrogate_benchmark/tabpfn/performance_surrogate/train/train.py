@@ -9,7 +9,7 @@ from surrogate_benchmark.predictors.autogluon import AutoGluonModel
 from surrogate_benchmark.predictors.ensembles import BaggingEnsemble, EnsembleType
 from surrogate_benchmark.predictors_core.base import MultiLabelSurrogateModel
 from surrogate_benchmark.predictors_core.pfn import TabPFNModel
-from surrogate_benchmark.tabpfn.performance_surrogate.data import SurrogateDataset
+from surrogate_benchmark.tabpfn.performance_surrogate.data import TabPFNSurrogateDataset
 
 
 def set_seed(seed: int = 42):
@@ -39,8 +39,8 @@ def build_out_path(args):
 def parse_args():
     p = argparse.ArgumentParser()
 
-    p.add_argument("--train_csv", default="splits/train.csv")
-    p.add_argument("--test_csv", default="splits/test.csv")
+    p.add_argument("--train_csv", default="../splits/train.csv")
+    p.add_argument("--test_csv", default="../splits/test.csv")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--labels", nargs="+", default=["val/val_loss"])
     p.add_argument("--model", choices=["tabpfn", "ensemble", "autogluon"], default="tabpfn")
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     out_path.mkdir(parents=True, exist_ok=True)
     time_limit = None
 
-    dataset = SurrogateDataset(
+    dataset = TabPFNSurrogateDataset(
         train_csv_path=args.train_csv,
         test_csv_path=args.test_csv,
         targets=args.labels,

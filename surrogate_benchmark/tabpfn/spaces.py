@@ -1,51 +1,27 @@
 TABPFN_SEARCH_SPACE = {
     "hp_space": {
         "lr": {
-            "type": "float",
-            "lower": 1e-5,
-            "upper": 5e-2,
-            "log": True,
+            "choices": [5e-05, 1.44e-04, 4.16e-04, 1.2e-03, 3.47e-03, 1e-02],
         },
-        "wd": {
-            "type": "float",
-            "lower": 1e-6,
-            "upper": 2e-1,
-            "log": True,
+        "effective_batch_size": {
+            "choices": [32, 64],
         },
-        "warmup_fraction": {
-            "type": "float",
-            "lower": 0.0,
-            "upper": 0.75,
-        },
-        "beta1": {
-            "type": "float",
-            "lower": 0.9,
-            "upper": 0.99,
-        },
-        "beta2": {
-            "type": "float",
-            "lower": 0.95,
-            "upper": 0.999,
-        },
-        "eps": {
-            "type": "float",
-            "lower": 1e-8,
-            "upper": 1e-6,
-            "log": True,
-        },
-        "train_num_samples": {
-            "type": "float",
-            "lower": 600_000,
-            "upper": 60_000_000,
-            "log": True,
+        "weight_decay": {
+            "choices": [0.0, 1e-4, 1e-1],
         },
     },
-    "arch_space": {
-        "vision_width": {
-            "choices": [32, 64, 128, 192, 256, 320, 384, 448, 512],
+    "scale_space": {
+        "embedding_size": {
+            "choices": [16, 32, 64],
         },
-        "text_width": {
-            "choices": [32, 64, 128, 192, 256, 320, 384, 448, 512],
+        "num_layers": {
+            "choices": [1, 2, 4],
+        },
+        "max_features": {
+            "choices": [2, 4, 8],
+        },
+        "num_datapoints_max": {
+            "choices": [100, 200, 400],
         },
     },
 }

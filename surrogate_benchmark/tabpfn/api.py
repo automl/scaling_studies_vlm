@@ -5,7 +5,7 @@ from tqdm import tqdm
 from surrogate_benchmark.config_feature_mapper import ConfigFeatureMapper
 from surrogate_benchmark.predictors_core.pfn import TabPFNModel
 from surrogate_benchmark.tabpfn.config import TabPFNConfig
-from surrogate_benchmark.tabpfn.performance_surrogate.data import SurrogateDataset
+from surrogate_benchmark.tabpfn.performance_surrogate.data import TabPFNSurrogateDataset
 
 
 class TabPFNBenchmark:
@@ -19,7 +19,7 @@ class TabPFNBenchmark:
         test_path = files("surrogate_benchmark.tabpfn.performance_surrogate") \
             .joinpath("splits/test.csv")
 
-        self.surrogate_dataset = SurrogateDataset(
+        self.surrogate_dataset = TabPFNSurrogateDataset(
             train_csv_path=str(train_path),
             test_csv_path=str(test_path),
             seed=42,
@@ -65,12 +65,12 @@ if __name__ == "__main__":
     config = TabPFNConfig(
         total_cells=1_000_000,
         effective_batch_size=64,
-        lr=1e-3,
+        lr=0.01,
         max_features=8,
         embedding_size=32,
         num_layers=4,
         num_datapoints_max=400,
-        weight_decay=1e-3,
+        weight_decay=0.0,
     )
 
     result = tabpfn_bench.query(config)
