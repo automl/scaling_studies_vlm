@@ -1,62 +1,28 @@
 from importlib.resources import files
 
-from tqdm import tqdm
-
-from surrogate_benchmark.config_feature_mapper import ConfigFeatureMapper
-from surrogate_benchmark.predictors_core.pfn import TabPFNModel
+from surrogate_benchmark.base_performance_benchmark import BasePerformanceBenchmark
 from surrogate_benchmark.tabpfn.config import TabPFNConfig
 from surrogate_benchmark.tabpfn.performance_surrogate.data import TabPFNSurrogateDataset
 
 
-class TabPFNBenchmark:
-    def __init__(
-            self,
-            device: str = "auto",
-    ):
-        train_path = files("surrogate_benchmark.tabpfn.performance_surrogate") \
-            .joinpath("splits/train.csv")
+class TabPFNBenchmark(BasePerformanceBenchmark):
+    def __init__(self, device="auto"):
+        train_path = files("surrogate_benchmark.tabpfn.performance_surrogate").joinpath("splits/train.csv")
+        test_path = files("surrogate_benchmark.tabpfn.performance_surrogate").joinpath("splits/test.csv")
 
-        test_path = files("surrogate_benchmark.tabpfn.performance_surrogate") \
-            .joinpath("splits/test.csv")
-
-        self.surrogate_dataset = TabPFNSurrogateDataset(
+        dataset = TabPFNSurrogateDataset(
             train_csv_path=str(train_path),
             test_csv_path=str(test_path),
             seed=42,
         )
-
-        self.targets = self.surrogate_dataset.targets
-
-        self.performance_surrogate = TabPFNModel(device=device)
-
-        self.config_feature_mapper = ConfigFeatureMapper(
-            feature_order=self.surrogate_dataset.features,
-            apply_log=self.surrogate_dataset.apply_log_transform,
-            log_columns=self.surrogate_dataset.DEFAULT_LOG_COLUMNS,
-        )
-
-    def _predict_performance(self, config: TabPFNConfig) -> dict:
-        row = self.config_feature_mapper.to_features(config)
-        X, y = self.surrogate_dataset.get_all_data()
-
-        predictions = {}
-
-        for i, target in enumerate(tqdm(self.targets, desc="Evaluating targets")):
-            y_target = y[:, i]
-
-            self.performance_surrogate.fit(X, y_target)
-            pred = self.performance_surrogate.predict_with_uncertainty(row)
-
-            predictions[target] = {
-                "mean": round(float(pred["mean"][0]), 3),
-                "uncertainty": round(float(pred["uncertainty_width"][0]), 3)
-            }
-
-        return predictions
+        super().__init__(surrogate_dataset=dataset, device=device)
 
     def query(self, config: TabPFNConfig) -> dict:
-        predictions = self._predict_performance(config)
-        return {"predictions": predictions}
+        return {"predictions": self._predict_performance(config)}
+
+    def query_many(self, configs: list[TabPFNConfig]) -> list[dict]:
+        preds = self._predict_performance_many(configs)
+        return [{"predictions": p} for p in preds]
 
 
 if __name__ == "__main__":
