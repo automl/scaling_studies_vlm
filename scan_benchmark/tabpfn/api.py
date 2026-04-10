@@ -1,14 +1,14 @@
 from importlib.resources import files
 
-from surrogate_benchmark.base_performance_benchmark import BasePerformanceBenchmark
-from surrogate_benchmark.tabpfn.config import TabPFNConfig
-from surrogate_benchmark.tabpfn.performance_surrogate.data import TabPFNSurrogateDataset
+from scan_benchmark.base_performance_benchmark import BasePerformanceBenchmark
+from scan_benchmark.tabpfn.config import TabPFNConfig
+from scan_benchmark.tabpfn.performance_surrogate.data import TabPFNSurrogateDataset
 
 
 class TabPFNBenchmark(BasePerformanceBenchmark):
     def __init__(self, device="auto"):
-        train_path = files("surrogate_benchmark.tabpfn.performance_surrogate").joinpath("splits/train.csv")
-        test_path = files("surrogate_benchmark.tabpfn.performance_surrogate").joinpath("splits/test.csv")
+        train_path = files("scan_benchmark.tabpfn.performance_surrogate").joinpath("splits/train.csv")
+        test_path = files("scan_benchmark.tabpfn.performance_surrogate").joinpath("splits/test.csv")
 
         dataset = TabPFNSurrogateDataset(
             train_csv_path=str(train_path),
@@ -39,5 +39,5 @@ if __name__ == "__main__":
         weight_decay=0.0,
     )
 
-    result = tabpfn_bench.query(config)
+    result = tabpfn_bench.query_many([config])
     print(result)

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, asdict
 
-from surrogate_benchmark.base_config import BaseConfig
-from surrogate_benchmark.tabpfn.spaces import TABPFN_SEARCH_SPACE
+from scan_benchmark.base_config import BaseConfig
+from scan_benchmark.tabpfn.spaces import TABPFN_SEARCH_SPACE
 
 
 @dataclass

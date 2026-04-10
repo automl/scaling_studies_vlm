@@ -1,6 +1,6 @@
 import pandas as pd
 
-from surrogate_benchmark.dataset import BaseSurrogateDataset
+from scan_benchmark.dataset import BaseSurrogateDataset
 
 
 class TabPFNSurrogateDataset(BaseSurrogateDataset):

@@ -1,7 +1,7 @@
 import numpy as np
 from tabpfn import TabPFNRegressor
 
-from surrogate_benchmark.predictors_core.base import SurrogateModel
+from scan_benchmark.predictors_core.base import SurrogateModel
 
 
 class TabPFNModel(SurrogateModel):

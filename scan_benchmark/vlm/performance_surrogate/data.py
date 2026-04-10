@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from surrogate_benchmark.dataset import BaseSurrogateDataset
+from scan_benchmark.dataset import BaseSurrogateDataset
 
 
 class VLMSurrogateDataset(BaseSurrogateDataset):

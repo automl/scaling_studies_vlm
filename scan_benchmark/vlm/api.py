@@ -4,20 +4,20 @@ from pprint import pprint
 
 import numpy as np
 
-from surrogate_benchmark.base_performance_benchmark import BasePerformanceBenchmark
-from surrogate_benchmark.config_feature_mapper import ConfigFeatureMapper
-from surrogate_benchmark.vlm.config import VLMConfig, Target
-from surrogate_benchmark.vlm.divergence_surrogate.data import DivergenceDataset
-from surrogate_benchmark.vlm.divergence_surrogate.predictors.xgb import BinaryBaggingEnsemble
-from surrogate_benchmark.vlm.performance_surrogate.data import VLMSurrogateDataset
+from scan_benchmark.base_performance_benchmark import BasePerformanceBenchmark
+from scan_benchmark.config_feature_mapper import ConfigFeatureMapper
+from scan_benchmark.vlm.config import VLMConfig, Target
+from scan_benchmark.vlm.divergence_surrogate.data import DivergenceDataset
+from scan_benchmark.vlm.divergence_surrogate.predictors.xgb import BinaryBaggingEnsemble
+from scan_benchmark.vlm.performance_surrogate.data import VLMSurrogateDataset
 
 
 class VLMBenchmark(BasePerformanceBenchmark):
     def __init__(self, targets=None, device="auto"):
         targets = Target.all() if targets is None else [t.value for t in targets]
 
-        train_path = files("surrogate_benchmark.vlm.performance_surrogate").joinpath("splits/train.csv")
-        test_path = files("surrogate_benchmark.vlm.performance_surrogate").joinpath("splits/test.csv")
+        train_path = files("scan_benchmark.vlm.performance_surrogate").joinpath("splits/train.csv")
+        test_path = files("scan_benchmark.vlm.performance_surrogate").joinpath("splits/test.csv")
 
         dataset = VLMSurrogateDataset(
             train_csv_path=str(train_path),
@@ -34,7 +34,7 @@ class VLMBenchmark(BasePerformanceBenchmark):
             log_columns=self.surrogate_dataset.DEFAULT_LOG_COLUMNS,
         )
 
-        model_dir = files("surrogate_benchmark.vlm.divergence_surrogate").joinpath("xgb_models")
+        model_dir = files("scan_benchmark.vlm.divergence_surrogate").joinpath("xgb_models")
         self.divergence_surrogate = BinaryBaggingEnsemble(model_dir=str(model_dir))
 
     def query(self, config: VLMConfig) -> dict:
@@ -50,7 +50,7 @@ class VLMBenchmark(BasePerformanceBenchmark):
 
     def get_model_stats(self, config: VLMConfig) -> dict:
         stats_key = f"text_{config.text_width}_vision_{config.vision_width}"
-        path = files("surrogate_benchmark.vlm").joinpath("gflops_params.json")
+        path = files("scan_benchmark.vlm").joinpath("gflops_params.json")
 
         with open(path, encoding="utf-8") as f:
             model_stats = json.load(f).get(stats_key)
