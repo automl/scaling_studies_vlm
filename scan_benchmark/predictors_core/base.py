@@ -46,7 +46,8 @@ class MultiLabelSurrogateModel:
         X_test, y_test = dataset.get_test_data()
 
         for i, label in enumerate(self.labels):
-            file_path = out_path / f"{label}.json"
+            safe_label = label.replace("/", "_")
+            file_path = out_path / f"{safe_label}.json"
 
             if file_path.exists():
                 print(f"Skipping {label}, already exists.")

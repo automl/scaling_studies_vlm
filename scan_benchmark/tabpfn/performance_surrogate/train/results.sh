@@ -1,7 +1,8 @@
 #!/bin/bash
 
 SCRIPT="train.py"
-SEEDS=(42 73 94)
+#SEEDS=(42 73 94)
+SEEDS=(42)
 ENSEMBLE_TYPES=("xgb" "lightgbm" "mix")
 
 export PYTHONPATH="C:\Users\Donat\Documents\Master\Thesis\vlm scaling laws repository;$PYTHONPATH"

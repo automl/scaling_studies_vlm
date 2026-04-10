@@ -26,8 +26,7 @@ def build_out_path(args):
 
     intermediate_flag = "fit_no_intermediate"
     predict_on_itermediate = "pred_no_intermediate"
-    path = Path(
-        "../results") / "predictors" / model_name / f"seed_{args.seed}" / intermediate_flag / predict_on_itermediate
+    path = Path("../results") / "predictors" / model_name / f"seed_{args.seed}" / intermediate_flag / predict_on_itermediate
 
     if args.model == "autogluon":
         ag_flag = "manual" if args.use_manual_ag_settings else "auto"
@@ -39,8 +38,8 @@ def build_out_path(args):
 def parse_args():
     p = argparse.ArgumentParser()
 
-    p.add_argument("--train_csv", default="../splits/train.csv")
-    p.add_argument("--test_csv", default="../splits/test.csv")
+    p.add_argument("--train_csv", default="../splits/train_small.csv")
+    p.add_argument("--test_csv", default="../splits/test_small.csv")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--labels", nargs="+", default=["val/val_loss"])
     p.add_argument("--model", choices=["tabpfn", "ensemble", "autogluon"], default="tabpfn")
