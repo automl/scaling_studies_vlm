@@ -241,7 +241,15 @@ HPO_CONFIGS = {
                                                     evaluations_to_spend=100,
                                                     pipeline_space=
                                                     ScanPipeline.with_overrides()
-                                                    )
+                                                    ),
+    "scan_space_large_scale": NePSConfig(lambda p: neps.algorithms.random_search(p),
+                                         evaluations_to_spend=500,
+                                         pipeline_space=
+                                         ScanPipeline.with_overrides(train_num_samples=neps.Float(
+                                             lower=60,
+                                             upper=120.0,
+                                         ))
+                                         )
 }
 
 
