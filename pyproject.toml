@@ -17,6 +17,12 @@ dependencies = [
     "tqdm"
 ]
 
+[project.optional-dependencies]
+dev = [
+    "autogluon==1.5.0",
+    "lightgbm==4.6.0"
+]
+
 [tool.setuptools.packages.find]
 include = [
     "surrogate_benchmark",
