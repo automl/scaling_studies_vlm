@@ -5,16 +5,17 @@
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks-per-node=1
-#SBATCH --partition alldlc_gpu-rtx3080
+#SBATCH --partition capella
 #SBATCH --job-name=individual_scripts_builder
+#SBATCH --time=00:30:00
 
 #SBATCH --output configs_iterator_logs/%x-%A.out   # STDOUT  %x and %A will be replaced by the job name and job id, respectively. short: -o logs/%x-%A-job_name.out
 #SBATCH --error configs_iterator_logs/%x-%A.err    # STDERR  short: -e logs/%x-%A-job_name.out
 
 # Set defaults or use provided arguments
-WORKSPACE_DIR="${1:-/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm}"
-COMMAND_DIR="${2:-/work/dlclarge1/sinanid-VLM-scaling-law/repository/scaling_studies_vlm/train}"
-ROOT_DIR="${3:-results/optimizer=scan_space_final_biased_alpha_0_5/seed=42}"
+WORKSPACE_DIR="${1:-/data/cat/ws/dosi100i-scan_bench_suite/runs}"
+COMMAND_DIR="${2:-/data/cat/ws/dosi100i-scan_bench_suite/vlm_repo/scaling_studies_vlm/train}"
+ROOT_DIR="${3:-results/optimizer=scan_space_large_scale/seed=42}"
 VENV_DIR="${4:-/p/project1/projectnucleus/sinani1/envs/openclip/bin/activate}"
 
 echo "WORKSPACE_DIR: $WORKSPACE_DIR"
@@ -37,13 +38,11 @@ python -u '"${COMMAND_DIR}"'/configs_iterator.py \
   --worker_id $SLURM_PROCID \
   --num_workers $SLURM_NTASKS \
   --workspace_dir '"${WORKSPACE_DIR}"' \
-  --cluster meta \
-  --partition alldlc_gpu-rtx3080 \
-  --wandb_project_name scan_space_final_biased_alpha_0_5 \
+  --cluster tu_dresden \
+  --partition capella \
+  --wandb_project_name scan_space_large_scale \
   --command_dir '"${COMMAND_DIR}"' \
-  --venv_path '"${VENV_DIR}"' \
-  --bias_scale_sampling \
-  --alpha 0.5
+  --venv_path '"${VENV_DIR}"'
 '
 
 end=`date +%s`

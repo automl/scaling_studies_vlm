@@ -28,7 +28,7 @@ def parse_args(args):
     parser.add_argument(
         "--cluster",
         type=str,
-        choices=["meta", "juwels", "horeka"],
+        choices=["meta", "juwels", "horeka", "tu_dresden"],
         required=True,
         help="Cluster the jobs will be running on. Necessary for data paths.",
     )

@@ -18,20 +18,25 @@ class DatasetShards(str, Enum):
 
 CLUSTER_DATASET_SHARDS: dict[str, dict[DatasetShards, str]] = {
     "meta": {
-        DatasetShards.LAION400M_TRAIN: "/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/pre_training_dataset/laion400m/train_data/{00000000..00012136}.tar",
+        DatasetShards.LAION400M_TRAIN: "/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/pre_training_dataset/laion400m/train_data/{00000000..00026286}.tar",
         DatasetShards.LAION400M_VAL: "/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/pre_training_dataset/laion400m/validation_data/{00000000..00000015}.tar",
         DatasetShards.LAION400M_TEST: "/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/pre_training_dataset/laion400m/test_data/{00000000..00000015}.tar",
     },
     "juwels": {
-        DatasetShards.LAION400M_TRAIN: "/p/data1/mmlaion/relaion_400m_subset/67m_samples/train_data/{00000000..00012136}.tar",
+        DatasetShards.LAION400M_TRAIN: "/p/data1/mmlaion/relaion_400m_subset/67m_samples/train_data/{00000000..00026286}.tar",
         DatasetShards.LAION400M_VAL: "/p/data1/mmlaion/relaion_400m_subset/67m_samples/validation_data/{00000000..00000015}.tar",
         DatasetShards.LAION400M_TEST: "/p/data1/mmlaion/relaion_400m_subset/67m_samples/test_data/{00000000..00000015}.tar",
     },
     "horeka": {
-        DatasetShards.LAION400M_TRAIN: "/hkfs/work/workspace/scratch/fr_ds677-vlm_scan/pre_training_data/train_data/{00000000..00012136}.tar",
+        DatasetShards.LAION400M_TRAIN: "/hkfs/work/workspace/scratch/fr_ds677-vlm_scan/pre_training_data/train_data/{00000000..00026286}.tar",
         DatasetShards.LAION400M_VAL: "/hkfs/work/workspace/scratch/fr_ds677-vlm_scan/pre_training_data/validation_data/{00000000..00000015}.tar",
         DatasetShards.LAION400M_TEST: "/hkfs/work/workspace/scratch/fr_ds677-vlm_scan/pre_training_data/test_data/{00000000..00000015}.tar",
     },
+    "tu_dresden": {
+        DatasetShards.LAION400M_TRAIN: "/data/cat/ws/dosi100i-scan_bench_suite/vlm_data/train_data/{00000000..00026286}.tar",
+        DatasetShards.LAION400M_VAL: "/data/cat/ws/dosi100i-scan_bench_suite/vlm_data/validation_data/{00000000..00000015}.tar",
+        DatasetShards.LAION400M_TEST: "/data/cat/ws/dosi100i-scan_bench_suite/vlm_data/test_data/{00000000..00000015}.tar",
+    }
 }
 
 
@@ -214,6 +219,12 @@ ml Stages/2026 GCCcore/14.3.0 PyTorch/2.9.1
 
         if self.cluster == "horeka":
             return "source /hkfs/work/workspace/scratch/fr_ds677-vlm_scan/env/miniconda3/etc/profile.d/conda.sh && conda activate test_scaling_laws"
+
+        if self.cluster == "tu_dresden":
+                return """\
+module load Anaconda3
+source $EBROOTANACONDA3/etc/profile.d/conda.sh
+conda activate /data/cat/ws/dosi100i-scan_bench_suite/vlm_env"""
 
         raise ValueError(f"Unknown cluster: {self.cluster}")
 

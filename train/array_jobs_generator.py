@@ -152,6 +152,9 @@ def bundle_train_scripts_in_array_jobs(root_dir, logs_dir, train_scripts_dir, wo
             continue
         config_id = int(m.group(1))
 
+        if config_id > 100:
+            continue
+
         nodes = gpus = part = None
         samples = bs = None
         lr = wd = warmup = beta2 = beta1 = eps = None
@@ -302,7 +305,7 @@ if __name__ == "__main__":
         root_dir=root_dir,
         seed=args.seed,
         partition=args.partition,
-        nr_configs=500,
+        nr_configs=1000,
         workspace_dir=args.workspace_dir,
         cluster=args.cluster,
         command_dir=args.command_dir,
