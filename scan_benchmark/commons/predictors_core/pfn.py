@@ -7,7 +7,7 @@ from scan_benchmark.commons.predictors_core.base import SurrogateModel
 class TabPFNModel(SurrogateModel):
     def __init__(self, device: str = "cpu"):
         self.device = device
-        self.model = TabPFNRegressor(device=device, random_state=42)
+        self.model = TabPFNRegressor(device=device, random_state=42, ignore_pretraining_limits=True)
 
     def fit(self, X: np.ndarray, y: np.ndarray):
         self.model.fit(X, y)
