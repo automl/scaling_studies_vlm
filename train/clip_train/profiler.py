@@ -262,6 +262,45 @@ def get_model_flops(model, num_samples_seen, dtype=None):
 
     raise RuntimeError("FLOPs profiling failed") from last_err
 
+def get_raw_model_flops(model, num_samples_seen, dtype=None):
+    """
+    Compute FLOPs for a FULL OpenCLIP model (image + text encoders)
+    using torch.utils.flop_counter.
+
+    model: an instantiated OpenCLIP model
+    """
+    model = unwrap_model(model)
+    model.eval()
+
+    if isinstance(model.visual.image_size, (tuple, list)):
+        image_input_size = (3,) + tuple(model.visual.image_size[-2:])
+    else:
+        image_input_size = (3, model.visual.image_size, model.visual.image_size)
+
+    text_input_size = (77,)
+    if hasattr(model, "context_length") and model.context_length:
+        text_input_size = (model.context_length,)
+
+    retries = 2
+    last_err = None
+
+    while retries:
+        retries -= 1
+        try:
+            total_flops = profile_torch(
+                model,
+                text_input_size=text_input_size,
+                image_input_size=image_input_size,
+                dtype=dtype
+            )
+            flops = round(total_flops, 2)
+            logging.info(f'Flops per single sample: {flops}')
+            return flops * num_samples_seen
+
+        except RuntimeError as e:
+            last_err = e
+
+    raise RuntimeError("FLOPs profiling failed") from last_err
 
 def main():
     args = parser.parse_args()

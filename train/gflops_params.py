@@ -4,7 +4,7 @@ from pathlib import Path
 
 import torch
 
-from train.clip_train.profiler import get_model_flops
+from train.clip_train.profiler import get_raw_model_flops
 from train.utils import create_default_model, precision_to_dtype
 
 
@@ -47,7 +47,7 @@ if __name__ == "__main__":
             if torch.cuda.is_available():
                 model = model.cuda()
 
-            gflops_per_sample = get_model_flops(
+            flops_per_sample = get_raw_model_flops(
                 model,
                 1,
                 dtype=precision_to_dtype("amp"),
@@ -63,9 +63,9 @@ if __name__ == "__main__":
 
             results.setdefault(pair_key, []).append({
                 "arch": cfg.name,
-                "gflops_per_sample": gflops_per_sample,
-                "total_params": total_params,
-                "image_params": image_params,
+                "flops_per_sample": flops_per_sample,
+                "params": total_params,
+                "vision_params": image_params,
                 "text_params": text_params,
                 "text_params_non_emb": text_params_non_emb,
             })
@@ -73,7 +73,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Failed for {cfg.name}: {e}")
 
-    with open("model_stats.json", "w", encoding="utf-8") as f:
+    with open("flops_params.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
 
-    print("Saved results to gflops_params.json")
+    print("Saved results to flops_params.json")
