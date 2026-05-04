@@ -5,10 +5,8 @@ from typing import Union
 
 import neps
 from neps.space import Parameter
-
-# from optimizers import chinchilla_optimizer, ChichillaPipeline, \
-#     chinchilla_rs_optimizer, bo_guided_scaling_optimizer, chinchilla_optimizer_fine_grained_dp, \
-#     chinchilla_optimizer_aproach1
+import torch
+from optimizers import PriMOPipeline, prior_confidence
 from spaces import (__SCALE_SPACE_CONSTANT_ViT_S_32,
                     ScanPipeline)
 
@@ -16,6 +14,9 @@ from spaces import (__SCALE_SPACE_CONSTANT_ViT_S_32,
 class Optimizer(Enum):
     Grid = "grid_search"
     Random = "random_search"
+    BO_RW = "bo_rw"
+    PriMO = "primo"
+
 
 
 @dataclass
@@ -46,6 +47,8 @@ class NePSConfig:
             "pipeline_space": self.pipeline_space,
             "cost_to_spend": self.cost_to_spend,
         }
+        if self.optimizer == Optimizer.PriMO.value:
+            args["fidelities_to_spend"] = 5
         return args
 
 
@@ -123,115 +126,7 @@ HPO_CONFIGS = {
         evaluations_to_spend=40,
         pipeline_space=
         ScanPipeline.with_overrides(lr=2e-3, warmup_fraction=0.5, wd=1.0e-6)),
-    # "gs_ViT-XS-32": NePSConfig(
-    #     optimizer=chinchilla_optimizer,
-    #     evaluations_to_spend=100,
-    #     pipeline_space=ChichillaPipeline.with_overrides(
-    #         wd=1.0e-6,
-    #         vision_width=256 / 64,
-    #         text_width=256 / 8,
-    #         text_heads=4,
-    #     )
-    # ),
-    # "gs_ViT-Micro-32": NePSConfig(
-    #     optimizer=chinchilla_optimizer,
-    #     evaluations_to_spend=27,
-    #     pipeline_space=ChichillaPipeline.with_overrides(
-    #         wd=1.0e-6,
-    #         vision_width=256 / 64,
-    #         text_width=192 / 8,
-    #         text_heads=4,
-    #     )
-    # ),
-    # "gs_ViT-XXS-32": NePSConfig(
-    #     optimizer=chinchilla_optimizer,
-    #     evaluations_to_spend=0,
-    #     pipeline_space=ChichillaPipeline.with_overrides(
-    #         wd=1.0e-6,
-    #         vision_width=192 / 64,
-    #         text_width=192 / 8,
-    #         text_heads=4,
-    #     )
-    # ),
-    # "gs_ViT-Tiny-32": NePSConfig(
-    #     optimizer=chinchilla_optimizer_fine_grained_dp,
-    #     evaluations_to_spend=0,
-    #     pipeline_space=ChichillaPipeline.with_overrides(
-    #         wd=1.0e-6,
-    #         vision_width=128 / 64,
-    #         text_width=128 / 8,
-    #         text_heads=4,
-    #     )
-    # ),
-    # "scale_space_only_minimal_capacity_probe": NePSConfig(
-    #     optimizer=chinchilla_optimizer_aproach1,
-    #     evaluations_to_spend=100,
-    #     pipeline_space=
-    #     ScanPipeline.with_overrides(
-    #         lr=2e-3,
-    #         warmup_fraction=0.5,
-    #         wd=1.0e-6,
-    #         train_num_samples=neps.Float(
-    #             lower=1,
-    #             upper=80.0,
-    #         ),
-    #         vision_width=neps.Integer(
-    #             lower=1, upper=4,
-    #         ),
-    #         text_width=neps.Integer(
-    #             lower=1, upper=4,
-    #         )
-    #     ),
-    # ),
-    # "constrained_bo": NePSConfig(
-    #     optimizer=bo_guided_scaling_optimizer(max_evaluation_flops=209161783),
-    #     cost_to_spend=195017516,  # GFLOPS
-    #     pipeline_space=ScanPipeline.with_overrides(
-    #         train_num_samples=neps.Float(
-    #             lower=1,
-    #             upper=80.0,
-    #         ),
-    #         vision_width=neps.Integer(
-    #             lower=1, upper=4,
-    #         ),
-    #         text_width=neps.Integer(
-    #             lower=1, upper=4,
-    #         )
-    #     ),
-    # ),
-    # "constrained_bo_cost_gp": NePSConfig(
-    #     optimizer=bo_guided_scaling_optimizer(max_evaluation_flops=209161783, cost_aware="log"),
-    #     cost_to_spend=195017516,  # GFLOPS
-    #     pipeline_space=ScanPipeline.with_overrides(
-    #         train_num_samples=neps.Float(
-    #             lower=1,
-    #             upper=80.0,
-    #         ),
-    #         vision_width=neps.Integer(
-    #             lower=1, upper=4,
-    #         ),
-    #         text_width=neps.Integer(
-    #             lower=1, upper=4,
-    #         )
-    #     ),
-    # ),
-    # "constrained_rs": NePSConfig(
-    #     optimizer=chinchilla_rs_optimizer,
-    #     cost_to_spend=209161783,  # GFLOPS
-    #     pipeline_space=
-    #     ScanPipeline.with_overrides(
-    #         train_num_samples=neps.Float(
-    #             lower=1,
-    #             upper=80.0,
-    #         ),
-    #         vision_width=neps.Integer(
-    #             lower=1, upper=4,
-    #         ),
-    #         text_width=neps.Integer(
-    #             lower=1, upper=4,
-    #         )
-    #     ),
-    # ),
+  
     "scan_space_juwels_biased_alpha_0_5": NePSConfig(lambda p: neps.algorithms.random_search(p),
                                                      evaluations_to_spend=100,
                                                      pipeline_space=
@@ -249,7 +144,35 @@ HPO_CONFIGS = {
                                              lower=60,
                                              upper=120.0,
                                          ))
-                                         )
+                                         ),
+    "random_fixed_max_dp": NePSConfig(
+        lambda p: neps.algorithms.random_search(p),
+        # evaluations_to_spend=20,
+        pipeline_space=PriMOPipeline(),
+    ),
+    "primo": NePSConfig(
+        optimizer=lambda p: neps.algorithms.primo(space=p,
+                prior_centers={},
+                mo_selector="epsnet",
+                prior_confidences=prior_confidence,
+                initial_design_size=5,
+                cost_aware=False,
+                device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+            ),
+        pipeline_space=PriMOPipeline(),
+    ),
+    "bo_rw": NePSConfig(
+        optimizer=lambda p: neps.algorithms.primo(space=p,
+                prior_centers={},
+                mo_selector="epsnet",
+                prior_confidences=prior_confidence,
+                initial_design_size=5,
+                cost_aware=False,
+                device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+            ),
+        pipeline_space=PriMOPipeline(),
+    ),
+    
 }
 
 
