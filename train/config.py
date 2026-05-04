@@ -6,7 +6,7 @@ from typing import Union
 import neps
 from neps.space import Parameter
 import torch
-from optimizers import PriMOPipeline, prior_confidence
+from optimizers import primo_space, prior_confidence
 from spaces import (__SCALE_SPACE_CONSTANT_ViT_S_32,
                     ScanPipeline)
 
@@ -146,9 +146,9 @@ HPO_CONFIGS = {
                                          ))
                                          ),
     "random_fixed_max_dp": NePSConfig(
-        lambda p: neps.algorithms.random_search(p),
+        lambda p: neps.algorithms.random_search(p, ignore_fidelity="highest_fidelity"),
         # evaluations_to_spend=20,
-        pipeline_space=PriMOPipeline(),
+        pipeline_space=primo_space,
     ),
     "primo": NePSConfig(
         optimizer=lambda p: neps.algorithms.primo(space=p,
@@ -159,7 +159,7 @@ HPO_CONFIGS = {
                 cost_aware=False,
                 device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
             ),
-        pipeline_space=PriMOPipeline(),
+        pipeline_space=primo_space,
     ),
     "bo_rw": NePSConfig(
         optimizer=lambda p: neps.algorithms.primo(space=p,
@@ -170,9 +170,8 @@ HPO_CONFIGS = {
                 cost_aware=False,
                 device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
             ),
-        pipeline_space=PriMOPipeline(),
+        pipeline_space=primo_space,
     ),
-    
 }
 
 

@@ -254,6 +254,7 @@ def get_model_flops(model, num_samples_seen, dtype=None):
                 dtype=dtype
             )
             gflops = round(total_flops / 1e9, 2)
+            gflops = total_flops / 1e9 if gflops < 0.0001 else gflops
             logging.info(f'GFlops per single sample: {gflops}')
             return gflops * num_samples_seen
 

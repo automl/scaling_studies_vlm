@@ -333,6 +333,10 @@ if __name__ == "__main__":
                 f"total_configs={nr_configs}"
             )
             scan_space = build_scan_space(row, args.bias_scale_sampling, args.alpha, rng)
+            
+            # if scan_space["vision_width"] < scan_space["text_width"]:
+            #     print(f"Skipping config_id {config_id} because vision_width < text_width")
+            #     continue
             generate_scripts_per_config(config_id, scan_space, root_dir, args.venv_path, args.wandb_project_name,
                                         args.workspace_dir,
                                         args.cluster, command_dir=args.command_dir)

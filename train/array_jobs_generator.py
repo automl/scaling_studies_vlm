@@ -1,9 +1,7 @@
 """
 Group the scripts by their batch_size, partition, gpus and nodes and create array jobs for each group.
 Usage:
-python -m array_jobs_generator --root_dir results/optimizer\=scale_space_only_minimal_capacity_probe/seed\=42  --seed 42 --partition booster --wo
-rkspace_dir /p/data1/datasets/scan/openclip --cluster juwels --command_dir /p/project1/projectnucleus/alipourgougeh1/scaling_studies_vlm/train  --wandb_project_name chinchilla --venv_pat
-h /p/project1/projectnucleus/alipourgougeh1/scaling_studies_vlm/venv/bin/activate
+python -m array_jobs_generator --root_dir results/optimizer=bo_space_expansion_micro/seed=42  --seed 42 --partition booster --workspace_dir /p/data1/datasets/scan/openclip --cluster juwels --command_dir /p/project1/projectnucleus/alipourgougeh1/scaling_studies_vlm/train  --wandb_project_name bo_space_expansion_micro --venv_path /p/project1/projectnucleus/alipourgougeh1/scaling_studies_vlm/venv/bin/activate
 """
 import math
 import re
