@@ -1,0 +1,11 @@
+Best configs and their objectives across evaluations:
+--------------------------------------------------------------------------------
+Config ID: 40
+Objective to minimize: 4.392034844394953
+Cost: 16879943.68
+Cumulative evaluations: 11
+Cumulative fidelities: 0.0
+Cumulative cost: 130328601.60000002
+Cumulative time: 130328601.60000002
+Config: {'beta1': 0.9420320391654968, 'beta2': 0.9770634174346924, 'eps': 3.3128395671155886e-07, 'lr': 0.0006195054738782346, 'text_width': 2, 'train_num_samples': 5.333811283111572, 'vision_width': 1, 'warmup_fraction': 0.6995543241500854, 'wd': 2.933807081717532e-05}
+--------------------------------------------------------------------------------

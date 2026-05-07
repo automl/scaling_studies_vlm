@@ -1,0 +1,14 @@
+,0
+num_evaluating,947.0
+num_success,53.0
+best_objective_to_minimize,4.392034844394953
+best_config_id,40
+beta1,0.9420320391654968
+beta2,0.9770634174346924
+eps,3.3128395671155886e-07
+lr,0.0006195054738782346
+text_width,2
+train_num_samples,5.333811283111572
+vision_width,1
+warmup_fraction,0.6995543241500854
+wd,2.933807081717532e-05

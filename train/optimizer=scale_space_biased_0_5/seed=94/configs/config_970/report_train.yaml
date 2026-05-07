@@ -1,0 +1,5405 @@
+cost: 6431703.04
+err: null
+evaluation_duration: 6431703.04
+learning_curve:
+- 5.461069289062705
+objective_to_minimize: 5.461069289062705
+reported_as: success
+tb: null
+info_dict:
+  compute_per_epoch: 3215851.52
+  compute_per_sample: 7.01
+  eval_results:
+    test_duration_seconds: 121.61356234550476
+    test_loss: 4.229197025299072
+    validation_duration_seconds: 140.61072492599487
+    validation_loss: 4.243702411651611
+  flops: 6431703.04
+  image_mparams: 10.38
+  n_data: 917504
+  n_param: 73.74
+  test_duration_seconds: null
+  test_loss: null
+  text_mparams: 63.36
+  total_mparams: 73.74
+  train_duration_seconds: 927.4398510456085
+  train_loss: 5.461069289062705
+  training_loss_over_datapoints:
+  - datapoints_seen: 512
+    epoch: 0
+    train_loss: 6.363471984863281
+  - datapoints_seen: 1024
+    epoch: 0
+    train_loss: 6.338459014892578
+  - datapoints_seen: 1536
+    epoch: 0
+    train_loss: 6.336265563964844
+  - datapoints_seen: 2048
+    epoch: 0
+    train_loss: 6.321075439453125
+  - datapoints_seen: 2560
+    epoch: 0
+    train_loss: 6.310371398925781
+  - datapoints_seen: 3072
+    epoch: 0
+    train_loss: 6.3061370849609375
+  - datapoints_seen: 3584
+    epoch: 0
+    train_loss: 6.297644478934152
+  - datapoints_seen: 4096
+    epoch: 0
+    train_loss: 6.290545463562012
+  - datapoints_seen: 4608
+    epoch: 0
+    train_loss: 6.28781975640191
+  - datapoints_seen: 5120
+    epoch: 0
+    train_loss: 6.286754608154297
+  - datapoints_seen: 5632
+    epoch: 0
+    train_loss: 6.282499833540483
+  - datapoints_seen: 6144
+    epoch: 0
+    train_loss: 6.281186421712239
+  - datapoints_seen: 6656
+    epoch: 0
+    train_loss: 6.277779799241286
+  - datapoints_seen: 7168
+    epoch: 0
+    train_loss: 6.274622780936105
+  - datapoints_seen: 7680
+    epoch: 0
+    train_loss: 6.273681131998698
+  - datapoints_seen: 8192
+    epoch: 0
+    train_loss: 6.271915435791016
+  - datapoints_seen: 8704
+    epoch: 0
+    train_loss: 6.268702338723576
+  - datapoints_seen: 9216
+    epoch: 0
+    train_loss: 6.266047583685981
+  - datapoints_seen: 9728
+    epoch: 0
+    train_loss: 6.263967413651316
+  - datapoints_seen: 10240
+    epoch: 0
+    train_loss: 6.262257385253906
+  - datapoints_seen: 10752
+    epoch: 0
+    train_loss: 6.260814121791294
+  - datapoints_seen: 11264
+    epoch: 0
+    train_loss: 6.26012524691495
+  - datapoints_seen: 11776
+    epoch: 0
+    train_loss: 6.258383377738621
+  - datapoints_seen: 12288
+    epoch: 0
+    train_loss: 6.257182757059733
+  - datapoints_seen: 12800
+    epoch: 0
+    train_loss: 6.255684509277343
+  - datapoints_seen: 13312
+    epoch: 0
+    train_loss: 6.254830873929537
+  - datapoints_seen: 13824
+    epoch: 0
+    train_loss: 6.254080878363715
+  - datapoints_seen: 14336
+    epoch: 0
+    train_loss: 6.252693176269531
+  - datapoints_seen: 14848
+    epoch: 0
+    train_loss: 6.2517245062466325
+  - datapoints_seen: 15360
+    epoch: 0
+    train_loss: 6.2503509521484375
+  - datapoints_seen: 15872
+    epoch: 0
+    train_loss: 6.2502141152658774
+  - datapoints_seen: 16384
+    epoch: 0
+    train_loss: 6.249114513397217
+  - datapoints_seen: 16896
+    epoch: 0
+    train_loss: 6.248018900553386
+  - datapoints_seen: 17408
+    epoch: 0
+    train_loss: 6.247023189769072
+  - datapoints_seen: 17920
+    epoch: 0
+    train_loss: 6.245479910714286
+  - datapoints_seen: 18432
+    epoch: 0
+    train_loss: 6.244790395100911
+  - datapoints_seen: 18944
+    epoch: 0
+    train_loss: 6.243358508960621
+  - datapoints_seen: 19456
+    epoch: 0
+    train_loss: 6.241973876953125
+  - datapoints_seen: 19968
+    epoch: 0
+    train_loss: 6.241619012294671
+  - datapoints_seen: 20480
+    epoch: 0
+    train_loss: 6.240568161010742
+  - datapoints_seen: 20992
+    epoch: 0
+    train_loss: 6.239537308855755
+  - datapoints_seen: 21504
+    epoch: 0
+    train_loss: 6.2383286612374445
+  - datapoints_seen: 22016
+    epoch: 0
+    train_loss: 6.23695568705714
+  - datapoints_seen: 22528
+    epoch: 0
+    train_loss: 6.235788518732244
+  - datapoints_seen: 23040
+    epoch: 0
+    train_loss: 6.235696750217014
+  - datapoints_seen: 23552
+    epoch: 0
+    train_loss: 6.234615491784138
+  - datapoints_seen: 24064
+    epoch: 0
+    train_loss: 6.233738189047956
+  - datapoints_seen: 24576
+    epoch: 0
+    train_loss: 6.2327799797058105
+  - datapoints_seen: 25088
+    epoch: 0
+    train_loss: 6.231436593191964
+  - datapoints_seen: 25600
+    epoch: 0
+    train_loss: 6.230521392822266
+  - datapoints_seen: 26112
+    epoch: 0
+    train_loss: 6.229512532552083
+  - datapoints_seen: 26624
+    epoch: 0
+    train_loss: 6.228635201087365
+  - datapoints_seen: 27136
+    epoch: 0
+    train_loss: 6.227507681216833
+  - datapoints_seen: 27648
+    epoch: 0
+    train_loss: 6.226827833387587
+  - datapoints_seen: 28160
+    epoch: 0
+    train_loss: 6.225600502707741
+  - datapoints_seen: 28672
+    epoch: 0
+    train_loss: 6.224542617797852
+  - datapoints_seen: 29184
+    epoch: 0
+    train_loss: 6.223003722073739
+  - datapoints_seen: 29696
+    epoch: 0
+    train_loss: 6.2215597218480605
+  - datapoints_seen: 30208
+    epoch: 0
+    train_loss: 6.2211054139218085
+  - datapoints_seen: 30720
+    epoch: 0
+    train_loss: 6.2201793670654295
+  - datapoints_seen: 31232
+    epoch: 0
+    train_loss: 6.218891081262807
+  - datapoints_seen: 31744
+    epoch: 0
+    train_loss: 6.2179127354775705
+  - datapoints_seen: 32256
+    epoch: 0
+    train_loss: 6.2165952410016745
+  - datapoints_seen: 32768
+    epoch: 0
+    train_loss: 6.21562659740448
+  - datapoints_seen: 33280
+    epoch: 0
+    train_loss: 6.214622497558594
+  - datapoints_seen: 33792
+    epoch: 0
+    train_loss: 6.213725812507398
+  - datapoints_seen: 34304
+    epoch: 0
+    train_loss: 6.212657529916337
+  - datapoints_seen: 34816
+    epoch: 0
+    train_loss: 6.211671829223633
+  - datapoints_seen: 35328
+    epoch: 0
+    train_loss: 6.211220893307009
+  - datapoints_seen: 35840
+    epoch: 0
+    train_loss: 6.21019777570452
+  - datapoints_seen: 36352
+    epoch: 0
+    train_loss: 6.209791049151353
+  - datapoints_seen: 36864
+    epoch: 0
+    train_loss: 6.208545154995388
+  - datapoints_seen: 37376
+    epoch: 0
+    train_loss: 6.207662399501016
+  - datapoints_seen: 37888
+    epoch: 0
+    train_loss: 6.206871342014622
+  - datapoints_seen: 38400
+    epoch: 0
+    train_loss: 6.205590311686198
+  - datapoints_seen: 38912
+    epoch: 0
+    train_loss: 6.204677782560649
+  - datapoints_seen: 39424
+    epoch: 0
+    train_loss: 6.204077287153765
+  - datapoints_seen: 39936
+    epoch: 0
+    train_loss: 6.202364897116636
+  - datapoints_seen: 40448
+    epoch: 0
+    train_loss: 6.201669717136817
+  - datapoints_seen: 40960
+    epoch: 0
+    train_loss: 6.20148115158081
+  - datapoints_seen: 41472
+    epoch: 0
+    train_loss: 6.2004178836021895
+  - datapoints_seen: 41984
+    epoch: 0
+    train_loss: 6.1993534739424545
+  - datapoints_seen: 42496
+    epoch: 0
+    train_loss: 6.197853547980986
+  - datapoints_seen: 43008
+    epoch: 0
+    train_loss: 6.196582794189453
+  - datapoints_seen: 43520
+    epoch: 0
+    train_loss: 6.1954222735236675
+  - datapoints_seen: 44032
+    epoch: 0
+    train_loss: 6.194718560507131
+  - datapoints_seen: 44544
+    epoch: 0
+    train_loss: 6.193353850266029
+  - datapoints_seen: 45056
+    epoch: 0
+    train_loss: 6.192549272017046
+  - datapoints_seen: 45568
+    epoch: 0
+    train_loss: 6.191762088389879
+  - datapoints_seen: 46080
+    epoch: 0
+    train_loss: 6.190256034003363
+  - datapoints_seen: 46592
+    epoch: 0
+    train_loss: 6.18887442284888
+  - datapoints_seen: 47104
+    epoch: 0
+    train_loss: 6.186959308126698
+  - datapoints_seen: 47616
+    epoch: 0
+    train_loss: 6.185748561736076
+  - datapoints_seen: 48128
+    epoch: 0
+    train_loss: 6.185172750594768
+  - datapoints_seen: 48640
+    epoch: 0
+    train_loss: 6.184102791234067
+  - datapoints_seen: 49152
+    epoch: 0
+    train_loss: 6.182928085327148
+  - datapoints_seen: 49664
+    epoch: 0
+    train_loss: 6.1817270652535035
+  - datapoints_seen: 50176
+    epoch: 0
+    train_loss: 6.180540513019173
+  - datapoints_seen: 50688
+    epoch: 0
+    train_loss: 6.180041342070608
+  - datapoints_seen: 51200
+    epoch: 0
+    train_loss: 6.179123344421387
+  - datapoints_seen: 51712
+    epoch: 0
+    train_loss: 6.178657531738281
+  - datapoints_seen: 52224
+    epoch: 0
+    train_loss: 6.177704119214825
+  - datapoints_seen: 52736
+    epoch: 0
+    train_loss: 6.176526004828296
+  - datapoints_seen: 53248
+    epoch: 0
+    train_loss: 6.175438734201284
+  - datapoints_seen: 53760
+    epoch: 0
+    train_loss: 6.1741691589355465
+  - datapoints_seen: 54272
+    epoch: 0
+    train_loss: 6.173181353874926
+  - datapoints_seen: 54784
+    epoch: 0
+    train_loss: 6.172076180716541
+  - datapoints_seen: 55296
+    epoch: 0
+    train_loss: 6.170836731239602
+  - datapoints_seen: 55808
+    epoch: 0
+    train_loss: 6.17058311252419
+  - datapoints_seen: 56320
+    epoch: 0
+    train_loss: 6.169454921375621
+  - datapoints_seen: 56832
+    epoch: 0
+    train_loss: 6.1680937414770725
+  - datapoints_seen: 57344
+    epoch: 0
+    train_loss: 6.166766098567417
+  - datapoints_seen: 57856
+    epoch: 0
+    train_loss: 6.165723581229691
+  - datapoints_seen: 58368
+    epoch: 0
+    train_loss: 6.164830860338713
+  - datapoints_seen: 58880
+    epoch: 0
+    train_loss: 6.163868713378906
+  - datapoints_seen: 59392
+    epoch: 0
+    train_loss: 6.161685746291588
+  - datapoints_seen: 59904
+    epoch: 0
+    train_loss: 6.160112984160072
+  - datapoints_seen: 60416
+    epoch: 0
+    train_loss: 6.159010418390824
+  - datapoints_seen: 60928
+    epoch: 0
+    train_loss: 6.157844767850988
+  - datapoints_seen: 61440
+    epoch: 0
+    train_loss: 6.157006168365479
+  - datapoints_seen: 61952
+    epoch: 0
+    train_loss: 6.1564572547092915
+  - datapoints_seen: 62464
+    epoch: 0
+    train_loss: 6.155214403496414
+  - datapoints_seen: 62976
+    epoch: 0
+    train_loss: 6.154298518731342
+  - datapoints_seen: 63488
+    epoch: 0
+    train_loss: 6.153049438230453
+  - datapoints_seen: 64000
+    epoch: 0
+    train_loss: 6.1523046264648436
+  - datapoints_seen: 64512
+    epoch: 0
+    train_loss: 6.151545660836356
+  - datapoints_seen: 65024
+    epoch: 0
+    train_loss: 6.150575953205739
+  - datapoints_seen: 65536
+    epoch: 0
+    train_loss: 6.149698048830032
+  - datapoints_seen: 66048
+    epoch: 0
+    train_loss: 6.148576884306679
+  - datapoints_seen: 66560
+    epoch: 0
+    train_loss: 6.147618660560021
+  - datapoints_seen: 67072
+    epoch: 0
+    train_loss: 6.145572880752214
+  - datapoints_seen: 67584
+    epoch: 0
+    train_loss: 6.144604090488318
+  - datapoints_seen: 68096
+    epoch: 0
+    train_loss: 6.143884171220593
+  - datapoints_seen: 68608
+    epoch: 0
+    train_loss: 6.142453876893912
+  - datapoints_seen: 69120
+    epoch: 0
+    train_loss: 6.141510023894133
+  - datapoints_seen: 69632
+    epoch: 0
+    train_loss: 6.140600723378799
+  - datapoints_seen: 70144
+    epoch: 0
+    train_loss: 6.139447984904268
+  - datapoints_seen: 70656
+    epoch: 0
+    train_loss: 6.138549500617428
+  - datapoints_seen: 71168
+    epoch: 0
+    train_loss: 6.137172479423688
+  - datapoints_seen: 71680
+    epoch: 0
+    train_loss: 6.136314637320382
+  - datapoints_seen: 72192
+    epoch: 0
+    train_loss: 6.135124504143465
+  - datapoints_seen: 72704
+    epoch: 0
+    train_loss: 6.134250251340195
+  - datapoints_seen: 73216
+    epoch: 0
+    train_loss: 6.133410207041494
+  - datapoints_seen: 73728
+    epoch: 0
+    train_loss: 6.132426301638286
+  - datapoints_seen: 74240
+    epoch: 0
+    train_loss: 6.131129679186591
+  - datapoints_seen: 74752
+    epoch: 0
+    train_loss: 6.129632518716054
+  - datapoints_seen: 75264
+    epoch: 0
+    train_loss: 6.128968855150703
+  - datapoints_seen: 75776
+    epoch: 0
+    train_loss: 6.127907469465926
+  - datapoints_seen: 76288
+    epoch: 0
+    train_loss: 6.12734384984778
+  - datapoints_seen: 76800
+    epoch: 0
+    train_loss: 6.125872433980306
+  - datapoints_seen: 77312
+    epoch: 0
+    train_loss: 6.125215959864736
+  - datapoints_seen: 77824
+    epoch: 0
+    train_loss: 6.123526272020842
+  - datapoints_seen: 78336
+    epoch: 0
+    train_loss: 6.122398251801535
+  - datapoints_seen: 78848
+    epoch: 0
+    train_loss: 6.121340813574853
+  - datapoints_seen: 79360
+    epoch: 0
+    train_loss: 6.12080441136514
+  - datapoints_seen: 79872
+    epoch: 0
+    train_loss: 6.119244587727082
+  - datapoints_seen: 80384
+    epoch: 0
+    train_loss: 6.11780895549021
+  - datapoints_seen: 80896
+    epoch: 0
+    train_loss: 6.117064934742602
+  - datapoints_seen: 81408
+    epoch: 0
+    train_loss: 6.1164887866134166
+  - datapoints_seen: 81920
+    epoch: 0
+    train_loss: 6.114995670318604
+  - datapoints_seen: 82432
+    epoch: 0
+    train_loss: 6.114192382149074
+  - datapoints_seen: 82944
+    epoch: 0
+    train_loss: 6.113043526072561
+  - datapoints_seen: 83456
+    epoch: 0
+    train_loss: 6.112366506658449
+  - datapoints_seen: 83968
+    epoch: 0
+    train_loss: 6.111248016357422
+  - datapoints_seen: 84480
+    epoch: 0
+    train_loss: 6.1102682865027225
+  - datapoints_seen: 84992
+    epoch: 0
+    train_loss: 6.108990083257836
+  - datapoints_seen: 85504
+    epoch: 0
+    train_loss: 6.108282591768368
+  - datapoints_seen: 86016
+    epoch: 0
+    train_loss: 6.10708194687253
+  - datapoints_seen: 86528
+    epoch: 0
+    train_loss: 6.105772594023033
+  - datapoints_seen: 87040
+    epoch: 0
+    train_loss: 6.105028107587029
+  - datapoints_seen: 87552
+    epoch: 0
+    train_loss: 6.104607096889563
+  - datapoints_seen: 88064
+    epoch: 0
+    train_loss: 6.10380753805471
+  - datapoints_seen: 88576
+    epoch: 0
+    train_loss: 6.10325891571927
+  - datapoints_seen: 89088
+    epoch: 0
+    train_loss: 6.1019738186364885
+  - datapoints_seen: 89600
+    epoch: 0
+    train_loss: 6.101143014090402
+  - datapoints_seen: 90112
+    epoch: 0
+    train_loss: 6.099990302866155
+  - datapoints_seen: 90624
+    epoch: 0
+    train_loss: 6.099178896111957
+  - datapoints_seen: 91136
+    epoch: 0
+    train_loss: 6.0975789702340455
+  - datapoints_seen: 91648
+    epoch: 0
+    train_loss: 6.0973839893021395
+  - datapoints_seen: 92160
+    epoch: 0
+    train_loss: 6.095974233415392
+  - datapoints_seen: 92672
+    epoch: 0
+    train_loss: 6.094997743216667
+  - datapoints_seen: 93184
+    epoch: 0
+    train_loss: 6.093959913148985
+  - datapoints_seen: 93696
+    epoch: 0
+    train_loss: 6.092951790231173
+  - datapoints_seen: 94208
+    epoch: 0
+    train_loss: 6.092207576917565
+  - datapoints_seen: 94720
+    epoch: 0
+    train_loss: 6.091272477845888
+  - datapoints_seen: 95232
+    epoch: 0
+    train_loss: 6.090472036792386
+  - datapoints_seen: 95744
+    epoch: 0
+    train_loss: 6.08930500050917
+  - datapoints_seen: 96256
+    epoch: 0
+    train_loss: 6.08867509821628
+  - datapoints_seen: 96768
+    epoch: 0
+    train_loss: 6.0879229843301115
+  - datapoints_seen: 97280
+    epoch: 0
+    train_loss: 6.087075941186202
+  - datapoints_seen: 97792
+    epoch: 0
+    train_loss: 6.086232894378183
+  - datapoints_seen: 98304
+    epoch: 0
+    train_loss: 6.085468019048373
+  - datapoints_seen: 98816
+    epoch: 0
+    train_loss: 6.08424868114254
+  - datapoints_seen: 99328
+    epoch: 0
+    train_loss: 6.0832981866659575
+  - datapoints_seen: 99840
+    epoch: 0
+    train_loss: 6.08270575205485
+  - datapoints_seen: 100352
+    epoch: 0
+    train_loss: 6.081998606117404
+  - datapoints_seen: 100864
+    epoch: 0
+    train_loss: 6.08128826993371
+  - datapoints_seen: 101376
+    epoch: 0
+    train_loss: 6.080693644706649
+  - datapoints_seen: 101888
+    epoch: 0
+    train_loss: 6.080098736825301
+  - datapoints_seen: 102400
+    epoch: 0
+    train_loss: 6.079561343193054
+  - datapoints_seen: 102912
+    epoch: 0
+    train_loss: 6.078857986488153
+  - datapoints_seen: 103424
+    epoch: 0
+    train_loss: 6.078121038946775
+  - datapoints_seen: 103936
+    epoch: 0
+    train_loss: 6.0769589757684415
+  - datapoints_seen: 104448
+    epoch: 0
+    train_loss: 6.0759758528541115
+  - datapoints_seen: 104960
+    epoch: 0
+    train_loss: 6.075253840190609
+  - datapoints_seen: 105472
+    epoch: 0
+    train_loss: 6.074613057293938
+  - datapoints_seen: 105984
+    epoch: 0
+    train_loss: 6.0739750286231295
+  - datapoints_seen: 106496
+    epoch: 0
+    train_loss: 6.073150226703057
+  - datapoints_seen: 107008
+    epoch: 0
+    train_loss: 6.072673227228046
+  - datapoints_seen: 107520
+    epoch: 0
+    train_loss: 6.072094299679711
+  - datapoints_seen: 108032
+    epoch: 0
+    train_loss: 6.071124998879093
+  - datapoints_seen: 108544
+    epoch: 0
+    train_loss: 6.070143879584546
+  - datapoints_seen: 109056
+    epoch: 0
+    train_loss: 6.069325800792712
+  - datapoints_seen: 109568
+    epoch: 0
+    train_loss: 6.068844982396777
+  - datapoints_seen: 110080
+    epoch: 0
+    train_loss: 6.068250975497933
+  - datapoints_seen: 110592
+    epoch: 0
+    train_loss: 6.067216458144011
+  - datapoints_seen: 111104
+    epoch: 0
+    train_loss: 6.066610670309462
+  - datapoints_seen: 111616
+    epoch: 0
+    train_loss: 6.066126114731535
+  - datapoints_seen: 112128
+    epoch: 0
+    train_loss: 6.065240781601161
+  - datapoints_seen: 112640
+    epoch: 0
+    train_loss: 6.064359508861195
+  - datapoints_seen: 113152
+    epoch: 0
+    train_loss: 6.0636389374193564
+  - datapoints_seen: 113664
+    epoch: 0
+    train_loss: 6.062762140153764
+  - datapoints_seen: 114176
+    epoch: 0
+    train_loss: 6.061918617898574
+  - datapoints_seen: 114688
+    epoch: 0
+    train_loss: 6.061167342322213
+  - datapoints_seen: 115200
+    epoch: 0
+    train_loss: 6.060841844346788
+  - datapoints_seen: 115712
+    epoch: 0
+    train_loss: 6.060103180134191
+  - datapoints_seen: 116224
+    epoch: 0
+    train_loss: 6.059213646708081
+  - datapoints_seen: 116736
+    epoch: 0
+    train_loss: 6.058760366941753
+  - datapoints_seen: 117248
+    epoch: 0
+    train_loss: 6.0578995500589565
+  - datapoints_seen: 117760
+    epoch: 0
+    train_loss: 6.057020850803541
+  - datapoints_seen: 118272
+    epoch: 0
+    train_loss: 6.0563452501833694
+  - datapoints_seen: 118784
+    epoch: 0
+    train_loss: 6.055593794789807
+  - datapoints_seen: 119296
+    epoch: 0
+    train_loss: 6.054707383904846
+  - datapoints_seen: 119808
+    epoch: 0
+    train_loss: 6.053877325139494
+  - datapoints_seen: 120320
+    epoch: 0
+    train_loss: 6.05307797371073
+  - datapoints_seen: 120832
+    epoch: 0
+    train_loss: 6.05213218624309
+  - datapoints_seen: 121344
+    epoch: 0
+    train_loss: 6.05160565919514
+  - datapoints_seen: 121856
+    epoch: 0
+    train_loss: 6.051053680291696
+  - datapoints_seen: 122368
+    epoch: 0
+    train_loss: 6.050435596928936
+  - datapoints_seen: 122880
+    epoch: 0
+    train_loss: 6.0498019854227705
+  - datapoints_seen: 123392
+    epoch: 0
+    train_loss: 6.048863066677236
+  - datapoints_seen: 123904
+    epoch: 0
+    train_loss: 6.047817379975122
+  - datapoints_seen: 124416
+    epoch: 0
+    train_loss: 6.046792018560716
+  - datapoints_seen: 124928
+    epoch: 0
+    train_loss: 6.046182780969338
+  - datapoints_seen: 125440
+    epoch: 0
+    train_loss: 6.045465578351702
+  - datapoints_seen: 125952
+    epoch: 0
+    train_loss: 6.044564076555454
+  - datapoints_seen: 126464
+    epoch: 0
+    train_loss: 6.043779890546914
+  - datapoints_seen: 126976
+    epoch: 0
+    train_loss: 6.042997821684806
+  - datapoints_seen: 127488
+    epoch: 0
+    train_loss: 6.042514080982132
+  - datapoints_seen: 128000
+    epoch: 0
+    train_loss: 6.041743797302246
+  - datapoints_seen: 128512
+    epoch: 0
+    train_loss: 6.0411442342507415
+  - datapoints_seen: 129024
+    epoch: 0
+    train_loss: 6.040708515379164
+  - datapoints_seen: 129536
+    epoch: 0
+    train_loss: 6.040135202671699
+  - datapoints_seen: 130048
+    epoch: 0
+    train_loss: 6.039107566743385
+  - datapoints_seen: 130560
+    epoch: 0
+    train_loss: 6.038158592523313
+  - datapoints_seen: 131072
+    epoch: 0
+    train_loss: 6.036905851215124
+  - datapoints_seen: 131584
+    epoch: 0
+    train_loss: 6.036212412763662
+  - datapoints_seen: 132096
+    epoch: 0
+    train_loss: 6.0356075338615005
+  - datapoints_seen: 132608
+    epoch: 0
+    train_loss: 6.035017768388549
+  - datapoints_seen: 133120
+    epoch: 0
+    train_loss: 6.034291454461905
+  - datapoints_seen: 133632
+    epoch: 0
+    train_loss: 6.033484802392251
+  - datapoints_seen: 134144
+    epoch: 0
+    train_loss: 6.032440393025638
+  - datapoints_seen: 134656
+    epoch: 0
+    train_loss: 6.031817813336622
+  - datapoints_seen: 135168
+    epoch: 0
+    train_loss: 6.031286438306172
+  - datapoints_seen: 135680
+    epoch: 0
+    train_loss: 6.030290787175017
+  - datapoints_seen: 136192
+    epoch: 0
+    train_loss: 6.029621486376999
+  - datapoints_seen: 136704
+    epoch: 0
+    train_loss: 6.0290128122108255
+  - datapoints_seen: 137216
+    epoch: 0
+    train_loss: 6.028155970929274
+  - datapoints_seen: 137728
+    epoch: 0
+    train_loss: 6.027636322390191
+  - datapoints_seen: 138240
+    epoch: 0
+    train_loss: 6.026928446027967
+  - datapoints_seen: 138752
+    epoch: 0
+    train_loss: 6.026470764976586
+  - datapoints_seen: 139264
+    epoch: 0
+    train_loss: 6.025650673052844
+  - datapoints_seen: 139776
+    epoch: 0
+    train_loss: 6.024721232962696
+  - datapoints_seen: 140288
+    epoch: 0
+    train_loss: 6.024097049323312
+  - datapoints_seen: 140800
+    epoch: 0
+    train_loss: 6.023359080227938
+  - datapoints_seen: 141312
+    epoch: 0
+    train_loss: 6.022643693979235
+  - datapoints_seen: 141824
+    epoch: 0
+    train_loss: 6.022019062661952
+  - datapoints_seen: 142336
+    epoch: 0
+    train_loss: 6.021274487749278
+  - datapoints_seen: 142848
+    epoch: 0
+    train_loss: 6.020437907147151
+  - datapoints_seen: 143360
+    epoch: 0
+    train_loss: 6.0196585893630985
+  - datapoints_seen: 143872
+    epoch: 0
+    train_loss: 6.018831846977044
+  - datapoints_seen: 144384
+    epoch: 0
+    train_loss: 6.0179460572858225
+  - datapoints_seen: 144896
+    epoch: 0
+    train_loss: 6.017233936188499
+  - datapoints_seen: 145408
+    epoch: 0
+    train_loss: 6.01629465734455
+  - datapoints_seen: 145920
+    epoch: 0
+    train_loss: 6.015666369387978
+  - datapoints_seen: 146432
+    epoch: 0
+    train_loss: 6.0149310352085354
+  - datapoints_seen: 146944
+    epoch: 0
+    train_loss: 6.01436055744982
+  - datapoints_seen: 147456
+    epoch: 0
+    train_loss: 6.01398789551523
+  - datapoints_seen: 147968
+    epoch: 0
+    train_loss: 6.013411805703978
+  - datapoints_seen: 148480
+    epoch: 0
+    train_loss: 6.0126681064737255
+  - datapoints_seen: 148992
+    epoch: 0
+    train_loss: 6.0118757883707685
+  - datapoints_seen: 149504
+    epoch: 0
+    train_loss: 6.0113115310668945
+  - datapoints_seen: 150016
+    epoch: 0
+    train_loss: 6.010540379599092
+  - datapoints_seen: 150528
+    epoch: 0
+    train_loss: 6.010176451027799
+  - datapoints_seen: 151040
+    epoch: 0
+    train_loss: 6.0095163700944285
+  - datapoints_seen: 151552
+    epoch: 0
+    train_loss: 6.008901924700351
+  - datapoints_seen: 152064
+    epoch: 0
+    train_loss: 6.008489024358165
+  - datapoints_seen: 152576
+    epoch: 0
+    train_loss: 6.007924463924946
+  - datapoints_seen: 153088
+    epoch: 0
+    train_loss: 6.007311951755281
+  - datapoints_seen: 153600
+    epoch: 0
+    train_loss: 6.006711807250976
+  - datapoints_seen: 154112
+    epoch: 0
+    train_loss: 6.006103287503569
+  - datapoints_seen: 154624
+    epoch: 0
+    train_loss: 6.005468614843507
+  - datapoints_seen: 155136
+    epoch: 0
+    train_loss: 6.005010812589438
+  - datapoints_seen: 155648
+    epoch: 0
+    train_loss: 6.004045712320428
+  - datapoints_seen: 156160
+    epoch: 0
+    train_loss: 6.003264630427126
+  - datapoints_seen: 156672
+    epoch: 0
+    train_loss: 6.0025981765946534
+  - datapoints_seen: 157184
+    epoch: 0
+    train_loss: 6.0020156201788195
+  - datapoints_seen: 157696
+    epoch: 0
+    train_loss: 6.001564471752612
+  - datapoints_seen: 158208
+    epoch: 0
+    train_loss: 6.0010277461079715
+  - datapoints_seen: 158720
+    epoch: 0
+    train_loss: 6.000608819530856
+  - datapoints_seen: 159232
+    epoch: 0
+    train_loss: 5.999972144123825
+  - datapoints_seen: 159744
+    epoch: 0
+    train_loss: 5.9990620001768455
+  - datapoints_seen: 160256
+    epoch: 0
+    train_loss: 5.9985214757462275
+  - datapoints_seen: 160768
+    epoch: 0
+    train_loss: 5.998041717869461
+  - datapoints_seen: 161280
+    epoch: 0
+    train_loss: 5.997437643626379
+  - datapoints_seen: 161792
+    epoch: 0
+    train_loss: 5.99684702595578
+  - datapoints_seen: 162304
+    epoch: 0
+    train_loss: 5.996095368538745
+  - datapoints_seen: 162816
+    epoch: 0
+    train_loss: 5.995416497284511
+  - datapoints_seen: 163328
+    epoch: 0
+    train_loss: 5.994978046716194
+  - datapoints_seen: 163840
+    epoch: 0
+    train_loss: 5.994341737031936
+  - datapoints_seen: 164352
+    epoch: 0
+    train_loss: 5.994021323611061
+  - datapoints_seen: 164864
+    epoch: 0
+    train_loss: 5.993536084335043
+  - datapoints_seen: 165376
+    epoch: 0
+    train_loss: 5.992904539078751
+  - datapoints_seen: 165888
+    epoch: 0
+    train_loss: 5.992394859408155
+  - datapoints_seen: 166400
+    epoch: 0
+    train_loss: 5.991931745089017
+  - datapoints_seen: 166912
+    epoch: 0
+    train_loss: 5.991339686458097
+  - datapoints_seen: 167424
+    epoch: 0
+    train_loss: 5.990534974894392
+  - datapoints_seen: 167936
+    epoch: 0
+    train_loss: 5.989949694493922
+  - datapoints_seen: 168448
+    epoch: 0
+    train_loss: 5.989461739374874
+  - datapoints_seen: 168960
+    epoch: 0
+    train_loss: 5.98885961301399
+  - datapoints_seen: 169472
+    epoch: 0
+    train_loss: 5.988251155956994
+  - datapoints_seen: 169984
+    epoch: 0
+    train_loss: 5.987391716026398
+  - datapoints_seen: 170496
+    epoch: 0
+    train_loss: 5.987021599445973
+  - datapoints_seen: 171008
+    epoch: 0
+    train_loss: 5.986315169020327
+  - datapoints_seen: 171520
+    epoch: 0
+    train_loss: 5.985832141762349
+  - datapoints_seen: 172032
+    epoch: 0
+    train_loss: 5.985052552961168
+  - datapoints_seen: 172544
+    epoch: 0
+    train_loss: 5.9842685690973205
+  - datapoints_seen: 173056
+    epoch: 0
+    train_loss: 5.983681256954487
+  - datapoints_seen: 173568
+    epoch: 0
+    train_loss: 5.9828055235488575
+  - datapoints_seen: 174080
+    epoch: 0
+    train_loss: 5.982264508920557
+  - datapoints_seen: 174592
+    epoch: 0
+    train_loss: 5.981863814714717
+  - datapoints_seen: 175104
+    epoch: 0
+    train_loss: 5.981216702544899
+  - datapoints_seen: 175616
+    epoch: 0
+    train_loss: 5.980444158826556
+  - datapoints_seen: 176128
+    epoch: 0
+    train_loss: 5.9799460408299465
+  - datapoints_seen: 176640
+    epoch: 0
+    train_loss: 5.979336397198663
+  - datapoints_seen: 177152
+    epoch: 0
+    train_loss: 5.978601432260061
+  - datapoints_seen: 177664
+    epoch: 0
+    train_loss: 5.977855076363863
+  - datapoints_seen: 178176
+    epoch: 0
+    train_loss: 5.977529634004352
+  - datapoints_seen: 178688
+    epoch: 0
+    train_loss: 5.976971747882045
+  - datapoints_seen: 179200
+    epoch: 0
+    train_loss: 5.976191045216152
+  - datapoints_seen: 179712
+    epoch: 0
+    train_loss: 5.975443379491822
+  - datapoints_seen: 180224
+    epoch: 0
+    train_loss: 5.975076993758028
+  - datapoints_seen: 180736
+    epoch: 0
+    train_loss: 5.974428694241445
+  - datapoints_seen: 181248
+    epoch: 0
+    train_loss: 5.973742327447665
+  - datapoints_seen: 181760
+    epoch: 0
+    train_loss: 5.972967624664307
+  - datapoints_seen: 182272
+    epoch: 0
+    train_loss: 5.9724527142021095
+  - datapoints_seen: 182784
+    epoch: 0
+    train_loss: 5.971816176459903
+  - datapoints_seen: 183296
+    epoch: 0
+    train_loss: 5.97107873282619
+  - datapoints_seen: 183808
+    epoch: 0
+    train_loss: 5.970547300195295
+  - datapoints_seen: 184320
+    epoch: 0
+    train_loss: 5.970042630036672
+  - datapoints_seen: 184832
+    epoch: 0
+    train_loss: 5.969468646432555
+  - datapoints_seen: 185344
+    epoch: 0
+    train_loss: 5.969044585254311
+  - datapoints_seen: 185856
+    epoch: 0
+    train_loss: 5.968533187529929
+  - datapoints_seen: 186368
+    epoch: 0
+    train_loss: 5.968038029723115
+  - datapoints_seen: 186880
+    epoch: 0
+    train_loss: 5.967449538348473
+  - datapoints_seen: 187392
+    epoch: 0
+    train_loss: 5.96627468359275
+  - datapoints_seen: 187904
+    epoch: 0
+    train_loss: 5.965252587840732
+  - datapoints_seen: 188416
+    epoch: 0
+    train_loss: 5.964515437250552
+  - datapoints_seen: 188928
+    epoch: 0
+    train_loss: 5.963738361348304
+  - datapoints_seen: 189440
+    epoch: 0
+    train_loss: 5.963246495014912
+  - datapoints_seen: 189952
+    epoch: 0
+    train_loss: 5.9625627409737065
+  - datapoints_seen: 190464
+    epoch: 0
+    train_loss: 5.962112908722252
+  - datapoints_seen: 190976
+    epoch: 0
+    train_loss: 5.961507260320014
+  - datapoints_seen: 191488
+    epoch: 0
+    train_loss: 5.960820940089098
+  - datapoints_seen: 192000
+    epoch: 0
+    train_loss: 5.960146303812663
+  - datapoints_seen: 192512
+    epoch: 0
+    train_loss: 5.959443896374804
+  - datapoints_seen: 193024
+    epoch: 0
+    train_loss: 5.958877029722502
+  - datapoints_seen: 193536
+    epoch: 0
+    train_loss: 5.95817066626574
+  - datapoints_seen: 194048
+    epoch: 0
+    train_loss: 5.957847824197331
+  - datapoints_seen: 194560
+    epoch: 0
+    train_loss: 5.957242611834878
+  - datapoints_seen: 195072
+    epoch: 0
+    train_loss: 5.956532948911972
+  - datapoints_seen: 195584
+    epoch: 0
+    train_loss: 5.955930697356219
+  - datapoints_seen: 196096
+    epoch: 0
+    train_loss: 5.955456484702486
+  - datapoints_seen: 196608
+    epoch: 0
+    train_loss: 5.954829054574172
+  - datapoints_seen: 197120
+    epoch: 0
+    train_loss: 5.954305780088747
+  - datapoints_seen: 197632
+    epoch: 0
+    train_loss: 5.9536744621751225
+  - datapoints_seen: 198144
+    epoch: 0
+    train_loss: 5.952999447667321
+  - datapoints_seen: 198656
+    epoch: 0
+    train_loss: 5.952597512412317
+  - datapoints_seen: 199168
+    epoch: 0
+    train_loss: 5.952063457518433
+  - datapoints_seen: 199680
+    epoch: 0
+    train_loss: 5.951668575482491
+  - datapoints_seen: 200192
+    epoch: 0
+    train_loss: 5.951304186945376
+  - datapoints_seen: 200704
+    epoch: 0
+    train_loss: 5.950903471635312
+  - datapoints_seen: 201216
+    epoch: 0
+    train_loss: 5.950408438083173
+  - datapoints_seen: 201728
+    epoch: 0
+    train_loss: 5.949960275349883
+  - datapoints_seen: 202240
+    epoch: 0
+    train_loss: 5.949741032757337
+  - datapoints_seen: 202752
+    epoch: 0
+    train_loss: 5.949269990728359
+  - datapoints_seen: 203264
+    epoch: 0
+    train_loss: 5.9486189368990265
+  - datapoints_seen: 203776
+    epoch: 0
+    train_loss: 5.948183943877867
+  - datapoints_seen: 204288
+    epoch: 0
+    train_loss: 5.947785592616949
+  - datapoints_seen: 204800
+    epoch: 0
+    train_loss: 5.947431166172027
+  - datapoints_seen: 205312
+    epoch: 0
+    train_loss: 5.947034395840994
+  - datapoints_seen: 205824
+    epoch: 0
+    train_loss: 5.946632990196569
+  - datapoints_seen: 206336
+    epoch: 0
+    train_loss: 5.9465146478884865
+  - datapoints_seen: 206848
+    epoch: 0
+    train_loss: 5.945741504725843
+  - datapoints_seen: 207360
+    epoch: 0
+    train_loss: 5.944956473362299
+  - datapoints_seen: 207872
+    epoch: 0
+    train_loss: 5.944012442245859
+  - datapoints_seen: 208384
+    epoch: 0
+    train_loss: 5.943486841656359
+  - datapoints_seen: 208896
+    epoch: 0
+    train_loss: 5.943148545190399
+  - datapoints_seen: 209408
+    epoch: 0
+    train_loss: 5.942549504977276
+  - datapoints_seen: 209920
+    epoch: 0
+    train_loss: 5.941995064805194
+  - datapoints_seen: 210432
+    epoch: 0
+    train_loss: 5.941554134489556
+  - datapoints_seen: 210944
+    epoch: 0
+    train_loss: 5.940999283373935
+  - datapoints_seen: 211456
+    epoch: 0
+    train_loss: 5.940217904836733
+  - datapoints_seen: 211968
+    epoch: 0
+    train_loss: 5.9395202761111054
+  - datapoints_seen: 212480
+    epoch: 0
+    train_loss: 5.93911069617214
+  - datapoints_seen: 212992
+    epoch: 0
+    train_loss: 5.938440494812452
+  - datapoints_seen: 213504
+    epoch: 0
+    train_loss: 5.937888639436351
+  - datapoints_seen: 214016
+    epoch: 0
+    train_loss: 5.937463174025978
+  - datapoints_seen: 214528
+    epoch: 0
+    train_loss: 5.93698912417974
+  - datapoints_seen: 215040
+    epoch: 0
+    train_loss: 5.936407177788871
+  - datapoints_seen: 215552
+    epoch: 0
+    train_loss: 5.936057163247586
+  - datapoints_seen: 216064
+    epoch: 0
+    train_loss: 5.935515505442687
+  - datapoints_seen: 216576
+    epoch: 0
+    train_loss: 5.934768412975555
+  - datapoints_seen: 217088
+    epoch: 0
+    train_loss: 5.934019131480523
+  - datapoints_seen: 217600
+    epoch: 0
+    train_loss: 5.933447651582606
+  - datapoints_seen: 218112
+    epoch: 0
+    train_loss: 5.932925613833145
+  - datapoints_seen: 218624
+    epoch: 0
+    train_loss: 5.932773473949567
+  - datapoints_seen: 219136
+    epoch: 0
+    train_loss: 5.932343806061789
+  - datapoints_seen: 219648
+    epoch: 0
+    train_loss: 5.932103174827594
+  - datapoints_seen: 220160
+    epoch: 0
+    train_loss: 5.931600195862526
+  - datapoints_seen: 220672
+    epoch: 0
+    train_loss: 5.931146420348272
+  - datapoints_seen: 221184
+    epoch: 0
+    train_loss: 5.9308559033605786
+  - datapoints_seen: 221696
+    epoch: 0
+    train_loss: 5.930310782329039
+  - datapoints_seen: 222208
+    epoch: 0
+    train_loss: 5.929732812714467
+  - datapoints_seen: 222720
+    epoch: 0
+    train_loss: 5.929112605390878
+  - datapoints_seen: 223232
+    epoch: 0
+    train_loss: 5.928381650819691
+  - datapoints_seen: 223744
+    epoch: 0
+    train_loss: 5.927833275609486
+  - datapoints_seen: 224256
+    epoch: 0
+    train_loss: 5.927526389082817
+  - datapoints_seen: 224768
+    epoch: 0
+    train_loss: 5.927241116830048
+  - datapoints_seen: 225280
+    epoch: 0
+    train_loss: 5.9268411289561875
+  - datapoints_seen: 225792
+    epoch: 0
+    train_loss: 5.926456589817731
+  - datapoints_seen: 226304
+    epoch: 0
+    train_loss: 5.925896433144134
+  - datapoints_seen: 226816
+    epoch: 0
+    train_loss: 5.925545604180536
+  - datapoints_seen: 227328
+    epoch: 0
+    train_loss: 5.9251889581078885
+  - datapoints_seen: 227840
+    epoch: 0
+    train_loss: 5.924806882022472
+  - datapoints_seen: 228352
+    epoch: 0
+    train_loss: 5.924322438346965
+  - datapoints_seen: 228864
+    epoch: 0
+    train_loss: 5.923942290696521
+  - datapoints_seen: 229376
+    epoch: 0
+    train_loss: 5.923424403582301
+  - datapoints_seen: 229888
+    epoch: 0
+    train_loss: 5.923159433632492
+  - datapoints_seen: 230400
+    epoch: 0
+    train_loss: 5.922563732994927
+  - datapoints_seen: 230912
+    epoch: 0
+    train_loss: 5.9223047180344945
+  - datapoints_seen: 231424
+    epoch: 0
+    train_loss: 5.921790791823801
+  - datapoints_seen: 231936
+    epoch: 0
+    train_loss: 5.921282241939182
+  - datapoints_seen: 232448
+    epoch: 0
+    train_loss: 5.9207357478036755
+  - datapoints_seen: 232960
+    epoch: 0
+    train_loss: 5.920208792634063
+  - datapoints_seen: 233472
+    epoch: 0
+    train_loss: 5.919624995767024
+  - datapoints_seen: 233984
+    epoch: 0
+    train_loss: 5.919085986765522
+  - datapoints_seen: 234496
+    epoch: 0
+    train_loss: 5.9185212751663405
+  - datapoints_seen: 235008
+    epoch: 0
+    train_loss: 5.9181403386566895
+  - datapoints_seen: 235520
+    epoch: 0
+    train_loss: 5.917665661936221
+  - datapoints_seen: 236032
+    epoch: 0
+    train_loss: 5.917342889334789
+  - datapoints_seen: 236544
+    epoch: 0
+    train_loss: 5.916788231242787
+  - datapoints_seen: 237056
+    epoch: 0
+    train_loss: 5.916202946821505
+  - datapoints_seen: 237568
+    epoch: 0
+    train_loss: 5.9157241562317155
+  - datapoints_seen: 238080
+    epoch: 0
+    train_loss: 5.915186562076691
+  - datapoints_seen: 238592
+    epoch: 0
+    train_loss: 5.914768491180158
+  - datapoints_seen: 239104
+    epoch: 0
+    train_loss: 5.9143842925862025
+  - datapoints_seen: 239616
+    epoch: 0
+    train_loss: 5.9136400569198475
+  - datapoints_seen: 240128
+    epoch: 0
+    train_loss: 5.913136982460266
+  - datapoints_seen: 240640
+    epoch: 0
+    train_loss: 5.912501308765817
+  - datapoints_seen: 241152
+    epoch: 0
+    train_loss: 5.912323194451139
+  - datapoints_seen: 241664
+    epoch: 0
+    train_loss: 5.9117806826607655
+  - datapoints_seen: 242176
+    epoch: 0
+    train_loss: 5.911179780456027
+  - datapoints_seen: 242688
+    epoch: 0
+    train_loss: 5.910778506395686
+  - datapoints_seen: 243200
+    epoch: 0
+    train_loss: 5.910374577170924
+  - datapoints_seen: 243712
+    epoch: 0
+    train_loss: 5.910002818628519
+  - datapoints_seen: 244224
+    epoch: 0
+    train_loss: 5.909348799747491
+  - datapoints_seen: 244736
+    epoch: 0
+    train_loss: 5.909027987444251
+  - datapoints_seen: 245248
+    epoch: 0
+    train_loss: 5.9085687924028685
+  - datapoints_seen: 245760
+    epoch: 0
+    train_loss: 5.908088932434718
+  - datapoints_seen: 246272
+    epoch: 0
+    train_loss: 5.9077977598828735
+  - datapoints_seen: 246784
+    epoch: 0
+    train_loss: 5.907370654379184
+  - datapoints_seen: 247296
+    epoch: 0
+    train_loss: 5.9070712616725
+  - datapoints_seen: 247808
+    epoch: 0
+    train_loss: 5.906443268799585
+  - datapoints_seen: 248320
+    epoch: 0
+    train_loss: 5.905993569757521
+  - datapoints_seen: 248832
+    epoch: 0
+    train_loss: 5.905595473301264
+  - datapoints_seen: 249344
+    epoch: 0
+    train_loss: 5.905228107616887
+  - datapoints_seen: 249856
+    epoch: 0
+    train_loss: 5.904837729500943
+  - datapoints_seen: 250368
+    epoch: 0
+    train_loss: 5.904271034131509
+  - datapoints_seen: 250880
+    epoch: 0
+    train_loss: 5.903933630184252
+  - datapoints_seen: 251392
+    epoch: 0
+    train_loss: 5.903540516093889
+  - datapoints_seen: 251904
+    epoch: 0
+    train_loss: 5.902906611682923
+  - datapoints_seen: 252416
+    epoch: 0
+    train_loss: 5.902327522061176
+  - datapoints_seen: 252928
+    epoch: 0
+    train_loss: 5.901953390252735
+  - datapoints_seen: 253440
+    epoch: 0
+    train_loss: 5.901639393122509
+  - datapoints_seen: 253952
+    epoch: 0
+    train_loss: 5.900925046013247
+  - datapoints_seen: 254464
+    epoch: 0
+    train_loss: 5.900646913939079
+  - datapoints_seen: 254976
+    epoch: 0
+    train_loss: 5.9003741693305205
+  - datapoints_seen: 255488
+    epoch: 0
+    train_loss: 5.899990049297203
+  - datapoints_seen: 256000
+    epoch: 0
+    train_loss: 5.8994391231536865
+  - datapoints_seen: 256512
+    epoch: 0
+    train_loss: 5.898960541822239
+  - datapoints_seen: 257024
+    epoch: 0
+    train_loss: 5.898436263262988
+  - datapoints_seen: 257536
+    epoch: 0
+    train_loss: 5.897966291985028
+  - datapoints_seen: 258048
+    epoch: 0
+    train_loss: 5.897536238034566
+  - datapoints_seen: 258560
+    epoch: 0
+    train_loss: 5.897337505604961
+  - datapoints_seen: 259072
+    epoch: 0
+    train_loss: 5.896909651548966
+  - datapoints_seen: 259584
+    epoch: 0
+    train_loss: 5.896343793624487
+  - datapoints_seen: 260096
+    epoch: 0
+    train_loss: 5.896125352288794
+  - datapoints_seen: 260608
+    epoch: 0
+    train_loss: 5.895912269712197
+  - datapoints_seen: 261120
+    epoch: 0
+    train_loss: 5.8956310403113275
+  - datapoints_seen: 261632
+    epoch: 0
+    train_loss: 5.895169101349295
+  - datapoints_seen: 262144
+    epoch: 0
+    train_loss: 5.894759768620133
+  - datapoints_seen: 262656
+    epoch: 0
+    train_loss: 5.8941275334497645
+  - datapoints_seen: 263168
+    epoch: 0
+    train_loss: 5.893709262521351
+  - datapoints_seen: 263680
+    epoch: 0
+    train_loss: 5.893348210529216
+  - datapoints_seen: 264192
+    epoch: 0
+    train_loss: 5.892942404562189
+  - datapoints_seen: 264704
+    epoch: 0
+    train_loss: 5.892640246644011
+  - datapoints_seen: 265216
+    epoch: 0
+    train_loss: 5.892436629556781
+  - datapoints_seen: 265728
+    epoch: 0
+    train_loss: 5.892158642439943
+  - datapoints_seen: 266240
+    epoch: 0
+    train_loss: 5.8914550396112295
+  - datapoints_seen: 266752
+    epoch: 0
+    train_loss: 5.891060862111039
+  - datapoints_seen: 267264
+    epoch: 0
+    train_loss: 5.890738810615978
+  - datapoints_seen: 267776
+    epoch: 0
+    train_loss: 5.890410817148124
+  - datapoints_seen: 268288
+    epoch: 0
+    train_loss: 5.889873411819225
+  - datapoints_seen: 268800
+    epoch: 0
+    train_loss: 5.889657986958822
+  - datapoints_seen: 269312
+    epoch: 0
+    train_loss: 5.889287156297227
+  - datapoints_seen: 269824
+    epoch: 0
+    train_loss: 5.888685050906448
+  - datapoints_seen: 270336
+    epoch: 0
+    train_loss: 5.888282600677375
+  - datapoints_seen: 270848
+    epoch: 0
+    train_loss: 5.887917780019836
+  - datapoints_seen: 271360
+    epoch: 0
+    train_loss: 5.887453975317613
+  - datapoints_seen: 271872
+    epoch: 0
+    train_loss: 5.8870118818265125
+  - datapoints_seen: 272384
+    epoch: 0
+    train_loss: 5.886527828704145
+  - datapoints_seen: 272896
+    epoch: 0
+    train_loss: 5.886148416973636
+  - datapoints_seen: 273408
+    epoch: 0
+    train_loss: 5.886050442184848
+  - datapoints_seen: 273920
+    epoch: 0
+    train_loss: 5.885605172130549
+  - datapoints_seen: 274432
+    epoch: 0
+    train_loss: 5.885312343711283
+  - datapoints_seen: 274944
+    epoch: 0
+    train_loss: 5.884774433611936
+  - datapoints_seen: 275456
+    epoch: 0
+    train_loss: 5.884348004280856
+  - datapoints_seen: 275968
+    epoch: 0
+    train_loss: 5.884025021696356
+  - datapoints_seen: 276480
+    epoch: 0
+    train_loss: 5.883605663864701
+  - datapoints_seen: 276992
+    epoch: 0
+    train_loss: 5.883151510947292
+  - datapoints_seen: 277504
+    epoch: 0
+    train_loss: 5.8828616934068965
+  - datapoints_seen: 278016
+    epoch: 0
+    train_loss: 5.882240688822765
+  - datapoints_seen: 278528
+    epoch: 0
+    train_loss: 5.88166429715998
+  - datapoints_seen: 279040
+    epoch: 0
+    train_loss: 5.8812892878821135
+  - datapoints_seen: 279552
+    epoch: 0
+    train_loss: 5.880779392116672
+  - datapoints_seen: 280064
+    epoch: 0
+    train_loss: 5.880453995420466
+  - datapoints_seen: 280576
+    epoch: 0
+    train_loss: 5.879683710362789
+  - datapoints_seen: 281088
+    epoch: 0
+    train_loss: 5.879339127809841
+  - datapoints_seen: 281600
+    epoch: 0
+    train_loss: 5.879084413701838
+  - datapoints_seen: 282112
+    epoch: 0
+    train_loss: 5.878555689013805
+  - datapoints_seen: 282624
+    epoch: 0
+    train_loss: 5.878378249596858
+  - datapoints_seen: 283136
+    epoch: 0
+    train_loss: 5.878103183794625
+  - datapoints_seen: 283648
+    epoch: 0
+    train_loss: 5.877681732177734
+  - datapoints_seen: 284160
+    epoch: 0
+    train_loss: 5.877370408204225
+  - datapoints_seen: 284672
+    epoch: 0
+    train_loss: 5.876890216799949
+  - datapoints_seen: 285184
+    epoch: 0
+    train_loss: 5.876551068235771
+  - datapoints_seen: 285696
+    epoch: 0
+    train_loss: 5.8763952870522775
+  - datapoints_seen: 286208
+    epoch: 0
+    train_loss: 5.876268137759514
+  - datapoints_seen: 286720
+    epoch: 0
+    train_loss: 5.875748988560268
+  - datapoints_seen: 287232
+    epoch: 0
+    train_loss: 5.875559522931376
+  - datapoints_seen: 287744
+    epoch: 0
+    train_loss: 5.875119185532539
+  - datapoints_seen: 288256
+    epoch: 0
+    train_loss: 5.874936688221581
+  - datapoints_seen: 288768
+    epoch: 0
+    train_loss: 5.8746718886896225
+  - datapoints_seen: 289280
+    epoch: 0
+    train_loss: 5.874408131152128
+  - datapoints_seen: 289792
+    epoch: 0
+    train_loss: 5.874200741730815
+  - datapoints_seen: 290304
+    epoch: 0
+    train_loss: 5.873909462486415
+  - datapoints_seen: 290816
+    epoch: 0
+    train_loss: 5.8735022931031775
+  - datapoints_seen: 291328
+    epoch: 0
+    train_loss: 5.87326726092186
+  - datapoints_seen: 291840
+    epoch: 0
+    train_loss: 5.872883892059326
+  - datapoints_seen: 292352
+    epoch: 0
+    train_loss: 5.872605714614253
+  - datapoints_seen: 292864
+    epoch: 0
+    train_loss: 5.872183968137194
+  - datapoints_seen: 293376
+    epoch: 0
+    train_loss: 5.871810548592612
+  - datapoints_seen: 293888
+    epoch: 0
+    train_loss: 5.871640348268303
+  - datapoints_seen: 294400
+    epoch: 0
+    train_loss: 5.87124578393024
+  - datapoints_seen: 294912
+    epoch: 0
+    train_loss: 5.870788027842839
+  - datapoints_seen: 295424
+    epoch: 0
+    train_loss: 5.870309671041664
+  - datapoints_seen: 295936
+    epoch: 0
+    train_loss: 5.869876736175643
+  - datapoints_seen: 296448
+    epoch: 0
+    train_loss: 5.869481190498629
+  - datapoints_seen: 296960
+    epoch: 0
+    train_loss: 5.8691500269133465
+  - datapoints_seen: 297472
+    epoch: 0
+    train_loss: 5.8686974733914035
+  - datapoints_seen: 297984
+    epoch: 0
+    train_loss: 5.868363752397885
+  - datapoints_seen: 298496
+    epoch: 0
+    train_loss: 5.867873944303797
+  - datapoints_seen: 299008
+    epoch: 0
+    train_loss: 5.867544221551451
+  - datapoints_seen: 299520
+    epoch: 0
+    train_loss: 5.867249981154743
+  - datapoints_seen: 300032
+    epoch: 0
+    train_loss: 5.866970779952743
+  - datapoints_seen: 300544
+    epoch: 0
+    train_loss: 5.866469539206926
+  - datapoints_seen: 301056
+    epoch: 0
+    train_loss: 5.8659147681022175
+  - datapoints_seen: 301568
+    epoch: 0
+    train_loss: 5.865749283031211
+  - datapoints_seen: 302080
+    epoch: 0
+    train_loss: 5.865650695865437
+  - datapoints_seen: 302592
+    epoch: 0
+    train_loss: 5.865337063616706
+  - datapoints_seen: 303104
+    epoch: 0
+    train_loss: 5.864977021475096
+  - datapoints_seen: 303616
+    epoch: 0
+    train_loss: 5.864698149502579
+  - datapoints_seen: 304128
+    epoch: 0
+    train_loss: 5.864351908365886
+  - datapoints_seen: 304640
+    epoch: 0
+    train_loss: 5.864107567923409
+  - datapoints_seen: 305152
+    epoch: 0
+    train_loss: 5.863895585872983
+  - datapoints_seen: 305664
+    epoch: 0
+    train_loss: 5.863645885857306
+  - datapoints_seen: 306176
+    epoch: 0
+    train_loss: 5.863581523448727
+  - datapoints_seen: 306688
+    epoch: 0
+    train_loss: 5.863267029267122
+  - datapoints_seen: 307200
+    epoch: 0
+    train_loss: 5.863125600814819
+  - datapoints_seen: 307712
+    epoch: 0
+    train_loss: 5.862872664821326
+  - datapoints_seen: 308224
+    epoch: 0
+    train_loss: 5.862686350496109
+  - datapoints_seen: 308736
+    epoch: 0
+    train_loss: 5.862389227644128
+  - datapoints_seen: 309248
+    epoch: 0
+    train_loss: 5.862132593495956
+  - datapoints_seen: 309760
+    epoch: 0
+    train_loss: 5.861786686290394
+  - datapoints_seen: 310272
+    epoch: 0
+    train_loss: 5.8615056815320505
+  - datapoints_seen: 310784
+    epoch: 0
+    train_loss: 5.861131284735741
+  - datapoints_seen: 311296
+    epoch: 0
+    train_loss: 5.860789157842335
+  - datapoints_seen: 311808
+    epoch: 0
+    train_loss: 5.860384435293514
+  - datapoints_seen: 312320
+    epoch: 0
+    train_loss: 5.859822707879739
+  - datapoints_seen: 312832
+    epoch: 0
+    train_loss: 5.859673994847873
+  - datapoints_seen: 313344
+    epoch: 0
+    train_loss: 5.859458437152937
+  - datapoints_seen: 313856
+    epoch: 0
+    train_loss: 5.859124431018922
+  - datapoints_seen: 314368
+    epoch: 0
+    train_loss: 5.858994477734892
+  - datapoints_seen: 314880
+    epoch: 0
+    train_loss: 5.858566008156878
+  - datapoints_seen: 315392
+    epoch: 0
+    train_loss: 5.858271985859066
+  - datapoints_seen: 315904
+    epoch: 0
+    train_loss: 5.857939236361165
+  - datapoints_seen: 316416
+    epoch: 0
+    train_loss: 5.857691866680256
+  - datapoints_seen: 316928
+    epoch: 0
+    train_loss: 5.857395258396624
+  - datapoints_seen: 317440
+    epoch: 0
+    train_loss: 5.857136394131568
+  - datapoints_seen: 317952
+    epoch: 0
+    train_loss: 5.85683254112944
+  - datapoints_seen: 318464
+    epoch: 0
+    train_loss: 5.856732117018132
+  - datapoints_seen: 318976
+    epoch: 0
+    train_loss: 5.856537180574518
+  - datapoints_seen: 319488
+    epoch: 0
+    train_loss: 5.856228596124893
+  - datapoints_seen: 320000
+    epoch: 0
+    train_loss: 5.85566728515625
+  - datapoints_seen: 320512
+    epoch: 0
+    train_loss: 5.85523847269174
+  - datapoints_seen: 321024
+    epoch: 0
+    train_loss: 5.854967959950035
+  - datapoints_seen: 321536
+    epoch: 0
+    train_loss: 5.854639232538308
+  - datapoints_seen: 322048
+    epoch: 0
+    train_loss: 5.854497842834181
+  - datapoints_seen: 322560
+    epoch: 0
+    train_loss: 5.854284549894787
+  - datapoints_seen: 323072
+    epoch: 0
+    train_loss: 5.854004785867199
+  - datapoints_seen: 323584
+    epoch: 0
+    train_loss: 5.853732942025872
+  - datapoints_seen: 324096
+    epoch: 0
+    train_loss: 5.853504000116864
+  - datapoints_seen: 324608
+    epoch: 0
+    train_loss: 5.853399550501105
+  - datapoints_seen: 325120
+    epoch: 0
+    train_loss: 5.853154970904973
+  - datapoints_seen: 325632
+    epoch: 0
+    train_loss: 5.852544886511077
+  - datapoints_seen: 326144
+    epoch: 0
+    train_loss: 5.852122484982669
+  - datapoints_seen: 326656
+    epoch: 0
+    train_loss: 5.8520102635446385
+  - datapoints_seen: 327168
+    epoch: 0
+    train_loss: 5.851767481772552
+  - datapoints_seen: 327680
+    epoch: 0
+    train_loss: 5.851452013850212
+  - datapoints_seen: 328192
+    epoch: 0
+    train_loss: 5.851034347427059
+  - datapoints_seen: 328704
+    epoch: 0
+    train_loss: 5.850773301822746
+  - datapoints_seen: 329216
+    epoch: 0
+    train_loss: 5.85060570065749
+  - datapoints_seen: 329728
+    epoch: 0
+    train_loss: 5.850411712753107
+  - datapoints_seen: 330240
+    epoch: 0
+    train_loss: 5.850068216545638
+  - datapoints_seen: 330752
+    epoch: 0
+    train_loss: 5.850119164115505
+  - datapoints_seen: 331264
+    epoch: 0
+    train_loss: 5.849858729142863
+  - datapoints_seen: 331776
+    epoch: 0
+    train_loss: 5.849581819993478
+  - datapoints_seen: 332288
+    epoch: 0
+    train_loss: 5.849189371834918
+  - datapoints_seen: 332800
+    epoch: 0
+    train_loss: 5.848905118795542
+  - datapoints_seen: 333312
+    epoch: 0
+    train_loss: 5.848476575450047
+  - datapoints_seen: 333824
+    epoch: 0
+    train_loss: 5.848094716393875
+  - datapoints_seen: 334336
+    epoch: 0
+    train_loss: 5.847681896974993
+  - datapoints_seen: 334848
+    epoch: 0
+    train_loss: 5.847574302545016
+  - datapoints_seen: 335360
+    epoch: 0
+    train_loss: 5.847192625963051
+  - datapoints_seen: 335872
+    epoch: 0
+    train_loss: 5.846942437858116
+  - datapoints_seen: 336384
+    epoch: 0
+    train_loss: 5.846396440421791
+  - datapoints_seen: 336896
+    epoch: 0
+    train_loss: 5.846055745353815
+  - datapoints_seen: 337408
+    epoch: 0
+    train_loss: 5.845766737537065
+  - datapoints_seen: 337920
+    epoch: 0
+    train_loss: 5.84553842978044
+  - datapoints_seen: 338432
+    epoch: 0
+    train_loss: 5.845306361857774
+  - datapoints_seen: 338944
+    epoch: 0
+    train_loss: 5.84501389218241
+  - datapoints_seen: 339456
+    epoch: 0
+    train_loss: 5.844644474587649
+  - datapoints_seen: 339968
+    epoch: 0
+    train_loss: 5.844408162387021
+  - datapoints_seen: 340480
+    epoch: 0
+    train_loss: 5.843962528114032
+  - datapoints_seen: 340992
+    epoch: 0
+    train_loss: 5.843524051500155
+  - datapoints_seen: 341504
+    epoch: 0
+    train_loss: 5.843344890731743
+  - datapoints_seen: 342016
+    epoch: 0
+    train_loss: 5.842966677186018
+  - datapoints_seen: 342528
+    epoch: 0
+    train_loss: 5.842652066406113
+  - datapoints_seen: 343040
+    epoch: 0
+    train_loss: 5.842653215465261
+  - datapoints_seen: 343552
+    epoch: 0
+    train_loss: 5.842334409762068
+  - datapoints_seen: 344064
+    epoch: 0
+    train_loss: 5.841984008749326
+  - datapoints_seen: 344576
+    epoch: 0
+    train_loss: 5.8417046201175955
+  - datapoints_seen: 345088
+    epoch: 0
+    train_loss: 5.841414956027747
+  - datapoints_seen: 345600
+    epoch: 0
+    train_loss: 5.841115794005217
+  - datapoints_seen: 346112
+    epoch: 0
+    train_loss: 5.840845687149544
+  - datapoints_seen: 346624
+    epoch: 0
+    train_loss: 5.840501574681111
+  - datapoints_seen: 347136
+    epoch: 0
+    train_loss: 5.840374203206515
+  - datapoints_seen: 347648
+    epoch: 0
+    train_loss: 5.840026295764456
+  - datapoints_seen: 348160
+    epoch: 0
+    train_loss: 5.839672107556287
+  - datapoints_seen: 348672
+    epoch: 0
+    train_loss: 5.839409159493691
+  - datapoints_seen: 349184
+    epoch: 0
+    train_loss: 5.839176539451845
+  - datapoints_seen: 349696
+    epoch: 0
+    train_loss: 5.838782012375347
+  - datapoints_seen: 350208
+    epoch: 0
+    train_loss: 5.838387948727747
+  - datapoints_seen: 350720
+    epoch: 0
+    train_loss: 5.838030264499413
+  - datapoints_seen: 351232
+    epoch: 0
+    train_loss: 5.837879383181692
+  - datapoints_seen: 351744
+    epoch: 0
+    train_loss: 5.837593419409561
+  - datapoints_seen: 352256
+    epoch: 0
+    train_loss: 5.837415988362113
+  - datapoints_seen: 352768
+    epoch: 0
+    train_loss: 5.837190801761666
+  - datapoints_seen: 353280
+    epoch: 0
+    train_loss: 5.836894324896992
+  - datapoints_seen: 353792
+    epoch: 0
+    train_loss: 5.836603630468918
+  - datapoints_seen: 354304
+    epoch: 0
+    train_loss: 5.836318894617819
+  - datapoints_seen: 354816
+    epoch: 0
+    train_loss: 5.836005599639805
+  - datapoints_seen: 355328
+    epoch: 0
+    train_loss: 5.835947412578792
+  - datapoints_seen: 355840
+    epoch: 0
+    train_loss: 5.835770915052016
+  - datapoints_seen: 356352
+    epoch: 0
+    train_loss: 5.835520984797642
+  - datapoints_seen: 356864
+    epoch: 0
+    train_loss: 5.835231783058243
+  - datapoints_seen: 357376
+    epoch: 0
+    train_loss: 5.83500056485392
+  - datapoints_seen: 357888
+    epoch: 0
+    train_loss: 5.834822020987755
+  - datapoints_seen: 358400
+    epoch: 0
+    train_loss: 5.834717486926488
+  - datapoints_seen: 358912
+    epoch: 0
+    train_loss: 5.834220753586751
+  - datapoints_seen: 359424
+    epoch: 0
+    train_loss: 5.834163856642198
+  - datapoints_seen: 359936
+    epoch: 0
+    train_loss: 5.8338749106883325
+  - datapoints_seen: 360448
+    epoch: 0
+    train_loss: 5.83384850688956
+  - datapoints_seen: 360960
+    epoch: 0
+    train_loss: 5.833590290394235
+  - datapoints_seen: 361472
+    epoch: 0
+    train_loss: 5.833327204917714
+  - datapoints_seen: 361984
+    epoch: 0
+    train_loss: 5.833053020304636
+  - datapoints_seen: 362496
+    epoch: 0
+    train_loss: 5.832640926043193
+  - datapoints_seen: 363008
+    epoch: 0
+    train_loss: 5.832267167369805
+  - datapoints_seen: 363520
+    epoch: 0
+    train_loss: 5.832098746635545
+  - datapoints_seen: 364032
+    epoch: 0
+    train_loss: 5.832107324640459
+  - datapoints_seen: 364544
+    epoch: 0
+    train_loss: 5.831810657227977
+  - datapoints_seen: 365056
+    epoch: 0
+    train_loss: 5.8316335243396304
+  - datapoints_seen: 365568
+    epoch: 0
+    train_loss: 5.831218319446767
+  - datapoints_seen: 366080
+    epoch: 0
+    train_loss: 5.831034803723956
+  - datapoints_seen: 366592
+    epoch: 0
+    train_loss: 5.830861007035112
+  - datapoints_seen: 367104
+    epoch: 0
+    train_loss: 5.83069630879571
+  - datapoints_seen: 367616
+    epoch: 0
+    train_loss: 5.830622105213261
+  - datapoints_seen: 368128
+    epoch: 0
+    train_loss: 5.830299112826627
+  - datapoints_seen: 368640
+    epoch: 0
+    train_loss: 5.8300069683127935
+  - datapoints_seen: 369152
+    epoch: 0
+    train_loss: 5.82976348191789
+  - datapoints_seen: 369664
+    epoch: 0
+    train_loss: 5.829495298565259
+  - datapoints_seen: 370176
+    epoch: 0
+    train_loss: 5.8291595513065495
+  - datapoints_seen: 370688
+    epoch: 0
+    train_loss: 5.829009841818836
+  - datapoints_seen: 371200
+    epoch: 0
+    train_loss: 5.828614100094499
+  - datapoints_seen: 371712
+    epoch: 0
+    train_loss: 5.828326176020725
+  - datapoints_seen: 372224
+    epoch: 0
+    train_loss: 5.828091549906147
+  - datapoints_seen: 372736
+    epoch: 0
+    train_loss: 5.82795714873534
+  - datapoints_seen: 373248
+    epoch: 0
+    train_loss: 5.827635895241108
+  - datapoints_seen: 373760
+    epoch: 0
+    train_loss: 5.827408644924425
+  - datapoints_seen: 374272
+    epoch: 0
+    train_loss: 5.827215038800533
+  - datapoints_seen: 374784
+    epoch: 0
+    train_loss: 5.827037163119498
+  - datapoints_seen: 375296
+    epoch: 0
+    train_loss: 5.826572843007794
+  - datapoints_seen: 375808
+    epoch: 0
+    train_loss: 5.8264299368013805
+  - datapoints_seen: 376320
+    epoch: 0
+    train_loss: 5.826253671062236
+  - datapoints_seen: 376832
+    epoch: 0
+    train_loss: 5.825851397021957
+  - datapoints_seen: 377344
+    epoch: 0
+    train_loss: 5.825554189720827
+  - datapoints_seen: 377856
+    epoch: 0
+    train_loss: 5.8253807498187555
+  - datapoints_seen: 378368
+    epoch: 0
+    train_loss: 5.825069257790407
+  - datapoints_seen: 378880
+    epoch: 0
+    train_loss: 5.824884951436842
+  - datapoints_seen: 379392
+    epoch: 0
+    train_loss: 5.82466642415797
+  - datapoints_seen: 379904
+    epoch: 0
+    train_loss: 5.824536578674522
+  - datapoints_seen: 380416
+    epoch: 0
+    train_loss: 5.824375872015151
+  - datapoints_seen: 380928
+    epoch: 0
+    train_loss: 5.824092875885707
+  - datapoints_seen: 381440
+    epoch: 0
+    train_loss: 5.8236395464647535
+  - datapoints_seen: 381952
+    epoch: 0
+    train_loss: 5.823361348850158
+  - datapoints_seen: 382464
+    epoch: 0
+    train_loss: 5.8230863932465295
+  - datapoints_seen: 382976
+    epoch: 0
+    train_loss: 5.822952623035818
+  - datapoints_seen: 383488
+    epoch: 0
+    train_loss: 5.822667760428822
+  - datapoints_seen: 384000
+    epoch: 0
+    train_loss: 5.822543709437053
+  - datapoints_seen: 384512
+    epoch: 0
+    train_loss: 5.822300290616946
+  - datapoints_seen: 385024
+    epoch: 0
+    train_loss: 5.82215852242835
+  - datapoints_seen: 385536
+    epoch: 0
+    train_loss: 5.8219818359668825
+  - datapoints_seen: 386048
+    epoch: 0
+    train_loss: 5.8219246276177525
+  - datapoints_seen: 386560
+    epoch: 0
+    train_loss: 5.821644923860664
+  - datapoints_seen: 387072
+    epoch: 0
+    train_loss: 5.821376463092824
+  - datapoints_seen: 387584
+    epoch: 0
+    train_loss: 5.821258253276427
+  - datapoints_seen: 388096
+    epoch: 0
+    train_loss: 5.820984571778994
+  - datapoints_seen: 388608
+    epoch: 0
+    train_loss: 5.820700644818533
+  - datapoints_seen: 389120
+    epoch: 0
+    train_loss: 5.820484586138474
+  - datapoints_seen: 389632
+    epoch: 0
+    train_loss: 5.82030258792772
+  - datapoints_seen: 390144
+    epoch: 0
+    train_loss: 5.820043649573338
+  - datapoints_seen: 390656
+    epoch: 0
+    train_loss: 5.819806645769591
+  - datapoints_seen: 391168
+    epoch: 0
+    train_loss: 5.8194920960521195
+  - datapoints_seen: 391680
+    epoch: 0
+    train_loss: 5.819185706369238
+  - datapoints_seen: 392192
+    epoch: 0
+    train_loss: 5.818873403589034
+  - datapoints_seen: 392704
+    epoch: 0
+    train_loss: 5.818698438547425
+  - datapoints_seen: 393216
+    epoch: 0
+    train_loss: 5.818399551634987
+  - datapoints_seen: 393728
+    epoch: 0
+    train_loss: 5.818250443442436
+  - datapoints_seen: 394240
+    epoch: 0
+    train_loss: 5.817971500173791
+  - datapoints_seen: 394752
+    epoch: 0
+    train_loss: 5.817611764222577
+  - datapoints_seen: 395264
+    epoch: 0
+    train_loss: 5.817392312800946
+  - datapoints_seen: 395776
+    epoch: 0
+    train_loss: 5.817265078136252
+  - datapoints_seen: 396288
+    epoch: 0
+    train_loss: 5.817078031618774
+  - datapoints_seen: 396800
+    epoch: 0
+    train_loss: 5.816866413854783
+  - datapoints_seen: 397312
+    epoch: 0
+    train_loss: 5.816610248432946
+  - datapoints_seen: 397824
+    epoch: 0
+    train_loss: 5.816505098895217
+  - datapoints_seen: 398336
+    epoch: 0
+    train_loss: 5.816238749609508
+  - datapoints_seen: 398848
+    epoch: 0
+    train_loss: 5.8160445766669335
+  - datapoints_seen: 399360
+    epoch: 0
+    train_loss: 5.815668730246715
+  - datapoints_seen: 399872
+    epoch: 0
+    train_loss: 5.81544270985563
+  - datapoints_seen: 400384
+    epoch: 0
+    train_loss: 5.8152138699046185
+  - datapoints_seen: 400896
+    epoch: 0
+    train_loss: 5.814811836257292
+  - datapoints_seen: 401408
+    epoch: 0
+    train_loss: 5.814716169420554
+  - datapoints_seen: 401920
+    epoch: 0
+    train_loss: 5.814360834231042
+  - datapoints_seen: 402432
+    epoch: 0
+    train_loss: 5.81418477669927
+  - datapoints_seen: 402944
+    epoch: 0
+    train_loss: 5.813966157930173
+  - datapoints_seen: 403456
+    epoch: 0
+    train_loss: 5.81392619876087
+  - datapoints_seen: 403968
+    epoch: 0
+    train_loss: 5.813602839737035
+  - datapoints_seen: 404480
+    epoch: 0
+    train_loss: 5.813441873502128
+  - datapoints_seen: 404992
+    epoch: 0
+    train_loss: 5.813203038216843
+  - datapoints_seen: 405504
+    epoch: 0
+    train_loss: 5.81297601654072
+  - datapoints_seen: 406016
+    epoch: 0
+    train_loss: 5.812750048475037
+  - datapoints_seen: 406528
+    epoch: 0
+    train_loss: 5.812439268121792
+  - datapoints_seen: 407040
+    epoch: 0
+    train_loss: 5.81212156583678
+  - datapoints_seen: 407552
+    epoch: 0
+    train_loss: 5.811797676973008
+  - datapoints_seen: 408064
+    epoch: 0
+    train_loss: 5.811565749169593
+  - datapoints_seen: 408576
+    epoch: 0
+    train_loss: 5.81131086672159
+  - datapoints_seen: 409088
+    epoch: 0
+    train_loss: 5.811015670380097
+  - datapoints_seen: 409600
+    epoch: 0
+    train_loss: 5.810738683342934
+  - datapoints_seen: 410112
+    epoch: 0
+    train_loss: 5.810624524448695
+  - datapoints_seen: 410624
+    epoch: 0
+    train_loss: 5.810401153683365
+  - datapoints_seen: 411136
+    epoch: 0
+    train_loss: 5.810111541676789
+  - datapoints_seen: 411648
+    epoch: 0
+    train_loss: 5.809911427213184
+  - datapoints_seen: 412160
+    epoch: 0
+    train_loss: 5.809705583205134
+  - datapoints_seen: 412672
+    epoch: 0
+    train_loss: 5.809537445641038
+  - datapoints_seen: 413184
+    epoch: 0
+    train_loss: 5.8092627690774945
+  - datapoints_seen: 413696
+    epoch: 0
+    train_loss: 5.809063284113856
+  - datapoints_seen: 414208
+    epoch: 0
+    train_loss: 5.808914376130358
+  - datapoints_seen: 414720
+    epoch: 0
+    train_loss: 5.808714344472061
+  - datapoints_seen: 415232
+    epoch: 0
+    train_loss: 5.808482865663992
+  - datapoints_seen: 415744
+    epoch: 0
+    train_loss: 5.808137005185846
+  - datapoints_seen: 416256
+    epoch: 0
+    train_loss: 5.807995055434449
+  - datapoints_seen: 416768
+    epoch: 0
+    train_loss: 5.807865374211304
+  - datapoints_seen: 417280
+    epoch: 0
+    train_loss: 5.807738501308886
+  - datapoints_seen: 417792
+    epoch: 0
+    train_loss: 5.807501602990954
+  - datapoints_seen: 418304
+    epoch: 0
+    train_loss: 5.807257452092818
+  - datapoints_seen: 418816
+    epoch: 0
+    train_loss: 5.806984984787285
+  - datapoints_seen: 419328
+    epoch: 0
+    train_loss: 5.806899974925469
+  - datapoints_seen: 419840
+    epoch: 0
+    train_loss: 5.806516128051571
+  - datapoints_seen: 420352
+    epoch: 0
+    train_loss: 5.8063799356281685
+  - datapoints_seen: 420864
+    epoch: 0
+    train_loss: 5.806074023536812
+  - datapoints_seen: 421376
+    epoch: 0
+    train_loss: 5.805813576731908
+  - datapoints_seen: 421888
+    epoch: 0
+    train_loss: 5.805502941886198
+  - datapoints_seen: 422400
+    epoch: 0
+    train_loss: 5.8052544096744425
+  - datapoints_seen: 422912
+    epoch: 0
+    train_loss: 5.80499480653906
+  - datapoints_seen: 423424
+    epoch: 0
+    train_loss: 5.804744798298182
+  - datapoints_seen: 423936
+    epoch: 0
+    train_loss: 5.804666847998393
+  - datapoints_seen: 424448
+    epoch: 0
+    train_loss: 5.804304789576514
+  - datapoints_seen: 424960
+    epoch: 0
+    train_loss: 5.8042192591242046
+  - datapoints_seen: 425472
+    epoch: 0
+    train_loss: 5.8040227482608655
+  - datapoints_seen: 425984
+    epoch: 0
+    train_loss: 5.803836191502901
+  - datapoints_seen: 426496
+    epoch: 0
+    train_loss: 5.8036117937241425
+  - datapoints_seen: 427008
+    epoch: 0
+    train_loss: 5.803433008331189
+  - datapoints_seen: 427520
+    epoch: 0
+    train_loss: 5.803245493609034
+  - datapoints_seen: 428032
+    epoch: 0
+    train_loss: 5.803021811412282
+  - datapoints_seen: 428544
+    epoch: 0
+    train_loss: 5.802838128954706
+  - datapoints_seen: 429056
+    epoch: 0
+    train_loss: 5.802708134730847
+  - datapoints_seen: 429568
+    epoch: 0
+    train_loss: 5.802536284113669
+  - datapoints_seen: 430080
+    epoch: 0
+    train_loss: 5.802396043709346
+  - datapoints_seen: 430592
+    epoch: 0
+    train_loss: 5.8023680149445775
+  - datapoints_seen: 431104
+    epoch: 0
+    train_loss: 5.802153624151778
+  - datapoints_seen: 431616
+    epoch: 0
+    train_loss: 5.801945459517437
+  - datapoints_seen: 432128
+    epoch: 0
+    train_loss: 5.801600309909802
+  - datapoints_seen: 432640
+    epoch: 0
+    train_loss: 5.801490705253104
+  - datapoints_seen: 433152
+    epoch: 0
+    train_loss: 5.80120308573928
+  - datapoints_seen: 433664
+    epoch: 0
+    train_loss: 5.800967360049522
+  - datapoints_seen: 434176
+    epoch: 0
+    train_loss: 5.800768400700587
+  - datapoints_seen: 434688
+    epoch: 0
+    train_loss: 5.800703570474865
+  - datapoints_seen: 435200
+    epoch: 0
+    train_loss: 5.800566936380723
+  - datapoints_seen: 435712
+    epoch: 0
+    train_loss: 5.800388027442188
+  - datapoints_seen: 436224
+    epoch: 0
+    train_loss: 5.800119158807495
+  - datapoints_seen: 436736
+    epoch: 0
+    train_loss: 5.79987309099222
+  - datapoints_seen: 437248
+    epoch: 0
+    train_loss: 5.799580181510443
+  - datapoints_seen: 437760
+    epoch: 0
+    train_loss: 5.799400539844357
+  - datapoints_seen: 438272
+    epoch: 0
+    train_loss: 5.799240079438575
+  - datapoints_seen: 438784
+    epoch: 0
+    train_loss: 5.798987240051305
+  - datapoints_seen: 439296
+    epoch: 0
+    train_loss: 5.798804269248233
+  - datapoints_seen: 439808
+    epoch: 0
+    train_loss: 5.798584847566829
+  - datapoints_seen: 440320
+    epoch: 0
+    train_loss: 5.798406407444976
+  - datapoints_seen: 440832
+    epoch: 0
+    train_loss: 5.798092459413925
+  - datapoints_seen: 441344
+    epoch: 0
+    train_loss: 5.797899424891461
+  - datapoints_seen: 441856
+    epoch: 0
+    train_loss: 5.797757971466347
+  - datapoints_seen: 442368
+    epoch: 0
+    train_loss: 5.797652776042621
+  - datapoints_seen: 442880
+    epoch: 0
+    train_loss: 5.79744336508602
+  - datapoints_seen: 443392
+    epoch: 0
+    train_loss: 5.797280333058663
+  - datapoints_seen: 443904
+    epoch: 0
+    train_loss: 5.797139689721588
+  - datapoints_seen: 444416
+    epoch: 0
+    train_loss: 5.796955404743072
+  - datapoints_seen: 444928
+    epoch: 0
+    train_loss: 5.796694371999339
+  - datapoints_seen: 445440
+    epoch: 0
+    train_loss: 5.796593323521231
+  - datapoints_seen: 445952
+    epoch: 0
+    train_loss: 5.796309951252286
+  - datapoints_seen: 446464
+    epoch: 0
+    train_loss: 5.796068746562398
+  - datapoints_seen: 446976
+    epoch: 0
+    train_loss: 5.795727531524868
+  - datapoints_seen: 447488
+    epoch: 0
+    train_loss: 5.7955006085489655
+  - datapoints_seen: 448000
+    epoch: 0
+    train_loss: 5.795371494293213
+  - datapoints_seen: 448512
+    epoch: 0
+    train_loss: 5.795162087161791
+  - datapoints_seen: 449024
+    epoch: 0
+    train_loss: 5.794850921957088
+  - datapoints_seen: 449536
+    epoch: 0
+    train_loss: 5.794696064364666
+  - datapoints_seen: 450048
+    epoch: 0
+    train_loss: 5.794360411994422
+  - datapoints_seen: 450560
+    epoch: 0
+    train_loss: 5.794168171557513
+  - datapoints_seen: 451072
+    epoch: 0
+    train_loss: 5.794044640223907
+  - datapoints_seen: 451584
+    epoch: 0
+    train_loss: 5.793785307683101
+  - datapoints_seen: 452096
+    epoch: 0
+    train_loss: 5.793505136720997
+  - datapoints_seen: 452608
+    epoch: 0
+    train_loss: 5.793251935712892
+  - datapoints_seen: 453120
+    epoch: 0
+    train_loss: 5.793010520396259
+  - datapoints_seen: 453632
+    epoch: 0
+    train_loss: 5.79280185753282
+  - datapoints_seen: 454144
+    epoch: 0
+    train_loss: 5.792612454802503
+  - datapoints_seen: 454656
+    epoch: 0
+    train_loss: 5.792519692365114
+  - datapoints_seen: 455168
+    epoch: 0
+    train_loss: 5.792354661514574
+  - datapoints_seen: 455680
+    epoch: 0
+    train_loss: 5.792173171847054
+  - datapoints_seen: 456192
+    epoch: 0
+    train_loss: 5.7918702846959516
+  - datapoints_seen: 456704
+    epoch: 0
+    train_loss: 5.791619861607059
+  - datapoints_seen: 457216
+    epoch: 0
+    train_loss: 5.79134435376021
+  - datapoints_seen: 457728
+    epoch: 0
+    train_loss: 5.791178819050458
+  - datapoints_seen: 458240
+    epoch: 0
+    train_loss: 5.790954251529119
+  - datapoints_seen: 458752
+    epoch: 0
+    train_loss: 5.790664543530771
+  - datapoints_seen: 512
+    epoch: 1
+    train_loss: 5.6025848388671875
+  - datapoints_seen: 1024
+    epoch: 1
+    train_loss: 5.586114883422852
+  - datapoints_seen: 1536
+    epoch: 1
+    train_loss: 5.590518951416016
+  - datapoints_seen: 2048
+    epoch: 1
+    train_loss: 5.598445892333984
+  - datapoints_seen: 2560
+    epoch: 1
+    train_loss: 5.624673461914062
+  - datapoints_seen: 3072
+    epoch: 1
+    train_loss: 5.6147721608479815
+  - datapoints_seen: 3584
+    epoch: 1
+    train_loss: 5.605386461530413
+  - datapoints_seen: 4096
+    epoch: 1
+    train_loss: 5.601864814758301
+  - datapoints_seen: 4608
+    epoch: 1
+    train_loss: 5.6055725945366754
+  - datapoints_seen: 5120
+    epoch: 1
+    train_loss: 5.60896053314209
+  - datapoints_seen: 5632
+    epoch: 1
+    train_loss: 5.605811552567915
+  - datapoints_seen: 6144
+    epoch: 1
+    train_loss: 5.610803763071696
+  - datapoints_seen: 6656
+    epoch: 1
+    train_loss: 5.615619365985577
+  - datapoints_seen: 7168
+    epoch: 1
+    train_loss: 5.608747618538993
+  - datapoints_seen: 7680
+    epoch: 1
+    train_loss: 5.609346008300781
+  - datapoints_seen: 8192
+    epoch: 1
+    train_loss: 5.6052117347717285
+  - datapoints_seen: 8704
+    epoch: 1
+    train_loss: 5.608474507051356
+  - datapoints_seen: 9216
+    epoch: 1
+    train_loss: 5.602309650844997
+  - datapoints_seen: 9728
+    epoch: 1
+    train_loss: 5.60071493449964
+  - datapoints_seen: 10240
+    epoch: 1
+    train_loss: 5.60099606513977
+  - datapoints_seen: 10752
+    epoch: 1
+    train_loss: 5.592399733407157
+  - datapoints_seen: 11264
+    epoch: 1
+    train_loss: 5.589683836156672
+  - datapoints_seen: 11776
+    epoch: 1
+    train_loss: 5.591428881106169
+  - datapoints_seen: 12288
+    epoch: 1
+    train_loss: 5.589526613553365
+  - datapoints_seen: 12800
+    epoch: 1
+    train_loss: 5.586171684265136
+  - datapoints_seen: 13312
+    epoch: 1
+    train_loss: 5.588328544910137
+  - datapoints_seen: 13824
+    epoch: 1
+    train_loss: 5.588015909548159
+  - datapoints_seen: 14336
+    epoch: 1
+    train_loss: 5.594394104821341
+  - datapoints_seen: 14848
+    epoch: 1
+    train_loss: 5.5946009734581255
+  - datapoints_seen: 15360
+    epoch: 1
+    train_loss: 5.586721642812093
+  - datapoints_seen: 15872
+    epoch: 1
+    train_loss: 5.584630443203833
+  - datapoints_seen: 16384
+    epoch: 1
+    train_loss: 5.584278494119644
+  - datapoints_seen: 16896
+    epoch: 1
+    train_loss: 5.583187421162923
+  - datapoints_seen: 17408
+    epoch: 1
+    train_loss: 5.57860382865457
+  - datapoints_seen: 17920
+    epoch: 1
+    train_loss: 5.580097498212542
+  - datapoints_seen: 18432
+    epoch: 1
+    train_loss: 5.578671428892347
+  - datapoints_seen: 18944
+    epoch: 1
+    train_loss: 5.577950786899876
+  - datapoints_seen: 19456
+    epoch: 1
+    train_loss: 5.575607174321225
+  - datapoints_seen: 19968
+    epoch: 1
+    train_loss: 5.578300451621031
+  - datapoints_seen: 20480
+    epoch: 1
+    train_loss: 5.577058005332947
+  - datapoints_seen: 20992
+    epoch: 1
+    train_loss: 5.5786506606311335
+  - datapoints_seen: 21504
+    epoch: 1
+    train_loss: 5.580035550253732
+  - datapoints_seen: 22016
+    epoch: 1
+    train_loss: 5.583013024441032
+  - datapoints_seen: 22528
+    epoch: 1
+    train_loss: 5.5825089758092705
+  - datapoints_seen: 23040
+    epoch: 1
+    train_loss: 5.5868968751695425
+  - datapoints_seen: 23552
+    epoch: 1
+    train_loss: 5.584040828373121
+  - datapoints_seen: 24064
+    epoch: 1
+    train_loss: 5.585155872588462
+  - datapoints_seen: 24576
+    epoch: 1
+    train_loss: 5.581969400246938
+  - datapoints_seen: 25088
+    epoch: 1
+    train_loss: 5.581974049003756
+  - datapoints_seen: 25600
+    epoch: 1
+    train_loss: 5.584145259857178
+  - datapoints_seen: 26112
+    epoch: 1
+    train_loss: 5.58653216268502
+  - datapoints_seen: 26624
+    epoch: 1
+    train_loss: 5.586030464905959
+  - datapoints_seen: 27136
+    epoch: 1
+    train_loss: 5.5878462701473595
+  - datapoints_seen: 27648
+    epoch: 1
+    train_loss: 5.584161281585693
+  - datapoints_seen: 28160
+    epoch: 1
+    train_loss: 5.5835285013372244
+  - datapoints_seen: 28672
+    epoch: 1
+    train_loss: 5.5859931366784235
+  - datapoints_seen: 29184
+    epoch: 1
+    train_loss: 5.586704036645722
+  - datapoints_seen: 29696
+    epoch: 1
+    train_loss: 5.587051934209363
+  - datapoints_seen: 30208
+    epoch: 1
+    train_loss: 5.587215504403842
+  - datapoints_seen: 30720
+    epoch: 1
+    train_loss: 5.587335793177287
+  - datapoints_seen: 31232
+    epoch: 1
+    train_loss: 5.5848535162503605
+  - datapoints_seen: 31744
+    epoch: 1
+    train_loss: 5.584049394053798
+  - datapoints_seen: 32256
+    epoch: 1
+    train_loss: 5.582444675385006
+  - datapoints_seen: 32768
+    epoch: 1
+    train_loss: 5.581529945135117
+  - datapoints_seen: 33280
+    epoch: 1
+    train_loss: 5.581654856755184
+  - datapoints_seen: 33792
+    epoch: 1
+    train_loss: 5.580482569607821
+  - datapoints_seen: 34304
+    epoch: 1
+    train_loss: 5.582485996075531
+  - datapoints_seen: 34816
+    epoch: 1
+    train_loss: 5.584199176115148
+  - datapoints_seen: 35328
+    epoch: 1
+    train_loss: 5.584284768588301
+  - datapoints_seen: 35840
+    epoch: 1
+    train_loss: 5.583826310294015
+  - datapoints_seen: 36352
+    epoch: 1
+    train_loss: 5.584347308521539
+  - datapoints_seen: 36864
+    epoch: 1
+    train_loss: 5.584181043836805
+  - datapoints_seen: 37376
+    epoch: 1
+    train_loss: 5.5855625622893035
+  - datapoints_seen: 37888
+    epoch: 1
+    train_loss: 5.585542601508063
+  - datapoints_seen: 38400
+    epoch: 1
+    train_loss: 5.58554448445638
+  - datapoints_seen: 38912
+    epoch: 1
+    train_loss: 5.586452735097785
+  - datapoints_seen: 39424
+    epoch: 1
+    train_loss: 5.586647008920645
+  - datapoints_seen: 39936
+    epoch: 1
+    train_loss: 5.58463578346448
+  - datapoints_seen: 40448
+    epoch: 1
+    train_loss: 5.585822841789149
+  - datapoints_seen: 40960
+    epoch: 1
+    train_loss: 5.58593385219574
+  - datapoints_seen: 41472
+    epoch: 1
+    train_loss: 5.585455882696458
+  - datapoints_seen: 41984
+    epoch: 1
+    train_loss: 5.584406271213439
+  - datapoints_seen: 42496
+    epoch: 1
+    train_loss: 5.585316439709032
+  - datapoints_seen: 43008
+    epoch: 1
+    train_loss: 5.584791910080683
+  - datapoints_seen: 43520
+    epoch: 1
+    train_loss: 5.5834335775936355
+  - datapoints_seen: 44032
+    epoch: 1
+    train_loss: 5.5824610244396125
+  - datapoints_seen: 44544
+    epoch: 1
+    train_loss: 5.5825092271826735
+  - datapoints_seen: 45056
+    epoch: 1
+    train_loss: 5.582573760639537
+  - datapoints_seen: 45568
+    epoch: 1
+    train_loss: 5.583055646232005
+  - datapoints_seen: 46080
+    epoch: 1
+    train_loss: 5.581708102756076
+  - datapoints_seen: 46592
+    epoch: 1
+    train_loss: 5.581770949311309
+  - datapoints_seen: 47104
+    epoch: 1
+    train_loss: 5.582389873007069
+  - datapoints_seen: 47616
+    epoch: 1
+    train_loss: 5.583920530093613
+  - datapoints_seen: 48128
+    epoch: 1
+    train_loss: 5.584666799991689
+  - datapoints_seen: 48640
+    epoch: 1
+    train_loss: 5.585237482974404
+  - datapoints_seen: 49152
+    epoch: 1
+    train_loss: 5.583962321281433
+  - datapoints_seen: 49664
+    epoch: 1
+    train_loss: 5.5836548166176705
+  - datapoints_seen: 50176
+    epoch: 1
+    train_loss: 5.583425833254444
+  - datapoints_seen: 50688
+    epoch: 1
+    train_loss: 5.582930632311888
+  - datapoints_seen: 51200
+    epoch: 1
+    train_loss: 5.582070941925049
+  - datapoints_seen: 51712
+    epoch: 1
+    train_loss: 5.582729452907449
+  - datapoints_seen: 52224
+    epoch: 1
+    train_loss: 5.5825645409378355
+  - datapoints_seen: 52736
+    epoch: 1
+    train_loss: 5.58236716557475
+  - datapoints_seen: 53248
+    epoch: 1
+    train_loss: 5.581423172583947
+  - datapoints_seen: 53760
+    epoch: 1
+    train_loss: 5.581911740984236
+  - datapoints_seen: 54272
+    epoch: 1
+    train_loss: 5.581688826938845
+  - datapoints_seen: 54784
+    epoch: 1
+    train_loss: 5.58152845863984
+  - datapoints_seen: 55296
+    epoch: 1
+    train_loss: 5.581254711857548
+  - datapoints_seen: 55808
+    epoch: 1
+    train_loss: 5.581210245779895
+  - datapoints_seen: 56320
+    epoch: 1
+    train_loss: 5.581542860377919
+  - datapoints_seen: 56832
+    epoch: 1
+    train_loss: 5.581839256458454
+  - datapoints_seen: 57344
+    epoch: 1
+    train_loss: 5.5812322199344635
+  - datapoints_seen: 57856
+    epoch: 1
+    train_loss: 5.5816383657202255
+  - datapoints_seen: 58368
+    epoch: 1
+    train_loss: 5.582043810894615
+  - datapoints_seen: 58880
+    epoch: 1
+    train_loss: 5.582124755693519
+  - datapoints_seen: 59392
+    epoch: 1
+    train_loss: 5.581804994879098
+  - datapoints_seen: 59904
+    epoch: 1
+    train_loss: 5.581005581423768
+  - datapoints_seen: 60416
+    epoch: 1
+    train_loss: 5.5805494866128695
+  - datapoints_seen: 60928
+    epoch: 1
+    train_loss: 5.579081403107202
+  - datapoints_seen: 61440
+    epoch: 1
+    train_loss: 5.579042279720307
+  - datapoints_seen: 61952
+    epoch: 1
+    train_loss: 5.578929842011003
+  - datapoints_seen: 62464
+    epoch: 1
+    train_loss: 5.580310825441704
+  - datapoints_seen: 62976
+    epoch: 1
+    train_loss: 5.580431996322259
+  - datapoints_seen: 63488
+    epoch: 1
+    train_loss: 5.579857476295963
+  - datapoints_seen: 64000
+    epoch: 1
+    train_loss: 5.580059009552002
+  - datapoints_seen: 64512
+    epoch: 1
+    train_loss: 5.57882341127547
+  - datapoints_seen: 65024
+    epoch: 1
+    train_loss: 5.578489517602395
+  - datapoints_seen: 65536
+    epoch: 1
+    train_loss: 5.577560666948557
+  - datapoints_seen: 66048
+    epoch: 1
+    train_loss: 5.5772210091583485
+  - datapoints_seen: 66560
+    epoch: 1
+    train_loss: 5.577521298481868
+  - datapoints_seen: 67072
+    epoch: 1
+    train_loss: 5.578035765931807
+  - datapoints_seen: 67584
+    epoch: 1
+    train_loss: 5.577240824699402
+  - datapoints_seen: 68096
+    epoch: 1
+    train_loss: 5.576669703748889
+  - datapoints_seen: 68608
+    epoch: 1
+    train_loss: 5.57595887468822
+  - datapoints_seen: 69120
+    epoch: 1
+    train_loss: 5.576053916083442
+  - datapoints_seen: 69632
+    epoch: 1
+    train_loss: 5.575876348158893
+  - datapoints_seen: 70144
+    epoch: 1
+    train_loss: 5.575263977050781
+  - datapoints_seen: 70656
+    epoch: 1
+    train_loss: 5.575471138608629
+  - datapoints_seen: 71168
+    epoch: 1
+    train_loss: 5.57672815528705
+  - datapoints_seen: 71680
+    epoch: 1
+    train_loss: 5.577204411370413
+  - datapoints_seen: 72192
+    epoch: 1
+    train_loss: 5.577245002097272
+  - datapoints_seen: 72704
+    epoch: 1
+    train_loss: 5.57708031694654
+  - datapoints_seen: 73216
+    epoch: 1
+    train_loss: 5.576911492781206
+  - datapoints_seen: 73728
+    epoch: 1
+    train_loss: 5.577635268370311
+  - datapoints_seen: 74240
+    epoch: 1
+    train_loss: 5.576955525628452
+  - datapoints_seen: 74752
+    epoch: 1
+    train_loss: 5.576873955661303
+  - datapoints_seen: 75264
+    epoch: 1
+    train_loss: 5.576988875460462
+  - datapoints_seen: 75776
+    epoch: 1
+    train_loss: 5.576748506442921
+  - datapoints_seen: 76288
+    epoch: 1
+    train_loss: 5.576735416514762
+  - datapoints_seen: 76800
+    epoch: 1
+    train_loss: 5.57673877398173
+  - datapoints_seen: 77312
+    epoch: 1
+    train_loss: 5.576102664139097
+  - datapoints_seen: 77824
+    epoch: 1
+    train_loss: 5.575462438558278
+  - datapoints_seen: 78336
+    epoch: 1
+    train_loss: 5.575424964131873
+  - datapoints_seen: 78848
+    epoch: 1
+    train_loss: 5.5756171245079535
+  - datapoints_seen: 79360
+    epoch: 1
+    train_loss: 5.5758757099028555
+  - datapoints_seen: 79872
+    epoch: 1
+    train_loss: 5.576968440642724
+  - datapoints_seen: 80384
+    epoch: 1
+    train_loss: 5.576401245821813
+  - datapoints_seen: 80896
+    epoch: 1
+    train_loss: 5.576965419551994
+  - datapoints_seen: 81408
+    epoch: 1
+    train_loss: 5.5764028711139035
+  - datapoints_seen: 81920
+    epoch: 1
+    train_loss: 5.576131001114845
+  - datapoints_seen: 82432
+    epoch: 1
+    train_loss: 5.576137521992559
+  - datapoints_seen: 82944
+    epoch: 1
+    train_loss: 5.576264796433626
+  - datapoints_seen: 83456
+    epoch: 1
+    train_loss: 5.577194298703247
+  - datapoints_seen: 83968
+    epoch: 1
+    train_loss: 5.577462815656895
+  - datapoints_seen: 84480
+    epoch: 1
+    train_loss: 5.57702620824178
+  - datapoints_seen: 84992
+    epoch: 1
+    train_loss: 5.576486205480185
+  - datapoints_seen: 85504
+    epoch: 1
+    train_loss: 5.576372172304256
+  - datapoints_seen: 86016
+    epoch: 1
+    train_loss: 5.575814692747025
+  - datapoints_seen: 86528
+    epoch: 1
+    train_loss: 5.57586921883758
+  - datapoints_seen: 87040
+    epoch: 1
+    train_loss: 5.576471976672901
+  - datapoints_seen: 87552
+    epoch: 1
+    train_loss: 5.576046455673307
+  - datapoints_seen: 88064
+    epoch: 1
+    train_loss: 5.57568990075311
+  - datapoints_seen: 88576
+    epoch: 1
+    train_loss: 5.576211761187956
+  - datapoints_seen: 89088
+    epoch: 1
+    train_loss: 5.575680423056943
+  - datapoints_seen: 89600
+    epoch: 1
+    train_loss: 5.575722795213972
+  - datapoints_seen: 90112
+    epoch: 1
+    train_loss: 5.5757600041953
+  - datapoints_seen: 90624
+    epoch: 1
+    train_loss: 5.575000404638086
+  - datapoints_seen: 91136
+    epoch: 1
+    train_loss: 5.575278150901366
+  - datapoints_seen: 91648
+    epoch: 1
+    train_loss: 5.5757847231859605
+  - datapoints_seen: 92160
+    epoch: 1
+    train_loss: 5.575661100281609
+  - datapoints_seen: 92672
+    epoch: 1
+    train_loss: 5.576344835165456
+  - datapoints_seen: 93184
+    epoch: 1
+    train_loss: 5.575667520145793
+  - datapoints_seen: 93696
+    epoch: 1
+    train_loss: 5.575853944476185
+  - datapoints_seen: 94208
+    epoch: 1
+    train_loss: 5.574655804945075
+  - datapoints_seen: 94720
+    epoch: 1
+    train_loss: 5.5743490090241306
+  - datapoints_seen: 95232
+    epoch: 1
+    train_loss: 5.573898471811766
+  - datapoints_seen: 95744
+    epoch: 1
+    train_loss: 5.574046693383691
+  - datapoints_seen: 96256
+    epoch: 1
+    train_loss: 5.574216875624149
+  - datapoints_seen: 96768
+    epoch: 1
+    train_loss: 5.57477091481446
+  - datapoints_seen: 97280
+    epoch: 1
+    train_loss: 5.5747056584609185
+  - datapoints_seen: 97792
+    epoch: 1
+    train_loss: 5.57432023143269
+  - datapoints_seen: 98304
+    epoch: 1
+    train_loss: 5.573876005907853
+  - datapoints_seen: 98816
+    epoch: 1
+    train_loss: 5.574055649455965
+  - datapoints_seen: 99328
+    epoch: 1
+    train_loss: 5.574058033756374
+  - datapoints_seen: 99840
+    epoch: 1
+    train_loss: 5.574720952449701
+  - datapoints_seen: 100352
+    epoch: 1
+    train_loss: 5.574707043414214
+  - datapoints_seen: 100864
+    epoch: 1
+    train_loss: 5.575217854553068
+  - datapoints_seen: 101376
+    epoch: 1
+    train_loss: 5.574830717510647
+  - datapoints_seen: 101888
+    epoch: 1
+    train_loss: 5.574505674180074
+  - datapoints_seen: 102400
+    epoch: 1
+    train_loss: 5.574140317440033
+  - datapoints_seen: 102912
+    epoch: 1
+    train_loss: 5.57360627046272
+  - datapoints_seen: 103424
+    epoch: 1
+    train_loss: 5.573642322332552
+  - datapoints_seen: 103936
+    epoch: 1
+    train_loss: 5.573262621029257
+  - datapoints_seen: 104448
+    epoch: 1
+    train_loss: 5.573156251626856
+  - datapoints_seen: 104960
+    epoch: 1
+    train_loss: 5.573171148067567
+  - datapoints_seen: 105472
+    epoch: 1
+    train_loss: 5.5730654684085295
+  - datapoints_seen: 105984
+    epoch: 1
+    train_loss: 5.573072984022795
+  - datapoints_seen: 106496
+    epoch: 1
+    train_loss: 5.573117107152939
+  - datapoints_seen: 107008
+    epoch: 1
+    train_loss: 5.572649711627139
+  - datapoints_seen: 107520
+    epoch: 1
+    train_loss: 5.572920669828142
+  - datapoints_seen: 108032
+    epoch: 1
+    train_loss: 5.5728308216655424
+  - datapoints_seen: 108544
+    epoch: 1
+    train_loss: 5.5725462998983994
+  - datapoints_seen: 109056
+    epoch: 1
+    train_loss: 5.572929030852698
+  - datapoints_seen: 109568
+    epoch: 1
+    train_loss: 5.57291233873813
+  - datapoints_seen: 110080
+    epoch: 1
+    train_loss: 5.572540139043054
+  - datapoints_seen: 110592
+    epoch: 1
+    train_loss: 5.5715247591336565
+  - datapoints_seen: 111104
+    epoch: 1
+    train_loss: 5.571619198618946
+  - datapoints_seen: 111616
+    epoch: 1
+    train_loss: 5.5719840701566925
+  - datapoints_seen: 112128
+    epoch: 1
+    train_loss: 5.571686485586645
+  - datapoints_seen: 112640
+    epoch: 1
+    train_loss: 5.571814170750705
+  - datapoints_seen: 113152
+    epoch: 1
+    train_loss: 5.571702221400058
+  - datapoints_seen: 113664
+    epoch: 1
+    train_loss: 5.5713634984987275
+  - datapoints_seen: 114176
+    epoch: 1
+    train_loss: 5.570738392560472
+  - datapoints_seen: 114688
+    epoch: 1
+    train_loss: 5.570139695491109
+  - datapoints_seen: 115200
+    epoch: 1
+    train_loss: 5.569780788421631
+  - datapoints_seen: 115712
+    epoch: 1
+    train_loss: 5.570068061879251
+  - datapoints_seen: 116224
+    epoch: 1
+    train_loss: 5.569895250681738
+  - datapoints_seen: 116736
+    epoch: 1
+    train_loss: 5.56972903326938
+  - datapoints_seen: 117248
+    epoch: 1
+    train_loss: 5.569641127857058
+  - datapoints_seen: 117760
+    epoch: 1
+    train_loss: 5.569804355372553
+  - datapoints_seen: 118272
+    epoch: 1
+    train_loss: 5.5694514332395615
+  - datapoints_seen: 118784
+    epoch: 1
+    train_loss: 5.569416586695047
+  - datapoints_seen: 119296
+    epoch: 1
+    train_loss: 5.569273656018302
+  - datapoints_seen: 119808
+    epoch: 1
+    train_loss: 5.569537413425935
+  - datapoints_seen: 120320
+    epoch: 1
+    train_loss: 5.569240714134054
+  - datapoints_seen: 120832
+    epoch: 1
+    train_loss: 5.569177415411351
+  - datapoints_seen: 121344
+    epoch: 1
+    train_loss: 5.568778571197252
+  - datapoints_seen: 121856
+    epoch: 1
+    train_loss: 5.568201632058921
+  - datapoints_seen: 122368
+    epoch: 1
+    train_loss: 5.568486439134286
+  - datapoints_seen: 122880
+    epoch: 1
+    train_loss: 5.5680598556995395
+  - datapoints_seen: 123392
+    epoch: 1
+    train_loss: 5.567902155436916
+  - datapoints_seen: 123904
+    epoch: 1
+    train_loss: 5.567452933177475
+  - datapoints_seen: 124416
+    epoch: 1
+    train_loss: 5.567325503737838
+  - datapoints_seen: 124928
+    epoch: 1
+    train_loss: 5.567214729355984
+  - datapoints_seen: 125440
+    epoch: 1
+    train_loss: 5.567410727909633
+  - datapoints_seen: 125952
+    epoch: 1
+    train_loss: 5.567050265102852
+  - datapoints_seen: 126464
+    epoch: 1
+    train_loss: 5.567280941163963
+  - datapoints_seen: 126976
+    epoch: 1
+    train_loss: 5.566891299140069
+  - datapoints_seen: 127488
+    epoch: 1
+    train_loss: 5.566520957104173
+  - datapoints_seen: 128000
+    epoch: 1
+    train_loss: 5.56646315574646
+  - datapoints_seen: 128512
+    epoch: 1
+    train_loss: 5.56667443955562
+  - datapoints_seen: 129024
+    epoch: 1
+    train_loss: 5.5669036271080135
+  - datapoints_seen: 129536
+    epoch: 1
+    train_loss: 5.566493300109984
+  - datapoints_seen: 130048
+    epoch: 1
+    train_loss: 5.5662067950241205
+  - datapoints_seen: 130560
+    epoch: 1
+    train_loss: 5.565800668679032
+  - datapoints_seen: 131072
+    epoch: 1
+    train_loss: 5.565819693729281
+  - datapoints_seen: 131584
+    epoch: 1
+    train_loss: 5.565320508489349
+  - datapoints_seen: 132096
+    epoch: 1
+    train_loss: 5.565583746562632
+  - datapoints_seen: 132608
+    epoch: 1
+    train_loss: 5.5654665438825095
+  - datapoints_seen: 133120
+    epoch: 1
+    train_loss: 5.565242457389831
+  - datapoints_seen: 133632
+    epoch: 1
+    train_loss: 5.565614347713661
+  - datapoints_seen: 134144
+    epoch: 1
+    train_loss: 5.56582591187863
+  - datapoints_seen: 134656
+    epoch: 1
+    train_loss: 5.566015546312803
+  - datapoints_seen: 135168
+    epoch: 1
+    train_loss: 5.565377186645161
+  - datapoints_seen: 135680
+    epoch: 1
+    train_loss: 5.5645568937625525
+  - datapoints_seen: 136192
+    epoch: 1
+    train_loss: 5.564441632507439
+  - datapoints_seen: 136704
+    epoch: 1
+    train_loss: 5.564627195565442
+  - datapoints_seen: 137216
+    epoch: 1
+    train_loss: 5.564497479751928
+  - datapoints_seen: 137728
+    epoch: 1
+    train_loss: 5.564074748510765
+  - datapoints_seen: 138240
+    epoch: 1
+    train_loss: 5.563441928227743
+  - datapoints_seen: 138752
+    epoch: 1
+    train_loss: 5.5637223588584535
+  - datapoints_seen: 139264
+    epoch: 1
+    train_loss: 5.5634194489787605
+  - datapoints_seen: 139776
+    epoch: 1
+    train_loss: 5.563140556489155
+  - datapoints_seen: 140288
+    epoch: 1
+    train_loss: 5.56306856566102
+  - datapoints_seen: 140800
+    epoch: 1
+    train_loss: 5.5629238215359775
+  - datapoints_seen: 141312
+    epoch: 1
+    train_loss: 5.562761384507884
+  - datapoints_seen: 141824
+    epoch: 1
+    train_loss: 5.562356805973535
+  - datapoints_seen: 142336
+    epoch: 1
+    train_loss: 5.561860810080878
+  - datapoints_seen: 142848
+    epoch: 1
+    train_loss: 5.561863632612331
+  - datapoints_seen: 143360
+    epoch: 1
+    train_loss: 5.561495832034519
+  - datapoints_seen: 143872
+    epoch: 1
+    train_loss: 5.561616826311973
+  - datapoints_seen: 144384
+    epoch: 1
+    train_loss: 5.561676786300984
+  - datapoints_seen: 144896
+    epoch: 1
+    train_loss: 5.561714108335677
+  - datapoints_seen: 145408
+    epoch: 1
+    train_loss: 5.561733000715014
+  - datapoints_seen: 145920
+    epoch: 1
+    train_loss: 5.561297343070047
+  - datapoints_seen: 146432
+    epoch: 1
+    train_loss: 5.560877503215016
+  - datapoints_seen: 146944
+    epoch: 1
+    train_loss: 5.561145141149647
+  - datapoints_seen: 147456
+    epoch: 1
+    train_loss: 5.5605010489622755
+  - datapoints_seen: 147968
+    epoch: 1
+    train_loss: 5.5600036139306726
+  - datapoints_seen: 148480
+    epoch: 1
+    train_loss: 5.560057327665132
+  - datapoints_seen: 148992
+    epoch: 1
+    train_loss: 5.5599034004604695
+  - datapoints_seen: 149504
+    epoch: 1
+    train_loss: 5.55961662122648
+  - datapoints_seen: 150016
+    epoch: 1
+    train_loss: 5.559590997142596
+  - datapoints_seen: 150528
+    epoch: 1
+    train_loss: 5.559513276937056
+  - datapoints_seen: 151040
+    epoch: 1
+    train_loss: 5.559302459328862
+  - datapoints_seen: 151552
+    epoch: 1
+    train_loss: 5.55864391133592
+  - datapoints_seen: 152064
+    epoch: 1
+    train_loss: 5.558076882603193
+  - datapoints_seen: 152576
+    epoch: 1
+    train_loss: 5.558027093042464
+  - datapoints_seen: 153088
+    epoch: 1
+    train_loss: 5.55802293924185
+  - datapoints_seen: 153600
+    epoch: 1
+    train_loss: 5.557877556482951
+  - datapoints_seen: 154112
+    epoch: 1
+    train_loss: 5.557929970497309
+  - datapoints_seen: 154624
+    epoch: 1
+    train_loss: 5.557966829135718
+  - datapoints_seen: 155136
+    epoch: 1
+    train_loss: 5.557830033129198
+  - datapoints_seen: 155648
+    epoch: 1
+    train_loss: 5.557654484322197
+  - datapoints_seen: 156160
+    epoch: 1
+    train_loss: 5.557470381064493
+  - datapoints_seen: 156672
+    epoch: 1
+    train_loss: 5.557489360859192
+  - datapoints_seen: 157184
+    epoch: 1
+    train_loss: 5.557442683738683
+  - datapoints_seen: 157696
+    epoch: 1
+    train_loss: 5.55773544621158
+  - datapoints_seen: 158208
+    epoch: 1
+    train_loss: 5.55767967014251
+  - datapoints_seen: 158720
+    epoch: 1
+    train_loss: 5.557615766217632
+  - datapoints_seen: 159232
+    epoch: 1
+    train_loss: 5.5571895795619755
+  - datapoints_seen: 159744
+    epoch: 1
+    train_loss: 5.5569469806475515
+  - datapoints_seen: 160256
+    epoch: 1
+    train_loss: 5.556939594280986
+  - datapoints_seen: 160768
+    epoch: 1
+    train_loss: 5.5567670901110215
+  - datapoints_seen: 161280
+    epoch: 1
+    train_loss: 5.556280647762238
+  - datapoints_seen: 161792
+    epoch: 1
+    train_loss: 5.555527213253552
+  - datapoints_seen: 162304
+    epoch: 1
+    train_loss: 5.555166999624355
+  - datapoints_seen: 162816
+    epoch: 1
+    train_loss: 5.554872281896244
+  - datapoints_seen: 163328
+    epoch: 1
+    train_loss: 5.554413879179282
+  - datapoints_seen: 163840
+    epoch: 1
+    train_loss: 5.553893479704857
+  - datapoints_seen: 164352
+    epoch: 1
+    train_loss: 5.553763853055295
+  - datapoints_seen: 164864
+    epoch: 1
+    train_loss: 5.553294054469707
+  - datapoints_seen: 165376
+    epoch: 1
+    train_loss: 5.5531376079878205
+  - datapoints_seen: 165888
+    epoch: 1
+    train_loss: 5.552879283457626
+  - datapoints_seen: 166400
+    epoch: 1
+    train_loss: 5.552851911691519
+  - datapoints_seen: 166912
+    epoch: 1
+    train_loss: 5.552621586922488
+  - datapoints_seen: 167424
+    epoch: 1
+    train_loss: 5.552413593373896
+  - datapoints_seen: 167936
+    epoch: 1
+    train_loss: 5.552064706639546
+  - datapoints_seen: 168448
+    epoch: 1
+    train_loss: 5.552268193485527
+  - datapoints_seen: 168960
+    epoch: 1
+    train_loss: 5.552084356365782
+  - datapoints_seen: 169472
+    epoch: 1
+    train_loss: 5.552214585042072
+  - datapoints_seen: 169984
+    epoch: 1
+    train_loss: 5.552358541143946
+  - datapoints_seen: 170496
+    epoch: 1
+    train_loss: 5.552189795462577
+  - datapoints_seen: 171008
+    epoch: 1
+    train_loss: 5.551828470058783
+  - datapoints_seen: 171520
+    epoch: 1
+    train_loss: 5.5516793094464205
+  - datapoints_seen: 172032
+    epoch: 1
+    train_loss: 5.5516448702131
+  - datapoints_seen: 172544
+    epoch: 1
+    train_loss: 5.551690925122722
+  - datapoints_seen: 173056
+    epoch: 1
+    train_loss: 5.551588002041247
+  - datapoints_seen: 173568
+    epoch: 1
+    train_loss: 5.551371256510417
+  - datapoints_seen: 174080
+    epoch: 1
+    train_loss: 5.550787600348977
+  - datapoints_seen: 174592
+    epoch: 1
+    train_loss: 5.5507387345837005
+  - datapoints_seen: 175104
+    epoch: 1
+    train_loss: 5.550163996847052
+  - datapoints_seen: 175616
+    epoch: 1
+    train_loss: 5.550253256416877
+  - datapoints_seen: 176128
+    epoch: 1
+    train_loss: 5.549823919007944
+  - datapoints_seen: 176640
+    epoch: 1
+    train_loss: 5.550095945164777
+  - datapoints_seen: 177152
+    epoch: 1
+    train_loss: 5.550185333097601
+  - datapoints_seen: 177664
+    epoch: 1
+    train_loss: 5.549897034504915
+  - datapoints_seen: 178176
+    epoch: 1
+    train_loss: 5.549613045549941
+  - datapoints_seen: 178688
+    epoch: 1
+    train_loss: 5.549262533215192
+  - datapoints_seen: 179200
+    epoch: 1
+    train_loss: 5.549239373888288
+  - datapoints_seen: 179712
+    epoch: 1
+    train_loss: 5.549303997615803
+  - datapoints_seen: 180224
+    epoch: 1
+    train_loss: 5.548978239297867
+  - datapoints_seen: 180736
+    epoch: 1
+    train_loss: 5.5488934530414875
+  - datapoints_seen: 181248
+    epoch: 1
+    train_loss: 5.54873933361075
+  - datapoints_seen: 181760
+    epoch: 1
+    train_loss: 5.548366624536649
+  - datapoints_seen: 182272
+    epoch: 1
+    train_loss: 5.548161069998581
+  - datapoints_seen: 182784
+    epoch: 1
+    train_loss: 5.547946943288424
+  - datapoints_seen: 183296
+    epoch: 1
+    train_loss: 5.547814792760923
+  - datapoints_seen: 183808
+    epoch: 1
+    train_loss: 5.548158037297241
+  - datapoints_seen: 184320
+    epoch: 1
+    train_loss: 5.547860338952806
+  - datapoints_seen: 184832
+    epoch: 1
+    train_loss: 5.54776688625938
+  - datapoints_seen: 185344
+    epoch: 1
+    train_loss: 5.547610570054028
+  - datapoints_seen: 185856
+    epoch: 1
+    train_loss: 5.547313256697222
+  - datapoints_seen: 186368
+    epoch: 1
+    train_loss: 5.546940140671783
+  - datapoints_seen: 186880
+    epoch: 1
+    train_loss: 5.546693229675293
+  - datapoints_seen: 187392
+    epoch: 1
+    train_loss: 5.546631969389368
+  - datapoints_seen: 187904
+    epoch: 1
+    train_loss: 5.546170949286271
+  - datapoints_seen: 188416
+    epoch: 1
+    train_loss: 5.545689619105795
+  - datapoints_seen: 188928
+    epoch: 1
+    train_loss: 5.545575082463624
+  - datapoints_seen: 189440
+    epoch: 1
+    train_loss: 5.545336934682485
+  - datapoints_seen: 189952
+    epoch: 1
+    train_loss: 5.545515569393847
+  - datapoints_seen: 190464
+    epoch: 1
+    train_loss: 5.5452464883045485
+  - datapoints_seen: 190976
+    epoch: 1
+    train_loss: 5.54493449009136
+  - datapoints_seen: 191488
+    epoch: 1
+    train_loss: 5.544937602976427
+  - datapoints_seen: 192000
+    epoch: 1
+    train_loss: 5.544598846435547
+  - datapoints_seen: 192512
+    epoch: 1
+    train_loss: 5.544246830838792
+  - datapoints_seen: 193024
+    epoch: 1
+    train_loss: 5.54440109799332
+  - datapoints_seen: 193536
+    epoch: 1
+    train_loss: 5.543978640642115
+  - datapoints_seen: 194048
+    epoch: 1
+    train_loss: 5.543783218061704
+  - datapoints_seen: 194560
+    epoch: 1
+    train_loss: 5.543311490510639
+  - datapoints_seen: 195072
+    epoch: 1
+    train_loss: 5.543341894475181
+  - datapoints_seen: 195584
+    epoch: 1
+    train_loss: 5.543061031721026
+  - datapoints_seen: 196096
+    epoch: 1
+    train_loss: 5.542748125041434
+  - datapoints_seen: 196608
+    epoch: 1
+    train_loss: 5.5425259818633394
+  - datapoints_seen: 197120
+    epoch: 1
+    train_loss: 5.542162491439225
+  - datapoints_seen: 197632
+    epoch: 1
+    train_loss: 5.541971898449518
+  - datapoints_seen: 198144
+    epoch: 1
+    train_loss: 5.541789017906485
+  - datapoints_seen: 198656
+    epoch: 1
+    train_loss: 5.541905388389666
+  - datapoints_seen: 199168
+    epoch: 1
+    train_loss: 5.541472187385461
+  - datapoints_seen: 199680
+    epoch: 1
+    train_loss: 5.5414842899029075
+  - datapoints_seen: 200192
+    epoch: 1
+    train_loss: 5.5413046492944895
+  - datapoints_seen: 200704
+    epoch: 1
+    train_loss: 5.541046380996704
+  - datapoints_seen: 201216
+    epoch: 1
+    train_loss: 5.540703538113271
+  - datapoints_seen: 201728
+    epoch: 1
+    train_loss: 5.540456002133752
+  - datapoints_seen: 202240
+    epoch: 1
+    train_loss: 5.540341283098051
+  - datapoints_seen: 202752
+    epoch: 1
+    train_loss: 5.540327192556979
+  - datapoints_seen: 203264
+    epoch: 1
+    train_loss: 5.5402461996006425
+  - datapoints_seen: 203776
+    epoch: 1
+    train_loss: 5.53991979570245
+  - datapoints_seen: 204288
+    epoch: 1
+    train_loss: 5.540088060804477
+  - datapoints_seen: 204800
+    epoch: 1
+    train_loss: 5.540045700073242
+  - datapoints_seen: 205312
+    epoch: 1
+    train_loss: 5.539921334854088
+  - datapoints_seen: 205824
+    epoch: 1
+    train_loss: 5.53973297100162
+  - datapoints_seen: 206336
+    epoch: 1
+    train_loss: 5.539588847763781
+  - datapoints_seen: 206848
+    epoch: 1
+    train_loss: 5.539566035317902
+  - datapoints_seen: 207360
+    epoch: 1
+    train_loss: 5.5395192982238015
+  - datapoints_seen: 207872
+    epoch: 1
+    train_loss: 5.53879388330018
+  - datapoints_seen: 208384
+    epoch: 1
+    train_loss: 5.538865335450418
+  - datapoints_seen: 208896
+    epoch: 1
+    train_loss: 5.538814483904371
+  - datapoints_seen: 209408
+    epoch: 1
+    train_loss: 5.538845673167035
+  - datapoints_seen: 209920
+    epoch: 1
+    train_loss: 5.538777877063286
+  - datapoints_seen: 210432
+    epoch: 1
+    train_loss: 5.538645881225883
+  - datapoints_seen: 210944
+    epoch: 1
+    train_loss: 5.538110205270712
+  - datapoints_seen: 211456
+    epoch: 1
+    train_loss: 5.537877764020648
+  - datapoints_seen: 211968
+    epoch: 1
+    train_loss: 5.537835712018221
+  - datapoints_seen: 212480
+    epoch: 1
+    train_loss: 5.537464965682432
+  - datapoints_seen: 212992
+    epoch: 1
+    train_loss: 5.537207343257391
+  - datapoints_seen: 213504
+    epoch: 1
+    train_loss: 5.537369363313671
+  - datapoints_seen: 214016
+    epoch: 1
+    train_loss: 5.5369488325986
+  - datapoints_seen: 214528
+    epoch: 1
+    train_loss: 5.5363787591884135
+  - datapoints_seen: 215040
+    epoch: 1
+    train_loss: 5.536237420354571
+  - datapoints_seen: 215552
+    epoch: 1
+    train_loss: 5.536216879683832
+  - datapoints_seen: 216064
+    epoch: 1
+    train_loss: 5.536385797211344
+  - datapoints_seen: 216576
+    epoch: 1
+    train_loss: 5.5361591850894
+  - datapoints_seen: 217088
+    epoch: 1
+    train_loss: 5.535941892075089
+  - datapoints_seen: 217600
+    epoch: 1
+    train_loss: 5.53583620744593
+  - datapoints_seen: 218112
+    epoch: 1
+    train_loss: 5.535470670377705
+  - datapoints_seen: 218624
+    epoch: 1
+    train_loss: 5.53542714152459
+  - datapoints_seen: 219136
+    epoch: 1
+    train_loss: 5.5351366785085085
+  - datapoints_seen: 219648
+    epoch: 1
+    train_loss: 5.535083385058494
+  - datapoints_seen: 220160
+    epoch: 1
+    train_loss: 5.535153962290564
+  - datapoints_seen: 220672
+    epoch: 1
+    train_loss: 5.534952611768329
+  - datapoints_seen: 221184
+    epoch: 1
+    train_loss: 5.535083966122733
+  - datapoints_seen: 221696
+    epoch: 1
+    train_loss: 5.534981021704905
+  - datapoints_seen: 222208
+    epoch: 1
+    train_loss: 5.534658951693416
+  - datapoints_seen: 222720
+    epoch: 1
+    train_loss: 5.534469250426896
+  - datapoints_seen: 223232
+    epoch: 1
+    train_loss: 5.534661578475882
+  - datapoints_seen: 223744
+    epoch: 1
+    train_loss: 5.534455106242025
+  - datapoints_seen: 224256
+    epoch: 1
+    train_loss: 5.5342029643385375
+  - datapoints_seen: 224768
+    epoch: 1
+    train_loss: 5.534018945585351
+  - datapoints_seen: 225280
+    epoch: 1
+    train_loss: 5.533998741886832
+  - datapoints_seen: 225792
+    epoch: 1
+    train_loss: 5.53384745526476
+  - datapoints_seen: 226304
+    epoch: 1
+    train_loss: 5.5335217654974755
+  - datapoints_seen: 226816
+    epoch: 1
+    train_loss: 5.533512232804137
+  - datapoints_seen: 227328
+    epoch: 1
+    train_loss: 5.533364743799777
+  - datapoints_seen: 227840
+    epoch: 1
+    train_loss: 5.533207155077645
+  - datapoints_seen: 228352
+    epoch: 1
+    train_loss: 5.53311148245773
+  - datapoints_seen: 228864
+    epoch: 1
+    train_loss: 5.532743321702518
+  - datapoints_seen: 229376
+    epoch: 1
+    train_loss: 5.532631158828735
+  - datapoints_seen: 229888
+    epoch: 1
+    train_loss: 5.532723212295227
+  - datapoints_seen: 230400
+    epoch: 1
+    train_loss: 5.5323040983412
+  - datapoints_seen: 230912
+    epoch: 1
+    train_loss: 5.531985213116902
+  - datapoints_seen: 231424
+    epoch: 1
+    train_loss: 5.5319392449032945
+  - datapoints_seen: 231936
+    epoch: 1
+    train_loss: 5.531400701594405
+  - datapoints_seen: 232448
+    epoch: 1
+    train_loss: 5.531144579076557
+  - datapoints_seen: 232960
+    epoch: 1
+    train_loss: 5.53097536275675
+  - datapoints_seen: 233472
+    epoch: 1
+    train_loss: 5.530706861562896
+  - datapoints_seen: 233984
+    epoch: 1
+    train_loss: 5.530486872733552
+  - datapoints_seen: 234496
+    epoch: 1
+    train_loss: 5.530341656447498
+  - datapoints_seen: 235008
+    epoch: 1
+    train_loss: 5.530330832487618
+  - datapoints_seen: 235520
+    epoch: 1
+    train_loss: 5.530258402617082
+  - datapoints_seen: 236032
+    epoch: 1
+    train_loss: 5.530219684195363
+  - datapoints_seen: 236544
+    epoch: 1
+    train_loss: 5.530214850520675
+  - datapoints_seen: 237056
+    epoch: 1
+    train_loss: 5.5298658951827315
+  - datapoints_seen: 237568
+    epoch: 1
+    train_loss: 5.529940913463461
+  - datapoints_seen: 238080
+    epoch: 1
+    train_loss: 5.529855592789189
+  - datapoints_seen: 238592
+    epoch: 1
+    train_loss: 5.529661804821358
+  - datapoints_seen: 239104
+    epoch: 1
+    train_loss: 5.529683952413228
+  - datapoints_seen: 239616
+    epoch: 1
+    train_loss: 5.529677268786308
+  - datapoints_seen: 240128
+    epoch: 1
+    train_loss: 5.529563135175563
+  - datapoints_seen: 240640
+    epoch: 1
+    train_loss: 5.529395655368237
+  - datapoints_seen: 241152
+    epoch: 1
+    train_loss: 5.529319508060528
+  - datapoints_seen: 241664
+    epoch: 1
+    train_loss: 5.528803392992181
+  - datapoints_seen: 242176
+    epoch: 1
+    train_loss: 5.528489969749532
+  - datapoints_seen: 242688
+    epoch: 1
+    train_loss: 5.5280931730310625
+  - datapoints_seen: 243200
+    epoch: 1
+    train_loss: 5.5279647064208985
+  - datapoints_seen: 243712
+    epoch: 1
+    train_loss: 5.527785814108968
+  - datapoints_seen: 244224
+    epoch: 1
+    train_loss: 5.527513987863089
+  - datapoints_seen: 244736
+    epoch: 1
+    train_loss: 5.527311835827688
+  - datapoints_seen: 245248
+    epoch: 1
+    train_loss: 5.527165096338706
+  - datapoints_seen: 245760
+    epoch: 1
+    train_loss: 5.527072517077128
+  - datapoints_seen: 246272
+    epoch: 1
+    train_loss: 5.526872147145737
+  - datapoints_seen: 246784
+    epoch: 1
+    train_loss: 5.526800298097223
+  - datapoints_seen: 247296
+    epoch: 1
+    train_loss: 5.526423855104309
+  - datapoints_seen: 247808
+    epoch: 1
+    train_loss: 5.526455548183977
+  - datapoints_seen: 248320
+    epoch: 1
+    train_loss: 5.5261625270253605
+  - datapoints_seen: 248832
+    epoch: 1
+    train_loss: 5.526027279135621
+  - datapoints_seen: 249344
+    epoch: 1
+    train_loss: 5.526073197319767
+  - datapoints_seen: 249856
+    epoch: 1
+    train_loss: 5.525977685803273
+  - datapoints_seen: 250368
+    epoch: 1
+    train_loss: 5.5257354689522025
+  - datapoints_seen: 250880
+    epoch: 1
+    train_loss: 5.525718264677087
+  - datapoints_seen: 251392
+    epoch: 1
+    train_loss: 5.5253763354237355
+  - datapoints_seen: 251904
+    epoch: 1
+    train_loss: 5.525559148168176
+  - datapoints_seen: 252416
+    epoch: 1
+    train_loss: 5.525346665063204
+  - datapoints_seen: 252928
+    epoch: 1
+    train_loss: 5.5249425911227705
+  - datapoints_seen: 253440
+    epoch: 1
+    train_loss: 5.5247374178183195
+  - datapoints_seen: 253952
+    epoch: 1
+    train_loss: 5.524491210137644
+  - datapoints_seen: 254464
+    epoch: 1
+    train_loss: 5.524323119963679
+  - datapoints_seen: 254976
+    epoch: 1
+    train_loss: 5.523945184117819
+  - datapoints_seen: 255488
+    epoch: 1
+    train_loss: 5.523744254408475
+  - datapoints_seen: 256000
+    epoch: 1
+    train_loss: 5.523751636505127
+  - datapoints_seen: 256512
+    epoch: 1
+    train_loss: 5.523694139278815
+  - datapoints_seen: 257024
+    epoch: 1
+    train_loss: 5.52340846042709
+  - datapoints_seen: 257536
+    epoch: 1
+    train_loss: 5.523399891483618
+  - datapoints_seen: 258048
+    epoch: 1
+    train_loss: 5.523096890676589
+  - datapoints_seen: 258560
+    epoch: 1
+    train_loss: 5.522649051175259
+  - datapoints_seen: 259072
+    epoch: 1
+    train_loss: 5.522469984212883
+  - datapoints_seen: 259584
+    epoch: 1
+    train_loss: 5.522338972524308
+  - datapoints_seen: 260096
+    epoch: 1
+    train_loss: 5.522265558167706
+  - datapoints_seen: 260608
+    epoch: 1
+    train_loss: 5.521761116672359
+  - datapoints_seen: 261120
+    epoch: 1
+    train_loss: 5.521542818406049
+  - datapoints_seen: 261632
+    epoch: 1
+    train_loss: 5.521450053922351
+  - datapoints_seen: 262144
+    epoch: 1
+    train_loss: 5.52131786569953
+  - datapoints_seen: 262656
+    epoch: 1
+    train_loss: 5.520799800434076
+  - datapoints_seen: 263168
+    epoch: 1
+    train_loss: 5.520557971316089
+  - datapoints_seen: 263680
+    epoch: 1
+    train_loss: 5.5203352511507795
+  - datapoints_seen: 264192
+    epoch: 1
+    train_loss: 5.520362026007601
+  - datapoints_seen: 264704
+    epoch: 1
+    train_loss: 5.520259381262892
+  - datapoints_seen: 265216
+    epoch: 1
+    train_loss: 5.520042559354922
+  - datapoints_seen: 265728
+    epoch: 1
+    train_loss: 5.519692088367852
+  - datapoints_seen: 266240
+    epoch: 1
+    train_loss: 5.519243561304533
+  - datapoints_seen: 266752
+    epoch: 1
+    train_loss: 5.519095710051494
+  - datapoints_seen: 267264
+    epoch: 1
+    train_loss: 5.51899986888257
+  - datapoints_seen: 267776
+    epoch: 1
+    train_loss: 5.5188957436818695
+  - datapoints_seen: 268288
+    epoch: 1
+    train_loss: 5.518697558468535
+  - datapoints_seen: 268800
+    epoch: 1
+    train_loss: 5.518396052405948
+  - datapoints_seen: 269312
+    epoch: 1
+    train_loss: 5.5183651873367365
+  - datapoints_seen: 269824
+    epoch: 1
+    train_loss: 5.518208579727549
+  - datapoints_seen: 270336
+    epoch: 1
+    train_loss: 5.518084907170498
+  - datapoints_seen: 270848
+    epoch: 1
+    train_loss: 5.51779181114442
+  - datapoints_seen: 271360
+    epoch: 1
+    train_loss: 5.517479750795184
+  - datapoints_seen: 271872
+    epoch: 1
+    train_loss: 5.517556953789375
+  - datapoints_seen: 272384
+    epoch: 1
+    train_loss: 5.517688751220703
+  - datapoints_seen: 272896
+    epoch: 1
+    train_loss: 5.517672053868507
+  - datapoints_seen: 273408
+    epoch: 1
+    train_loss: 5.517764112922583
+  - datapoints_seen: 273920
+    epoch: 1
+    train_loss: 5.517708452171254
+  - datapoints_seen: 274432
+    epoch: 1
+    train_loss: 5.5176869186002815
+  - datapoints_seen: 274944
+    epoch: 1
+    train_loss: 5.517227520933808
+  - datapoints_seen: 275456
+    epoch: 1
+    train_loss: 5.517064218627476
+  - datapoints_seen: 275968
+    epoch: 1
+    train_loss: 5.516825677733696
+  - datapoints_seen: 276480
+    epoch: 1
+    train_loss: 5.516844184310348
+  - datapoints_seen: 276992
+    epoch: 1
+    train_loss: 5.51666096177868
+  - datapoints_seen: 277504
+    epoch: 1
+    train_loss: 5.516571794488773
+  - datapoints_seen: 278016
+    epoch: 1
+    train_loss: 5.51656672792101
+  - datapoints_seen: 278528
+    epoch: 1
+    train_loss: 5.516639895298901
+  - datapoints_seen: 279040
+    epoch: 1
+    train_loss: 5.516685667825401
+  - datapoints_seen: 279552
+    epoch: 1
+    train_loss: 5.516327120882251
+  - datapoints_seen: 280064
+    epoch: 1
+    train_loss: 5.516255150329478
+  - datapoints_seen: 280576
+    epoch: 1
+    train_loss: 5.516204840945502
+  - datapoints_seen: 281088
+    epoch: 1
+    train_loss: 5.516038477746515
+  - datapoints_seen: 281600
+    epoch: 1
+    train_loss: 5.515977526578037
+  - datapoints_seen: 282112
+    epoch: 1
+    train_loss: 5.515755066637984
+  - datapoints_seen: 282624
+    epoch: 1
+    train_loss: 5.51559699445531
+  - datapoints_seen: 283136
+    epoch: 1
+    train_loss: 5.515171545970289
+  - datapoints_seen: 283648
+    epoch: 1
+    train_loss: 5.514980438383908
+  - datapoints_seen: 284160
+    epoch: 1
+    train_loss: 5.514877236855996
+  - datapoints_seen: 284672
+    epoch: 1
+    train_loss: 5.514857460268967
+  - datapoints_seen: 285184
+    epoch: 1
+    train_loss: 5.514621429854278
+  - datapoints_seen: 285696
+    epoch: 1
+    train_loss: 5.514524921294181
+  - datapoints_seen: 286208
+    epoch: 1
+    train_loss: 5.514419559076135
+  - datapoints_seen: 286720
+    epoch: 1
+    train_loss: 5.514094322068351
+  - datapoints_seen: 287232
+    epoch: 1
+    train_loss: 5.513677801040405
+  - datapoints_seen: 287744
+    epoch: 1
+    train_loss: 5.513449281984377
+  - datapoints_seen: 288256
+    epoch: 1
+    train_loss: 5.51300822608636
+  - datapoints_seen: 288768
+    epoch: 1
+    train_loss: 5.513324766294331
+  - datapoints_seen: 289280
+    epoch: 1
+    train_loss: 5.513077492840522
+  - datapoints_seen: 289792
+    epoch: 1
+    train_loss: 5.512806766024748
+  - datapoints_seen: 290304
+    epoch: 1
+    train_loss: 5.512488654471369
+  - datapoints_seen: 290816
+    epoch: 1
+    train_loss: 5.512201697054044
+  - datapoints_seen: 291328
+    epoch: 1
+    train_loss: 5.511691123613783
+  - datapoints_seen: 291840
+    epoch: 1
+    train_loss: 5.511482665413304
+  - datapoints_seen: 292352
+    epoch: 1
+    train_loss: 5.511214680513024
+  - datapoints_seen: 292864
+    epoch: 1
+    train_loss: 5.511043930387164
+  - datapoints_seen: 293376
+    epoch: 1
+    train_loss: 5.51096040249703
+  - datapoints_seen: 293888
+    epoch: 1
+    train_loss: 5.510927201978836
+  - datapoints_seen: 294400
+    epoch: 1
+    train_loss: 5.51089901799741
+  - datapoints_seen: 294912
+    epoch: 1
+    train_loss: 5.510755168067084
+  - datapoints_seen: 295424
+    epoch: 1
+    train_loss: 5.510429703796757
+  - datapoints_seen: 295936
+    epoch: 1
+    train_loss: 5.510330158121445
+  - datapoints_seen: 296448
+    epoch: 1
+    train_loss: 5.510281967169674
+  - datapoints_seen: 296960
+    epoch: 1
+    train_loss: 5.510458868125389
+  - datapoints_seen: 297472
+    epoch: 1
+    train_loss: 5.510369620101588
+  - datapoints_seen: 297984
+    epoch: 1
+    train_loss: 5.510110631431501
+  - datapoints_seen: 298496
+    epoch: 1
+    train_loss: 5.5100313279886395
+  - datapoints_seen: 299008
+    epoch: 1
+    train_loss: 5.509766182670854
+  - datapoints_seen: 299520
+    epoch: 1
+    train_loss: 5.509617382440812
+  - datapoints_seen: 300032
+    epoch: 1
+    train_loss: 5.5095284961596285
+  - datapoints_seen: 300544
+    epoch: 1
+    train_loss: 5.509347981448068
+  - datapoints_seen: 301056
+    epoch: 1
+    train_loss: 5.509367920914475
+  - datapoints_seen: 301568
+    epoch: 1
+    train_loss: 5.509256182380767
+  - datapoints_seen: 302080
+    epoch: 1
+    train_loss: 5.509166618120872
+  - datapoints_seen: 302592
+    epoch: 1
+    train_loss: 5.508984464880981
+  - datapoints_seen: 303104
+    epoch: 1
+    train_loss: 5.508713690815745
+  - datapoints_seen: 303616
+    epoch: 1
+    train_loss: 5.508529811846265
+  - datapoints_seen: 304128
+    epoch: 1
+    train_loss: 5.508390661843297
+  - datapoints_seen: 304640
+    epoch: 1
+    train_loss: 5.508011627998672
+  - datapoints_seen: 305152
+    epoch: 1
+    train_loss: 5.5080413570340045
+  - datapoints_seen: 305664
+    epoch: 1
+    train_loss: 5.5078380854684905
+  - datapoints_seen: 306176
+    epoch: 1
+    train_loss: 5.507627338071332
+  - datapoints_seen: 306688
+    epoch: 1
+    train_loss: 5.507466175321347
+  - datapoints_seen: 307200
+    epoch: 1
+    train_loss: 5.507171256542206
+  - datapoints_seen: 307712
+    epoch: 1
+    train_loss: 5.507208674203933
+  - datapoints_seen: 308224
+    epoch: 1
+    train_loss: 5.506898408712343
+  - datapoints_seen: 308736
+    epoch: 1
+    train_loss: 5.506797724893041
+  - datapoints_seen: 309248
+    epoch: 1
+    train_loss: 5.507106507061333
+  - datapoints_seen: 309760
+    epoch: 1
+    train_loss: 5.507052304133896
+  - datapoints_seen: 310272
+    epoch: 1
+    train_loss: 5.506869571830573
+  - datapoints_seen: 310784
+    epoch: 1
+    train_loss: 5.50677771230506
+  - datapoints_seen: 311296
+    epoch: 1
+    train_loss: 5.506544744497852
+  - datapoints_seen: 311808
+    epoch: 1
+    train_loss: 5.506314806163018
+  - datapoints_seen: 312320
+    epoch: 1
+    train_loss: 5.505987999869174
+  - datapoints_seen: 312832
+    epoch: 1
+    train_loss: 5.505703391498122
+  - datapoints_seen: 313344
+    epoch: 1
+    train_loss: 5.505815668822893
+  - datapoints_seen: 313856
+    epoch: 1
+    train_loss: 5.505594120523474
+  - datapoints_seen: 314368
+    epoch: 1
+    train_loss: 5.505304762905506
+  - datapoints_seen: 314880
+    epoch: 1
+    train_loss: 5.505306319104947
+  - datapoints_seen: 315392
+    epoch: 1
+    train_loss: 5.504900197704117
+  - datapoints_seen: 315904
+    epoch: 1
+    train_loss: 5.505071665518095
+  - datapoints_seen: 316416
+    epoch: 1
+    train_loss: 5.505095707945839
+  - datapoints_seen: 316928
+    epoch: 1
+    train_loss: 5.504602090992719
+  - datapoints_seen: 317440
+    epoch: 1
+    train_loss: 5.504534694456285
+  - datapoints_seen: 317952
+    epoch: 1
+    train_loss: 5.504370244804788
+  - datapoints_seen: 318464
+    epoch: 1
+    train_loss: 5.504346754773254
+  - datapoints_seen: 318976
+    epoch: 1
+    train_loss: 5.504432761650024
+  - datapoints_seen: 319488
+    epoch: 1
+    train_loss: 5.5041790107886
+  - datapoints_seen: 320000
+    epoch: 1
+    train_loss: 5.503931745147705
+  - datapoints_seen: 320512
+    epoch: 1
+    train_loss: 5.50357950609713
+  - datapoints_seen: 321024
+    epoch: 1
+    train_loss: 5.503172995371111
+  - datapoints_seen: 321536
+    epoch: 1
+    train_loss: 5.503327938401775
+  - datapoints_seen: 322048
+    epoch: 1
+    train_loss: 5.502942202769706
+  - datapoints_seen: 322560
+    epoch: 1
+    train_loss: 5.503012172002641
+  - datapoints_seen: 323072
+    epoch: 1
+    train_loss: 5.502877538442234
+  - datapoints_seen: 323584
+    epoch: 1
+    train_loss: 5.50258231087576
+  - datapoints_seen: 324096
+    epoch: 1
+    train_loss: 5.5023483220623195
+  - datapoints_seen: 324608
+    epoch: 1
+    train_loss: 5.502071415964362
+  - datapoints_seen: 325120
+    epoch: 1
+    train_loss: 5.502049476893868
+  - datapoints_seen: 325632
+    epoch: 1
+    train_loss: 5.50202616730576
+  - datapoints_seen: 326144
+    epoch: 1
+    train_loss: 5.501847091237641
+  - datapoints_seen: 326656
+    epoch: 1
+    train_loss: 5.501551582521779
+  - datapoints_seen: 327168
+    epoch: 1
+    train_loss: 5.5014498409157815
+  - datapoints_seen: 327680
+    epoch: 1
+    train_loss: 5.501224785298109
+  - datapoints_seen: 328192
+    epoch: 1
+    train_loss: 5.501051927319555
+  - datapoints_seen: 328704
+    epoch: 1
+    train_loss: 5.501000953240558
+  - datapoints_seen: 329216
+    epoch: 1
+    train_loss: 5.500812029949799
+  - datapoints_seen: 329728
+    epoch: 1
+    train_loss: 5.500709916493907
+  - datapoints_seen: 330240
+    epoch: 1
+    train_loss: 5.500456211918084
+  - datapoints_seen: 330752
+    epoch: 1
+    train_loss: 5.500205737518452
+  - datapoints_seen: 331264
+    epoch: 1
+    train_loss: 5.499979090653763
+  - datapoints_seen: 331776
+    epoch: 1
+    train_loss: 5.499657478597429
+  - datapoints_seen: 332288
+    epoch: 1
+    train_loss: 5.499453930347836
+  - datapoints_seen: 332800
+    epoch: 1
+    train_loss: 5.49931405214163
+  - datapoints_seen: 333312
+    epoch: 1
+    train_loss: 5.499103217264108
+  - datapoints_seen: 333824
+    epoch: 1
+    train_loss: 5.499360227146032
+  - datapoints_seen: 334336
+    epoch: 1
+    train_loss: 5.49910564554048
+  - datapoints_seen: 334848
+    epoch: 1
+    train_loss: 5.4989251937341255
+  - datapoints_seen: 335360
+    epoch: 1
+    train_loss: 5.498807024045755
+  - datapoints_seen: 335872
+    epoch: 1
+    train_loss: 5.498674865902924
+  - datapoints_seen: 336384
+    epoch: 1
+    train_loss: 5.498542271066837
+  - datapoints_seen: 336896
+    epoch: 1
+    train_loss: 5.4984013773387685
+  - datapoints_seen: 337408
+    epoch: 1
+    train_loss: 5.497930618627661
+  - datapoints_seen: 337920
+    epoch: 1
+    train_loss: 5.497990223133203
+  - datapoints_seen: 338432
+    epoch: 1
+    train_loss: 5.497961958309526
+  - datapoints_seen: 338944
+    epoch: 1
+    train_loss: 5.497899878781368
+  - datapoints_seen: 339456
+    epoch: 1
+    train_loss: 5.497538426343133
+  - datapoints_seen: 339968
+    epoch: 1
+    train_loss: 5.4972857588745025
+  - datapoints_seen: 340480
+    epoch: 1
+    train_loss: 5.497120077807204
+  - datapoints_seen: 340992
+    epoch: 1
+    train_loss: 5.497017951341005
+  - datapoints_seen: 341504
+    epoch: 1
+    train_loss: 5.497020125925273
+  - datapoints_seen: 342016
+    epoch: 1
+    train_loss: 5.497097003245782
+  - datapoints_seen: 342528
+    epoch: 1
+    train_loss: 5.4968275909822975
+  - datapoints_seen: 343040
+    epoch: 1
+    train_loss: 5.496539772802325
+  - datapoints_seen: 343552
+    epoch: 1
+    train_loss: 5.496436531959454
+  - datapoints_seen: 344064
+    epoch: 1
+    train_loss: 5.4962692594244364
+  - datapoints_seen: 344576
+    epoch: 1
+    train_loss: 5.496048415043733
+  - datapoints_seen: 345088
+    epoch: 1
+    train_loss: 5.495903008769457
+  - datapoints_seen: 345600
+    epoch: 1
+    train_loss: 5.495779957947907
+  - datapoints_seen: 346112
+    epoch: 1
+    train_loss: 5.495588349872793
+  - datapoints_seen: 346624
+    epoch: 1
+    train_loss: 5.495559742390846
+  - datapoints_seen: 347136
+    epoch: 1
+    train_loss: 5.495320271601719
+  - datapoints_seen: 347648
+    epoch: 1
+    train_loss: 5.495332293025875
+  - datapoints_seen: 348160
+    epoch: 1
+    train_loss: 5.495361462060143
+  - datapoints_seen: 348672
+    epoch: 1
+    train_loss: 5.495136302298211
+  - datapoints_seen: 349184
+    epoch: 1
+    train_loss: 5.494831280274824
+  - datapoints_seen: 349696
+    epoch: 1
+    train_loss: 5.494701946113329
+  - datapoints_seen: 350208
+    epoch: 1
+    train_loss: 5.494681003498055
+  - datapoints_seen: 350720
+    epoch: 1
+    train_loss: 5.494390665179622
+  - datapoints_seen: 351232
+    epoch: 1
+    train_loss: 5.494133717812185
+  - datapoints_seen: 351744
+    epoch: 1
+    train_loss: 5.493881066640218
+  - datapoints_seen: 352256
+    epoch: 1
+    train_loss: 5.493869254062342
+  - datapoints_seen: 352768
+    epoch: 1
+    train_loss: 5.493755204238116
+  - datapoints_seen: 353280
+    epoch: 1
+    train_loss: 5.49350481102432
+  - datapoints_seen: 353792
+    epoch: 1
+    train_loss: 5.493320501661508
+  - datapoints_seen: 354304
+    epoch: 1
+    train_loss: 5.493303057086261
+  - datapoints_seen: 354816
+    epoch: 1
+    train_loss: 5.493315734560528
+  - datapoints_seen: 355328
+    epoch: 1
+    train_loss: 5.4930739808151285
+  - datapoints_seen: 355840
+    epoch: 1
+    train_loss: 5.492916467378465
+  - datapoints_seen: 356352
+    epoch: 1
+    train_loss: 5.492703183629047
+  - datapoints_seen: 356864
+    epoch: 1
+    train_loss: 5.492682212736549
+  - datapoints_seen: 357376
+    epoch: 1
+    train_loss: 5.492415849663808
+  - datapoints_seen: 357888
+    epoch: 1
+    train_loss: 5.492238658010022
+  - datapoints_seen: 358400
+    epoch: 1
+    train_loss: 5.492433442388262
+  - datapoints_seen: 358912
+    epoch: 1
+    train_loss: 5.491895279088476
+  - datapoints_seen: 359424
+    epoch: 1
+    train_loss: 5.491705139817675
+  - datapoints_seen: 359936
+    epoch: 1
+    train_loss: 5.491527057474063
+  - datapoints_seen: 360448
+    epoch: 1
+    train_loss: 5.491381048478863
+  - datapoints_seen: 360960
+    epoch: 1
+    train_loss: 5.491348609518497
+  - datapoints_seen: 361472
+    epoch: 1
+    train_loss: 5.491200886772307
+  - datapoints_seen: 361984
+    epoch: 1
+    train_loss: 5.490928279628511
+  - datapoints_seen: 362496
+    epoch: 1
+    train_loss: 5.4909392770400824
+  - datapoints_seen: 363008
+    epoch: 1
+    train_loss: 5.490677608253253
+  - datapoints_seen: 363520
+    epoch: 1
+    train_loss: 5.490466915050023
+  - datapoints_seen: 364032
+    epoch: 1
+    train_loss: 5.490472420023128
+  - datapoints_seen: 364544
+    epoch: 1
+    train_loss: 5.490104674623254
+  - datapoints_seen: 365056
+    epoch: 1
+    train_loss: 5.489867144179378
+  - datapoints_seen: 365568
+    epoch: 1
+    train_loss: 5.48988954226176
+  - datapoints_seen: 366080
+    epoch: 1
+    train_loss: 5.489562747528503
+  - datapoints_seen: 366592
+    epoch: 1
+    train_loss: 5.48942874863161
+  - datapoints_seen: 367104
+    epoch: 1
+    train_loss: 5.48922421376908
+  - datapoints_seen: 367616
+    epoch: 1
+    train_loss: 5.4890343850701635
+  - datapoints_seen: 368128
+    epoch: 1
+    train_loss: 5.488822178979908
+  - datapoints_seen: 368640
+    epoch: 1
+    train_loss: 5.4885300086604225
+  - datapoints_seen: 369152
+    epoch: 1
+    train_loss: 5.488483337026694
+  - datapoints_seen: 369664
+    epoch: 1
+    train_loss: 5.4882376299670526
+  - datapoints_seen: 370176
+    epoch: 1
+    train_loss: 5.487816104255772
+  - datapoints_seen: 370688
+    epoch: 1
+    train_loss: 5.4876232772900915
+  - datapoints_seen: 371200
+    epoch: 1
+    train_loss: 5.487504640118829
+  - datapoints_seen: 371712
+    epoch: 1
+    train_loss: 5.487353258553287
+  - datapoints_seen: 372224
+    epoch: 1
+    train_loss: 5.487239910451057
+  - datapoints_seen: 372736
+    epoch: 1
+    train_loss: 5.486932473523276
+  - datapoints_seen: 373248
+    epoch: 1
+    train_loss: 5.486763640849842
+  - datapoints_seen: 373760
+    epoch: 1
+    train_loss: 5.486646068912663
+  - datapoints_seen: 374272
+    epoch: 1
+    train_loss: 5.486337775897066
+  - datapoints_seen: 374784
+    epoch: 1
+    train_loss: 5.486428958470704
+  - datapoints_seen: 375296
+    epoch: 1
+    train_loss: 5.486332854990419
+  - datapoints_seen: 375808
+    epoch: 1
+    train_loss: 5.486303001398611
+  - datapoints_seen: 376320
+    epoch: 1
+    train_loss: 5.486184325834521
+  - datapoints_seen: 376832
+    epoch: 1
+    train_loss: 5.4861636673626695
+  - datapoints_seen: 377344
+    epoch: 1
+    train_loss: 5.485921111165102
+  - datapoints_seen: 377856
+    epoch: 1
+    train_loss: 5.485767929857662
+  - datapoints_seen: 378368
+    epoch: 1
+    train_loss: 5.485526676590936
+  - datapoints_seen: 378880
+    epoch: 1
+    train_loss: 5.485453171987792
+  - datapoints_seen: 379392
+    epoch: 1
+    train_loss: 5.485092134128215
+  - datapoints_seen: 379904
+    epoch: 1
+    train_loss: 5.484866234170138
+  - datapoints_seen: 380416
+    epoch: 1
+    train_loss: 5.484501346444378
+  - datapoints_seen: 380928
+    epoch: 1
+    train_loss: 5.4842767093771245
+  - datapoints_seen: 381440
+    epoch: 1
+    train_loss: 5.4841982508665765
+  - datapoints_seen: 381952
+    epoch: 1
+    train_loss: 5.484004643903021
+  - datapoints_seen: 382464
+    epoch: 1
+    train_loss: 5.483817581192078
+  - datapoints_seen: 382976
+    epoch: 1
+    train_loss: 5.483699627101102
+  - datapoints_seen: 383488
+    epoch: 1
+    train_loss: 5.483463363112691
+  - datapoints_seen: 384000
+    epoch: 1
+    train_loss: 5.483193208058675
+  - datapoints_seen: 384512
+    epoch: 1
+    train_loss: 5.482935067340632
+  - datapoints_seen: 385024
+    epoch: 1
+    train_loss: 5.482741041386381
+  - datapoints_seen: 385536
+    epoch: 1
+    train_loss: 5.4825273250362
+  - datapoints_seen: 386048
+    epoch: 1
+    train_loss: 5.482423601479366
+  - datapoints_seen: 386560
+    epoch: 1
+    train_loss: 5.482238783425843
+  - datapoints_seen: 387072
+    epoch: 1
+    train_loss: 5.481991457560706
+  - datapoints_seen: 387584
+    epoch: 1
+    train_loss: 5.481766278709099
+  - datapoints_seen: 388096
+    epoch: 1
+    train_loss: 5.481731998574451
+  - datapoints_seen: 388608
+    epoch: 1
+    train_loss: 5.481468655532214
+  - datapoints_seen: 389120
+    epoch: 1
+    train_loss: 5.481369459001642
+  - datapoints_seen: 389632
+    epoch: 1
+    train_loss: 5.481210088291244
+  - datapoints_seen: 390144
+    epoch: 1
+    train_loss: 5.48096365565703
+  - datapoints_seen: 390656
+    epoch: 1
+    train_loss: 5.480760110627621
+  - datapoints_seen: 391168
+    epoch: 1
+    train_loss: 5.480699363179232
+  - datapoints_seen: 391680
+    epoch: 1
+    train_loss: 5.4803092669817355
+  - datapoints_seen: 392192
+    epoch: 1
+    train_loss: 5.4801586377714075
+  - datapoints_seen: 392704
+    epoch: 1
+    train_loss: 5.479989089120321
+  - datapoints_seen: 393216
+    epoch: 1
+    train_loss: 5.479860361665487
+  - datapoints_seen: 393728
+    epoch: 1
+    train_loss: 5.4799562350051145
+  - datapoints_seen: 394240
+    epoch: 1
+    train_loss: 5.479947389875139
+  - datapoints_seen: 394752
+    epoch: 1
+    train_loss: 5.479484088071435
+  - datapoints_seen: 395264
+    epoch: 1
+    train_loss: 5.479316207411376
+  - datapoints_seen: 395776
+    epoch: 1
+    train_loss: 5.479041791671615
+  - datapoints_seen: 396288
+    epoch: 1
+    train_loss: 5.478825263582767
+  - datapoints_seen: 396800
+    epoch: 1
+    train_loss: 5.478473339080811
+  - datapoints_seen: 397312
+    epoch: 1
+    train_loss: 5.478238894152887
+  - datapoints_seen: 397824
+    epoch: 1
+    train_loss: 5.478020511538826
+  - datapoints_seen: 398336
+    epoch: 1
+    train_loss: 5.477981206383987
+  - datapoints_seen: 398848
+    epoch: 1
+    train_loss: 5.477717001110659
+  - datapoints_seen: 399360
+    epoch: 1
+    train_loss: 5.477532087839567
+  - datapoints_seen: 399872
+    epoch: 1
+    train_loss: 5.477286341858887
+  - datapoints_seen: 400384
+    epoch: 1
+    train_loss: 5.477142089468134
+  - datapoints_seen: 400896
+    epoch: 1
+    train_loss: 5.477064188108286
+  - datapoints_seen: 401408
+    epoch: 1
+    train_loss: 5.476854844360935
+  - datapoints_seen: 401920
+    epoch: 1
+    train_loss: 5.476775894043552
+  - datapoints_seen: 402432
+    epoch: 1
+    train_loss: 5.476543852997797
+  - datapoints_seen: 402944
+    epoch: 1
+    train_loss: 5.476304430519307
+  - datapoints_seen: 403456
+    epoch: 1
+    train_loss: 5.476072869930171
+  - datapoints_seen: 403968
+    epoch: 1
+    train_loss: 5.475948110732742
+  - datapoints_seen: 404480
+    epoch: 1
+    train_loss: 5.475917796243595
+  - datapoints_seen: 404992
+    epoch: 1
+    train_loss: 5.475786415876541
+  - datapoints_seen: 405504
+    epoch: 1
+    train_loss: 5.475555192942571
+  - datapoints_seen: 406016
+    epoch: 1
+    train_loss: 5.475175443242808
+  - datapoints_seen: 406528
+    epoch: 1
+    train_loss: 5.474901890574534
+  - datapoints_seen: 407040
+    epoch: 1
+    train_loss: 5.4748697718734265
+  - datapoints_seen: 407552
+    epoch: 1
+    train_loss: 5.474728998227335
+  - datapoints_seen: 408064
+    epoch: 1
+    train_loss: 5.47451992286194
+  - datapoints_seen: 408576
+    epoch: 1
+    train_loss: 5.474437055731178
+  - datapoints_seen: 409088
+    epoch: 1
+    train_loss: 5.474447686621484
+  - datapoints_seen: 409600
+    epoch: 1
+    train_loss: 5.474269682765007
+  - datapoints_seen: 410112
+    epoch: 1
+    train_loss: 5.474081162656291
+  - datapoints_seen: 410624
+    epoch: 1
+    train_loss: 5.473976890939727
+  - datapoints_seen: 411136
+    epoch: 1
+    train_loss: 5.473860517979262
+  - datapoints_seen: 411648
+    epoch: 1
+    train_loss: 5.473773913003912
+  - datapoints_seen: 412160
+    epoch: 1
+    train_loss: 5.473633612757144
+  - datapoints_seen: 412672
+    epoch: 1
+    train_loss: 5.473421728048963
+  - datapoints_seen: 413184
+    epoch: 1
+    train_loss: 5.473307437613108
+  - datapoints_seen: 413696
+    epoch: 1
+    train_loss: 5.473187744617462
+  - datapoints_seen: 414208
+    epoch: 1
+    train_loss: 5.473123607588345
+  - datapoints_seen: 414720
+    epoch: 1
+    train_loss: 5.473034576722133
+  - datapoints_seen: 415232
+    epoch: 1
+    train_loss: 5.472736883692618
+  - datapoints_seen: 415744
+    epoch: 1
+    train_loss: 5.4726788369305615
+  - datapoints_seen: 416256
+    epoch: 1
+    train_loss: 5.472531523358485
+  - datapoints_seen: 416768
+    epoch: 1
+    train_loss: 5.472203495461466
+  - datapoints_seen: 417280
+    epoch: 1
+    train_loss: 5.4718991256199
+  - datapoints_seen: 417792
+    epoch: 1
+    train_loss: 5.4716382137700625
+  - datapoints_seen: 418304
+    epoch: 1
+    train_loss: 5.471609154704735
+  - datapoints_seen: 418816
+    epoch: 1
+    train_loss: 5.47142621940389
+  - datapoints_seen: 419328
+    epoch: 1
+    train_loss: 5.471406761397663
+  - datapoints_seen: 419840
+    epoch: 1
+    train_loss: 5.471165334306112
+  - datapoints_seen: 420352
+    epoch: 1
+    train_loss: 5.470822770470678
+  - datapoints_seen: 420864
+    epoch: 1
+    train_loss: 5.47063977932988
+  - datapoints_seen: 421376
+    epoch: 1
+    train_loss: 5.470405223447816
+  - datapoints_seen: 421888
+    epoch: 1
+    train_loss: 5.470442826886779
+  - datapoints_seen: 422400
+    epoch: 1
+    train_loss: 5.470266188997211
+  - datapoints_seen: 422912
+    epoch: 1
+    train_loss: 5.470205068588257
+  - datapoints_seen: 423424
+    epoch: 1
+    train_loss: 5.4699635574866665
+  - datapoints_seen: 423936
+    epoch: 1
+    train_loss: 5.469950165149671
+  - datapoints_seen: 424448
+    epoch: 1
+    train_loss: 5.469829971741422
+  - datapoints_seen: 424960
+    epoch: 1
+    train_loss: 5.469801133512014
+  - datapoints_seen: 425472
+    epoch: 1
+    train_loss: 5.46963745477541
+  - datapoints_seen: 425984
+    epoch: 1
+    train_loss: 5.469319160741109
+  - datapoints_seen: 426496
+    epoch: 1
+    train_loss: 5.4692273964257945
+  - datapoints_seen: 427008
+    epoch: 1
+    train_loss: 5.4690248989086925
+  - datapoints_seen: 427520
+    epoch: 1
+    train_loss: 5.468847167991592
+  - datapoints_seen: 428032
+    epoch: 1
+    train_loss: 5.468797764139312
+  - datapoints_seen: 428544
+    epoch: 1
+    train_loss: 5.468665111022183
+  - datapoints_seen: 429056
+    epoch: 1
+    train_loss: 5.468302729590696
+  - datapoints_seen: 429568
+    epoch: 1
+    train_loss: 5.4681283822360855
+  - datapoints_seen: 430080
+    epoch: 1
+    train_loss: 5.467832463695889
+  - datapoints_seen: 430592
+    epoch: 1
+    train_loss: 5.467759558193466
+  - datapoints_seen: 431104
+    epoch: 1
+    train_loss: 5.467706848493381
+  - datapoints_seen: 431616
+    epoch: 1
+    train_loss: 5.46756007747718
+  - datapoints_seen: 432128
+    epoch: 1
+    train_loss: 5.467463475833007
+  - datapoints_seen: 432640
+    epoch: 1
+    train_loss: 5.467334831395799
+  - datapoints_seen: 433152
+    epoch: 1
+    train_loss: 5.467406713088917
+  - datapoints_seen: 433664
+    epoch: 1
+    train_loss: 5.467246540321791
+  - datapoints_seen: 434176
+    epoch: 1
+    train_loss: 5.467067358066451
+  - datapoints_seen: 434688
+    epoch: 1
+    train_loss: 5.466979211575853
+  - datapoints_seen: 435200
+    epoch: 1
+    train_loss: 5.466951320311602
+  - datapoints_seen: 435712
+    epoch: 1
+    train_loss: 5.466800287943749
+  - datapoints_seen: 436224
+    epoch: 1
+    train_loss: 5.466655549309063
+  - datapoints_seen: 436736
+    epoch: 1
+    train_loss: 5.466524859246168
+  - datapoints_seen: 437248
+    epoch: 1
+    train_loss: 5.466291494056827
+  - datapoints_seen: 437760
+    epoch: 1
+    train_loss: 5.466267287382606
+  - datapoints_seen: 438272
+    epoch: 1
+    train_loss: 5.466143046027032
+  - datapoints_seen: 438784
+    epoch: 1
+    train_loss: 5.466128832818191
+  - datapoints_seen: 439296
+    epoch: 1
+    train_loss: 5.465976930164791
+  - datapoints_seen: 439808
+    epoch: 1
+    train_loss: 5.465801376125172
+  - datapoints_seen: 440320
+    epoch: 1
+    train_loss: 5.465791484367016
+  - datapoints_seen: 440832
+    epoch: 1
+    train_loss: 5.465594281164472
+  - datapoints_seen: 441344
+    epoch: 1
+    train_loss: 5.465443654845873
+  - datapoints_seen: 441856
+    epoch: 1
+    train_loss: 5.465097674351026
+  - datapoints_seen: 442368
+    epoch: 1
+    train_loss: 5.464913043159026
+  - datapoints_seen: 442880
+    epoch: 1
+    train_loss: 5.464821454417499
+  - datapoints_seen: 443392
+    epoch: 1
+    train_loss: 5.464750577891396
+  - datapoints_seen: 443904
+    epoch: 1
+    train_loss: 5.464539917832565
+  - datapoints_seen: 444416
+    epoch: 1
+    train_loss: 5.464315257863515
+  - datapoints_seen: 444928
+    epoch: 1
+    train_loss: 5.464077326727407
+  - datapoints_seen: 445440
+    epoch: 1
+    train_loss: 5.463976061481169
+  - datapoints_seen: 445952
+    epoch: 1
+    train_loss: 5.46387628134849
+  - datapoints_seen: 446464
+    epoch: 1
+    train_loss: 5.463785881843042
+  - datapoints_seen: 446976
+    epoch: 1
+    train_loss: 5.463578508755049
+  - datapoints_seen: 447488
+    epoch: 1
+    train_loss: 5.463507767400152
+  - datapoints_seen: 448000
+    epoch: 1
+    train_loss: 5.463286071232387
+  - datapoints_seen: 448512
+    epoch: 1
+    train_loss: 5.463352721031398
+  - datapoints_seen: 449024
+    epoch: 1
+    train_loss: 5.463253268630094
+  - datapoints_seen: 449536
+    epoch: 1
+    train_loss: 5.463227725517777
+  - datapoints_seen: 450048
+    epoch: 1
+    train_loss: 5.462991635818395
+  - datapoints_seen: 450560
+    epoch: 1
+    train_loss: 5.46285666606643
+  - datapoints_seen: 451072
+    epoch: 1
+    train_loss: 5.462681518645617
+  - datapoints_seen: 451584
+    epoch: 1
+    train_loss: 5.46257470740753
+  - datapoints_seen: 452096
+    epoch: 1
+    train_loss: 5.46240720878506
+  - datapoints_seen: 452608
+    epoch: 1
+    train_loss: 5.462568171423485
+  - datapoints_seen: 453120
+    epoch: 1
+    train_loss: 5.462465638090662
+  - datapoints_seen: 453632
+    epoch: 1
+    train_loss: 5.4623288510884445
+  - datapoints_seen: 454144
+    epoch: 1
+    train_loss: 5.462343435814308
+  - datapoints_seen: 454656
+    epoch: 1
+    train_loss: 5.462193569084546
+  - datapoints_seen: 455168
+    epoch: 1
+    train_loss: 5.462225359926342
+  - datapoints_seen: 455680
+    epoch: 1
+    train_loss: 5.462103103251939
+  - datapoints_seen: 456192
+    epoch: 1
+    train_loss: 5.461893855521976
+  - datapoints_seen: 456704
+    epoch: 1
+    train_loss: 5.461768487109197
+  - datapoints_seen: 457216
+    epoch: 1
+    train_loss: 5.461492513889428
+  - datapoints_seen: 457728
+    epoch: 1
+    train_loss: 5.461263326990524
+  - datapoints_seen: 458240
+    epoch: 1
+    train_loss: 5.4612558727157845
+  - datapoints_seen: 458752
+    epoch: 1
+    train_loss: 5.461069289062705
+  validation_duration_seconds: null
+  validation_loss: null

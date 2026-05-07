@@ -1,0 +1,8 @@
+{
+  "config_id": 790,
+  "checkpoint": "epoch_6.pt",
+  "epoch": 6,
+  "eval_time_seconds": 3905.8823499679565,
+  "gpu_name": "NVIDIA GeForce RTX 2080 Ti",
+  "batch_size": 256
+}

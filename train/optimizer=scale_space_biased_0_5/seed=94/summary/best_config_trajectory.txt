@@ -1,0 +1,47 @@
+Best configs and their objectives across evaluations:
+--------------------------------------------------------------------------------
+Config ID: 1
+Objective to minimize: 1000000.0
+Cost: 2871976.96
+Cumulative evaluations: 1
+Cumulative fidelities: 0.0
+Cumulative cost: 2871976.96
+Cumulative time: 2871976.96
+Config: {'beta1': 0.9140703678131104, 'beta2': 0.9500184655189514, 'eps': 7.892959530408916e-08, 'lr': 0.018137481063604355, 'text_width': 5, 'train_num_samples': 3.711299419403076, 'vision_width': 3, 'warmup_fraction': 0.3039363622665405, 'wd': 0.00012585560034494847}
+--------------------------------------------------------------------------------
+Config ID: 3
+Objective to minimize: 6.091034748515145
+Cost: 399769.60000000003
+Cumulative evaluations: 2
+Cumulative fidelities: 0.0
+Cumulative cost: 3271746.56
+Cumulative time: 3271746.56
+Config: {'beta1': 0.9602198600769043, 'beta2': 0.9551980495452881, 'eps': 3.1663924460190174e-07, 'lr': 0.033477168530225754, 'text_width': 4, 'train_num_samples': 4.644929885864258, 'vision_width': 2, 'warmup_fraction': 0.267697274684906, 'wd': 0.006868508644402027}
+--------------------------------------------------------------------------------
+Config ID: 4
+Objective to minimize: 5.748371048190995
+Cost: 45431193.6
+Cumulative evaluations: 3
+Cumulative fidelities: 0.0
+Cumulative cost: 48702940.160000004
+Cumulative time: 48702940.160000004
+Config: {'beta1': 0.9327369928359985, 'beta2': 0.9505884051322937, 'eps': 8.101667390292278e-07, 'lr': 3.4449789382051677e-05, 'text_width': 1, 'train_num_samples': 25.00204086303711, 'vision_width': 6, 'warmup_fraction': 0.41148483753204346, 'wd': 0.10499301552772522}
+--------------------------------------------------------------------------------
+Config ID: 12
+Objective to minimize: 4.502943795515722
+Cost: 10671636.48
+Cumulative evaluations: 4
+Cumulative fidelities: 0.0
+Cumulative cost: 59374576.64
+Cumulative time: 59374576.64
+Config: {'beta1': 0.9211530685424805, 'beta2': 0.9897898435592651, 'eps': 8.333315690833842e-07, 'lr': 0.00026690884260460734, 'text_width': 2, 'train_num_samples': 4.833285331726074, 'vision_width': 6, 'warmup_fraction': 0.005287349224090576, 'wd': 0.00023343875363934785}
+--------------------------------------------------------------------------------
+Config ID: 40
+Objective to minimize: 4.392034844394953
+Cost: 16879943.68
+Cumulative evaluations: 11
+Cumulative fidelities: 0.0
+Cumulative cost: 130328601.60000002
+Cumulative time: 130328601.60000002
+Config: {'beta1': 0.9420320391654968, 'beta2': 0.9770634174346924, 'eps': 3.3128395671155886e-07, 'lr': 0.0006195054738782346, 'text_width': 2, 'train_num_samples': 5.333811283111572, 'vision_width': 1, 'warmup_fraction': 0.6995543241500854, 'wd': 2.933807081717532e-05}
+--------------------------------------------------------------------------------

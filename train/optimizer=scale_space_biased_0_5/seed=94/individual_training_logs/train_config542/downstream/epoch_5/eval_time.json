@@ -1,0 +1,8 @@
+{
+  "config_id": 542,
+  "checkpoint": "epoch_5.pt",
+  "epoch": 5,
+  "eval_time_seconds": 17017.667585611343,
+  "gpu_name": null,
+  "batch_size": 256
+}
