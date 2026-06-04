@@ -57,7 +57,7 @@ def create_default_model(model_str) -> torch.nn.Module:
 
 def get_local_model_str(model_cfg_dir: Union[str, Path]):
     model_cfg_dir = Path(model_cfg_dir)
-    p = model_cfg_dir.as_posix().replace("train/", "")
+    p = model_cfg_dir.as_posix()
     return f"local-dir:{p}"
 
 

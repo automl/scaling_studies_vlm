@@ -269,7 +269,6 @@ conda activate /data/cat/ws/dosi100i-scan_bench_suite/vlm_env"""
         account = self._account()
         val_data = shards(DatasetShards.LAION400M_VAL, cluster)
         test_data = shards(DatasetShards.LAION400M_TEST, cluster)
-        python_ws_paths = self._slurm_ws_python_path_setup()
 
         model_cfg = str(eval_cfg.model).replace("local-dir:", "")
         models_cfg_dir = self.workspace_dir + "/train/" + model_cfg

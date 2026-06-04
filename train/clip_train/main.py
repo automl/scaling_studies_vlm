@@ -50,9 +50,18 @@ LATEST_CHECKPOINT_NAME = "epoch_latest.pt"
 
 
 def random_seed(seed=42, rank=0):
-    torch.manual_seed(seed + rank)
-    np.random.seed(seed + rank)
-    random.seed(seed + rank)
+    seed = seed + rank
+    try:
+        torch.manual_seed(seed)
+    except IndexError as exc:
+        logging.warning(
+            "torch.manual_seed failed while seeding CUDA generators: %s. "
+            "Seeding the CPU generator and continuing without CUDA RNG seeding.",
+            exc,
+        )
+        torch.default_generator.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
 
 
 def natural_key(string_):
@@ -104,6 +113,7 @@ def main(args):
         ])
 
     resume_latest = args.resume == 'latest'
+    args.logs = str(args.logs).replace("results", "train/results")
     log_base_path = os.path.join(args.logs, args.name)
     args.log_path = None
     if is_master(args, local=args.log_local):
@@ -591,6 +601,7 @@ def main(args):
                     checkpoint_dict,
                     os.path.join(args.checkpoint_path, f"epoch_{completed_epoch}.pt"),
                 )
+                print(f"Saved checkpoint for epoch {completed_epoch} at {args.checkpoint_path}")
             if args.delete_previous_checkpoint:
                 previous_checkpoint = os.path.join(args.checkpoint_path, f"epoch_{completed_epoch - 1}.pt")
                 if os.path.exists(previous_checkpoint):
@@ -736,12 +747,90 @@ def main(args):
         root_dir = Path(args.logs).parent
 
         if not args.sync_neps:
-            neps.save_pipeline_results(
-                user_result=result,
+            # root_dir =Path(str(root_dir).replace("results", "train/results"))
+            # Write result to report_train.yaml instead of calling neps.save_pipeline_results
+            config_dir = root_dir / f"configs/config_{args.pipeline_id}"
+            config_dir.mkdir(parents=True, exist_ok=True)
+            
+            report_train_path = config_dir / "report_train.yaml"
+            
+            with open(report_train_path, "w") as f:
+                yaml.safe_dump(result, f, sort_keys=False)
+            
+            logging.info(f"Saved result to {report_train_path}")
+            
+            # Import and call post_hoc_iterator.main() for downstream evaluation
+            from post_hoc_iterator import main as post_hoc_main
+            
+            logging.info("Running downstream evaluation...")
+            post_hoc_main(
+                root=str(log_base_path),
+                model=f"local-dir:{root_dir}/model_cfg/config_{args.pipeline_id}",
+                seed=args.seed,
                 pipeline_id=args.pipeline_id,
-                root_directory=root_dir,
+                cluster="meta",
             )
+            
+            # Wait for report.yaml to be written
+            report_path = root_dir / f"configs/config_{args.pipeline_id}/report_down.yaml"
+            report_train_path = root_dir / f"configs/config_{args.pipeline_id}/report_train.yaml"
+            max_wait_time = 300  # 5 minutes timeout
+            wait_interval = 2  # Check every 2 seconds
+            elapsed = 0
+            
+            while not report_train_path.exists() and elapsed < max_wait_time:
+                logging.info(f"Waiting for report_train.yaml... ({elapsed}s)")
+                time.sleep(wait_interval)
+                elapsed += wait_interval
+            
+            if not report_path.exists():
+                logging.error(f"Timeout waiting for report.yaml at {report_path}")
+                raise TimeoutError(f"report.yaml not generated within {max_wait_time} seconds")
+            
+            logging.info(f"Found report.yaml, reading results...")
+            with open(report_path, "r") as f:
+                report_data = yaml.safe_load(f) or {}
+            
+            # Extract data from report. Older helpers used "extra"; the
+            # downstream enrichment path writes "info_dict".
+            info_dict = (
+                report_data.get("info_dict")
+                or report_data.get("extra")
+                or report_data.get("extra_info")
+                or {}
+            )
+            n_param = info_dict.get("n_param", total_mparams)
+            downstream_results = info_dict.get("downstream_results", {})
+            
+            # Extract zero-shot and retrieval results
+            zero_shot_results = downstream_results.get("zero_shot_results", [])
+            
+            # Build multi-objective tuple: minimize n_param, zero-shot acc5,
+            # and MSCOCO text retrieval recall@5.
+            cifar10_acc5 = zero_shot_results[0].get("acc5", 0) if zero_shot_results else 0
+            imagenet1k_acc5 = zero_shot_results[1].get("acc5", 0) if zero_shot_results else 0
+            
+            result = {
+                "objective_to_minimize": (
+                    -1 * n_param,
+                    -1 * cifar10_acc5,
+                    -1 * imagenet1k_acc5,
+                ),
+                "cost": compute,
+                "info_dict": info_dict,
+                "extra": info_dict,
+            }
+            
+            logging.info(f"Sync eval result: {result}")
+            
+            # Write result to report_train.yaml
+            report_train_path = root_dir / f"configs/config_{args.pipeline_id}/report_final.yaml"
+            with open(report_train_path, "w") as f:
+                yaml.safe_dump(result, f, sort_keys=False)
+            
+            logging.info(f"Saved sync_eval result to {report_train_path}")
             return
+        
         sync_dir = root_dir / "sync_results"
         sync_dir.mkdir(parents=True, exist_ok=True)
 

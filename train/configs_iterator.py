@@ -1,6 +1,7 @@
 import gc
 import math
 import os
+import shlex
 import sys
 from pathlib import Path
 from typing import Dict, Any, Tuple
@@ -65,13 +66,17 @@ def infer_hardware_setup_and_local_bs(
 
 def get_hp_space_train_num_samples_from_scan_space(scan_space):
     HP_KEYS = ["lr", "wd", "warmup_fraction", "beta1", "beta2", "eps"]
-    SCALE_KEYS = ["train_num_samples", "vision_width", "text_width", "text_heads"]
+    SCALE_KEYS = ["train_num_samples", "vision_width", "text_width", "text_heads", "epochs"]
 
     hp_only = {k: v for k, v in scan_space.items() if k in HP_KEYS}
     scale_only = {k: v for k, v in scan_space.items() if k in SCALE_KEYS}
 
     if scale_only.get("train_num_samples") is not None:
         hp_only["train_num_samples"] = scale_only["train_num_samples"]
+    
+    if scale_only.get("epochs") is not None:
+        hp_only["epochs"] = scale_only["epochs"]
+    
     return hp_only
 
 
@@ -181,11 +186,14 @@ def get_total_compute(model_str, train_num_samples, precision) -> int:
 
 
 def generate_scripts_per_config(config_id, scan_space, root_dir, venv_path, wandb_project_name, workspace_dir, cluster,
-                                command_dir=None, config_id_to_train_num_samples=None):
+                                command_dir=None, config_id_to_train_num_samples=None, partition="", seed=1):
     precision = "amp"
 
     logs_dir, scripts_dir, evaluation_scripts_path, downstream_evaluation_scripts_path, model_cfg_path = create_directories(
         root_dir, config_id)
+    
+    # Convert to absolute path to ensure subprocess finds correct location
+    logs_dir = str(Path(logs_dir).resolve())
 
     build_model_cfg(out_path=model_cfg_path, **scan_space)
     model_cfg = get_local_model_str(model_cfg_path)
@@ -204,7 +212,7 @@ def generate_scripts_per_config(config_id, scan_space, root_dir, venv_path, wand
     if not command_dir:
         command_dir = workspace_dir
 
-    slurm = SlurmManager(job_name=job_name, partition=args.partition, nodes=nodes_nr,
+    slurm = SlurmManager(job_name=job_name, partition=partition, nodes=nodes_nr,
                          gpus_per_node=gpus_per_node,
                          root_dir=root_dir, workspace_dir=workspace_dir, command_dir=command_dir, cluster=cluster,
                          venv_path=venv_path)
@@ -217,7 +225,7 @@ def generate_scripts_per_config(config_id, scan_space, root_dir, venv_path, wand
         model_cfg=model_cfg,
         local_bs=local_bs,
         hp_space_train_num_samples=hp_space_train_num_samples,
-        seed=args.seed,
+        seed=seed,
         slurmManager=slurm,
         logs_dir=logs_dir,
         train_scripts_dir=scripts_dir,
@@ -226,25 +234,25 @@ def generate_scripts_per_config(config_id, scan_space, root_dir, venv_path, wand
         config_id_to_train_num_samples=config_id_to_train_num_samples,
     )
 
-    generate_eval_script(
-        config_id=config_id,
-        model_cfg=model_cfg,
-        seed=args.seed,
-        slurmManager=slurm,
-        logs_dir=logs_dir,
-        eval_scripts_dir=evaluation_scripts_path,
-        cluster=cluster
-    )
+    # generate_eval_script(
+    #     config_id=config_id,
+    #     model_cfg=model_cfg,
+    #     seed=seed,
+    #     slurmManager=slurm,
+    #     logs_dir=logs_dir,
+    #     eval_scripts_dir=evaluation_scripts_path,
+    #     cluster=cluster
+    # )
 
-    generate_downstream_eval_script(
-        config_id=config_id,
-        model_cfg=model_cfg,
-        seed=args.seed,
-        slurmManager=slurm,
-        logs_dir=logs_dir,
-        downstream_eval_scripts_dir=downstream_evaluation_scripts_path,
-        cluster=cluster
-    )
+    # generate_downstream_eval_script(
+    #     config_id=config_id,
+    #     model_cfg=model_cfg,
+    #     seed=seed,
+    #     slurmManager=slurm,
+    #     logs_dir=logs_dir,
+    #     downstream_eval_scripts_dir=downstream_evaluation_scripts_path,
+    #     cluster=cluster
+    # )
 
 
 def generate_train_script(model_cfg, local_bs, config_id, logs_dir, train_scripts_dir,
@@ -255,7 +263,7 @@ def generate_train_script(model_cfg, local_bs, config_id, logs_dir, train_script
     config = TrainConfig(
         model=model_cfg,
         seed=seed,
-        epochs=1,  # will be overwritten
+        # epochs=1,  # will be overwritten
         name=slurmManager.job_name,
         batch_size=local_bs,
         sync_neps=False,
@@ -264,12 +272,59 @@ def generate_train_script(model_cfg, local_bs, config_id, logs_dir, train_script
         config_id_to_train_num_samples=config_id_to_train_num_samples,
         **hp_space_train_num_samples,
     )
+    from slurm import build_cmd
+    cmd_parts = build_cmd(config, wandb_project_name, cluster)
 
-    cmd = build_srun_cmd(config, wandb_project_name, cluster)
+    # Build argument list for direct function call (no subprocess)
+    args_list = [arg for part in cmd_parts for arg in shlex.split(part)]
+    
+    print(f"[Config {config_id}] Running training directly in same process")
+    print(f"[Config {config_id}] Arguments: {args_list[:5]}... ({len(args_list)} total)")
 
-    script_name = slurmManager.job_name + ".sh"
-    script_path = Path(train_scripts_dir + "/" + script_name)
-    slurmManager.build_script(cmd, save_to=script_path, wandb_project_name=wandb_project_name)
+    _prepare_env_for_in_process_training()
+
+    # Import and call clip_train.main directly
+    from clip_train.main import main as clip_train_main
+
+    # Call main with the arguments - this will raise exceptions directly
+    try:
+        clip_train_main(args_list)
+    except Exception as e:
+        print(f"[Config {config_id}] Training failed with exception:")
+        raise
+    finally:
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+
+def _prepare_env_for_in_process_training():
+    # The generator itself runs inside a Slurm allocation. Direct in-process
+    # training should behave like a single-process training invocation, not
+    # inherit launcher rank metadata from the generator job.
+    for key in (
+            "LOCAL_RANK",
+            "RANK",
+            "WORLD_SIZE",
+            "MASTER_ADDR",
+            "MASTER_PORT",
+            "SLURM_PROCID",
+            "SLURM_LOCALID",
+            "SLURM_NTASKS",
+            "PMI_RANK",
+            "PMI_SIZE",
+            "MPI_LOCALRANKID",
+            "OMPI_COMM_WORLD_LOCAL_RANK",
+            "OMPI_COMM_WORLD_RANK",
+            "OMPI_COMM_WORLD_SIZE",
+    ):
+        os.environ.pop(key, None)
+
+    visible_devices = os.environ.get("CUDA_VISIBLE_DEVICES")
+    if visible_devices and "," in visible_devices:
+        os.environ["CUDA_VISIBLE_DEVICES"] = visible_devices.split(",", 1)[0]
+
+    
 
 
 def generate_eval_script(
@@ -315,54 +370,31 @@ def generate_downstream_eval_script(
                                                     cluster=cluster,
                                                     config_id=config_id)
 
+def run(root_dir, seed, bias_scale_sampling, alpha, venv_path, wandb_project_name, workspace_dir, cluster, command_dir=None, partition=""):
+    full_df, result = neps.status(root_dir)
+    rng = np.random.default_rng(seed)
+    nr_configs = len(full_df)
+    print(f"Total configs to process: {nr_configs}")
+    for i, (config_id, row) in enumerate(full_df.iterrows()):
+        scan_space = build_scan_space(row, bias_scale_sampling, alpha, rng)
+        generate_scripts_per_config(config_id, scan_space, root_dir, venv_path, wandb_project_name,
+                                    workspace_dir,
+                                    cluster, command_dir=command_dir, partition=partition, seed=seed)
 
 if __name__ == "__main__":
     args = iterator_params.parse_args(sys.argv[1:])
+    run(
+        root_dir=args.root_dir,
+        seed=args.seed,
+        bias_scale_sampling=args.bias_scale_sampling,
+        alpha=args.alpha,
+        venv_path=args.venv_path,
+        wandb_project_name=args.wandb_project_name,
+        workspace_dir=args.workspace_dir,
+        cluster=args.cluster,
+        command_dir=args.command_dir,
+        partition=args.partition,
+    )
 
-    root_dir = args.root_dir
-    full_df, result = neps.status(root_dir)
-    rng = np.random.default_rng(args.seed)
-    if not args.group_by_train_num_samples:
-        nr_configs = len(full_df)
-        for i, (config_id, row) in enumerate(full_df.iterrows()):
-            if i % args.num_workers != args.worker_id:
-                continue
-            print(
-                f"[worker {args.worker_id}/{args.num_workers}] "
-                f"processing index {i} | config_id={config_id} | "
-                f"total_configs={nr_configs}"
-            )
-            scan_space = build_scan_space(row, args.bias_scale_sampling, args.alpha, rng)
-            
-            # if scan_space["vision_width"] < scan_space["text_width"]:
-            #     print(f"Skipping config_id {config_id} because vision_width < text_width")
-            #     continue
-            generate_scripts_per_config(config_id, scan_space, root_dir, args.venv_path, args.wandb_project_name,
-                                        args.workspace_dir,
-                                        args.cluster, command_dir=args.command_dir)
-    else:
-        grouped = group_configs_by_all_except_train_num_samples(full_df, args.bias_scale_sampling, args.alpha)
 
-        total_groups = len(grouped)
-        for group_idx, (group_key, configs_in_group) in enumerate(grouped.items()):
-
-            print(f"[worker {args.worker_id}/{args.num_workers}] "
-                  f"processing group {group_idx} | total_groups={total_groups}")
-            print(f"Group config (all keys except train_num_samples): {dict(group_key)}")
-            print(f"Number of configs in group: {len(configs_in_group)}")
-
-            _config_id_to_train_num_samples = {
-                cfg_id: scan_space['train_num_samples'] for cfg_id, scan_space in configs_in_group}
-
-            config_id_with_max_data = max(_config_id_to_train_num_samples, key=_config_id_to_train_num_samples.get)
-
-            for config_id, scan_space in configs_in_group:
-                if config_id == config_id_with_max_data:
-                    config_id_to_train_num_samples = _config_id_to_train_num_samples
-                else:
-                    config_id_to_train_num_samples = None
-                generate_scripts_per_config(config_id, scan_space, root_dir, args,
-                                            args.wandb_project_name, args.workspace_dir,
-                                            args.cluster,
-                                            command_dir=args.command_dir,
-                                            config_id_to_train_num_samples=config_id_to_train_num_samples)
+    

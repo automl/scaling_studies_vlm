@@ -16,7 +16,7 @@ def parse_args():
         "--root_dir",
         type=Path,
         required=True,
-        help='Example: "results/model=ViT-S-32/optimizer=experimental/seed=10"',
+        help='Example: "results/optimizer=bo_space_expansion_micro/seed=42"',
     )
 
     p.add_argument(

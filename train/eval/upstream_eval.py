@@ -66,8 +66,9 @@ def _get_epoch_from_checkpoint(ckpt_path):
     return None
 
 
-def main():
-    args = parse_args()
+def main(args=None):
+    if not args:
+        args = parse_args()
 
     config_id = args.config_id
 

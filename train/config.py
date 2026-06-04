@@ -6,7 +6,7 @@ from typing import Union
 import neps
 from neps.space import Parameter
 import torch
-from optimizers import primo_space, prior_confidence
+from optimizers import primo_space, prior_confidence, prior_centers
 from spaces import (__SCALE_SPACE_CONSTANT_ViT_S_32,
                     ScanPipeline)
 
@@ -47,8 +47,8 @@ class NePSConfig:
             "pipeline_space": self.pipeline_space,
             "cost_to_spend": self.cost_to_spend,
         }
-        if self.optimizer == Optimizer.PriMO.value:
-            args["fidelities_to_spend"] = 5
+        if self.optimizer in [Optimizer.PriMO.value, Optimizer.BO_RW.value]:
+            args["fidelities_to_spend"] = 12
         return args
 
 
@@ -147,12 +147,12 @@ HPO_CONFIGS = {
                                          ),
     "random_fixed_max_dp": NePSConfig(
         lambda p: neps.algorithms.random_search(p, ignore_fidelity="highest_fidelity"),
-        # evaluations_to_spend=20,
+        evaluations_to_spend=12,
         pipeline_space=primo_space,
     ),
     "primo": NePSConfig(
         optimizer=lambda p: neps.algorithms.primo(space=p,
-                prior_centers={},
+                prior_centers=prior_centers,
                 mo_selector="epsnet",
                 prior_confidences=prior_confidence,
                 initial_design_size=5,
@@ -163,7 +163,7 @@ HPO_CONFIGS = {
     ),
     "bo_rw": NePSConfig(
         optimizer=lambda p: neps.algorithms.primo(space=p,
-                prior_centers={},
+                prior_centers=prior_centers,
                 mo_selector="epsnet",
                 prior_confidences=prior_confidence,
                 initial_design_size=5,
@@ -198,7 +198,7 @@ class TrainConfig:
     batch_size: int
 
     # specific to NePs
-    pipeline_id: int
+    pipeline_id: str | int
     sync_neps: bool
 
     # hyperparameters from NePs
@@ -209,16 +209,17 @@ class TrainConfig:
     beta2: float = 0.98
     eps: float = 1e-6
 
-    config_id_to_train_num_samples: dict[int, int] = None
+    config_id_to_train_num_samples: dict[str | int, int] = None
 
     def __post_init__(self):
-        epoch_max_samples = 12_000_000
-        min_epochs = 2
-
+        # epoch_max_samples = 100_000
+        # min_epochs = 1
+        max_epochs = 10
         total = self.train_num_samples
-        self.epochs = max(min_epochs, math.ceil(total / epoch_max_samples))
-        epoch_num_samples = math.ceil(total / self.epochs)
+        # self.epochs = max(min_epochs, math.ceil(total / epoch_max_samples))
+        epoch_num_samples = math.ceil(total * (self.epochs / max_epochs))
         self.train_num_samples = epoch_num_samples
+        self.epochs = 1
 
         if self.logs and "train/" in self.logs:
             self.logs = self.logs.replace("train/", "")
@@ -239,7 +240,7 @@ class EvalConfig:
     seed: int
     name: str
     logs: str
-    pipeline_id: int
+    pipeline_id: str | int
 
     def __post_init__(self):
         if self.logs and "train/" in self.logs:

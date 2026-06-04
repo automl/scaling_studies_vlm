@@ -491,7 +491,7 @@ def parse_args(args):
 
     parser.add_argument(
         "--pipeline-id",
-        type=int,
+        type=str,
         default=None,
         help="NePs pipeline id.",
     )
