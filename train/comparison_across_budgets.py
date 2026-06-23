@@ -386,52 +386,52 @@ if __name__ == "__main__":
     print("\nPoints per fidelity:")
     print(fidelity_counts.to_string(index=False))
 
-    # metric_col = "val_loss"
-    #
-    # corr_matrix, count_matrix = build_fidelity_matrices(
-    #     df=df,
-    #     metric_col=metric_col,
-    #     min_shared_configs=10,
-    # )
-    #
-    # print("\nSpearman correlation matrix:")
-    # print(corr_matrix)
-    #
-    # print("\nShared config count matrix:")
-    # print(count_matrix)
-    #
-    # corr_matrix.to_csv("fidelity_spearman_correlation_matrix.csv")
-    # count_matrix.to_csv("fidelity_shared_config_count_matrix.csv")
-    #
-    # plot_heatmap(
-    #     matrix=corr_matrix,
-    #     title=f"Spearman fidelity correlation using {metric_col}",
-    #     output_path="fidelity_spearman_correlation_heatmap.png",
-    # )
-    #
-    # plot_heatmap(
-    #     matrix=count_matrix,
-    #     title="Number of shared configs between fidelities",
-    #     output_path="fidelity_shared_config_count_heatmap.png",
-    # )
-    #
-    # final_corr_df = compute_correlation_to_final_fidelity(
-    #     df=df,
-    #     metric_col=metric_col,
-    # )
-    #
-    # print("\nCorrelation to final fidelity:")
-    # print(final_corr_df)
-    #
-    # final_corr_df.to_csv(
-    #     "correlation_to_final_fidelity.csv",
-    #     index=False
-    # )
-    #
-    # plot_correlation_to_final_fidelity(
-    #     result_df=final_corr_df,
-    #     output_path="correlation_to_final_fidelity.png",
-    # )
+    metric_col = "val_loss"
+
+    corr_matrix, count_matrix = build_fidelity_matrices(
+        df=df,
+        metric_col=metric_col,
+        min_shared_configs=10,
+    )
+
+    print("\nSpearman correlation matrix:")
+    print(corr_matrix)
+
+    print("\nShared config count matrix:")
+    print(count_matrix)
+
+    corr_matrix.to_csv("fidelity_spearman_correlation_matrix.csv")
+    count_matrix.to_csv("fidelity_shared_config_count_matrix.csv")
+
+    plot_heatmap(
+        matrix=corr_matrix,
+        title=f"Spearman fidelity correlation using {metric_col}",
+        output_path="fidelity_spearman_correlation_heatmap.png",
+    )
+
+    plot_heatmap(
+        matrix=count_matrix,
+        title="Number of shared configs between fidelities",
+        output_path="fidelity_shared_config_count_heatmap.png",
+    )
+
+    final_corr_df = compute_correlation_to_final_fidelity(
+        df=df,
+        metric_col=metric_col,
+    )
+
+    print("\nCorrelation to final fidelity:")
+    print(final_corr_df)
+
+    final_corr_df.to_csv(
+        "correlation_to_final_fidelity.csv",
+        index=False
+    )
+
+    plot_correlation_to_final_fidelity(
+        result_df=final_corr_df,
+        output_path="correlation_to_final_fidelity.png",
+    )
 
     downstream_cols = [
         "vtab_caltech101_mean_per_class_recall",
@@ -447,7 +447,7 @@ if __name__ == "__main__":
         "gtsrb_acc1",
         "imagenet1k_acc1",
         "imagenet_sketch_acc1",
-        "imagenetv2_acc1",
+        # "imagenetv2_acc1",
         "imagenet-a_acc1",
         "imagenet-o_acc1",
         "imagenet-r_acc1",

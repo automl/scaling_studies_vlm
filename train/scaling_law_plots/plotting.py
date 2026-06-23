@@ -928,7 +928,7 @@ def plot_all_objectives(csv_path: str, dpi: int = 200):
         # "mscoco_image_recall@5",
         # "mscoco_text_recall@5",
         "val_loss",
-        "test_loss",
+        # "test_loss",
     ]
 
     csv_path_p = Path(csv_path)
