@@ -36,9 +36,9 @@ def parse_args():
 
     p.add_argument(
         "--cluster",
-        default="meta",
+        default="tu_dresden",
         type=str,
-        choices=["meta", "juwels"],
+        choices=["meta", "juwels", "horeka", "tu_dresden"],
         help="Cluster used to run evaluations."
     )
     return p.parse_args()
@@ -61,7 +61,7 @@ def enrich_neps_state(neps_root, pipeline_id, eval_dict: dict):
         yaml.safe_dump(state, f, sort_keys=False)
 
 
-def main(root: str, model: str, seed: int, pipeline_id: str, cluster: str = "meta"):
+def main(root: str, model: str, seed: int, pipeline_id: str, cluster: str = "tu_dresden"):
     """
     Run downstream evaluation and enrich neps state with results.
     

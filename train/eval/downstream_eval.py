@@ -33,6 +33,7 @@ class ZeroShotDataset(EvalDataset):
         root={
             "meta": Path("/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/train/eval_data"),
             "juwels": Path("/p/data1/datasets/Imagenet2012_1k_tar"),
+            "tu_dresden": Path("/data/cat/ws/naal364i-primo/runs/train/eval_data"),
         },
     )
 
@@ -43,7 +44,8 @@ class RetrievalDataset(EvalDataset):
         root={
             "meta": Path("/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/train/eval_data"),
             "juwels": Path("/p/data1/datasets/scan/openclip/train/eval_data"),
-        }, )
+        },
+    )
 
 
 class ClipBenchmarkEvaluator:
@@ -87,7 +89,10 @@ class ClipBenchmarkEvaluator:
         if self.cluster in spec.root:
             return str(spec.root[self.cluster])
 
-        return "eval_data"
+        raise KeyError(
+            f"Cluster '{self.cluster}' has no root path configured for dataset '{spec.name}'. "
+            f"Available clusters: {list(spec.root.keys())}"
+        )
 
     def _build_argv(
             self,
@@ -259,12 +264,16 @@ class ClipBenchmarkEvaluator:
 
         for ds in datasets:
             start = time.time()
+            try:
+                output_file = self.evaluate(
+                    task=EvalTask.RETRIEVAL,
+                    dataset=ds,
+                    output=out,
+                )
+            except (FileNotFoundError, RuntimeError, KeyError) as e:
+                print(f"Skipping retrieval eval for {ds.value.name} on cluster '{self.cluster}': {e}")
+                continue
 
-            output_file = self.evaluate(
-                task=EvalTask.RETRIEVAL,
-                dataset=ds,
-                output=out,
-            )
             duration = time.time() - start
 
             data = json.loads(Path(output_file).read_text())

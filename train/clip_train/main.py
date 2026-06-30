@@ -768,7 +768,7 @@ def main(args):
                 model=f"local-dir:{root_dir}/model_cfg/config_{args.pipeline_id}",
                 seed=args.seed,
                 pipeline_id=args.pipeline_id,
-                cluster="meta",
+                cluster=args.cluster,
             )
             
             # Wait for report.yaml to be written
@@ -812,7 +812,7 @@ def main(args):
             
             result = {
                 "objective_to_minimize": (
-                    -1 * n_param,
+                    n_param,
                     -1 * cifar10_acc5,
                     -1 * imagenet1k_acc5,
                 ),

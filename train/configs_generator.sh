@@ -1,12 +1,12 @@
 #!/bin/bash
 # Usage: sbatch configs_generator.sh [WORKSPACE_DIR] [CODE_DIR] [HPO_OPTIMIZER] [SEED]
-# Example: sbatch configs_generator.sh /work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm /home/alipourn/scaling_studies_vlm/train constrained_bo 42
+# Example: sbatch configs_generator.sh /data/cat/ws/naal364i-primo/runs /home/naal364i/scaling_studies_vlm/train bo_rw
 
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --mem=64G
 #SBATCH --ntasks-per-node=1
-#SBATCH --partition mldlc2_gpu-l40s
+#SBATCH --partition capella
 #SBATCH --job-name=configs_generator
 
 #SBATCH --output configs_iterator_logs/%x-%A.out   # STDOUT  %x and %A will be replaced by the job name and job id, respectively.
@@ -14,13 +14,13 @@
 
 # Set defaults or use provided arguments
 
-source ~/miniconda3/bin/activate && conda activate test_scaling_laws
+source /software/genoa/r24.10/Anaconda3/2024.06-1/bin/activate && conda activate /home/naal364i/miniconda3/envs/test_scaling_laws
 
-WORKSPACE_DIR="${1:-/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm}"
-CODE_DIR="${2:-/home/alipourn/scaling_studies_vlm/train}"
-HPO_OPTIMIZER="${3:-primo}"
+WORKSPACE_DIR="${1:-/data/cat/ws/naal364i-primo/runs}"
+CODE_DIR="${2:-/home/naal364i/scaling_studies_vlm/train}"
+HPO_OPTIMIZER="${3:-bo_rw_with_prior}"
 SEED="${4:-1}"
-VENV_DIR="${5:-/home/alipourn/miniconda3/bin/activate}"
+VENV_DIR="${5:-/software/genoa/r24.10/Anaconda3/2024.06-1/bin/activate}"
 
 echo "WORKSPACE_DIR: $WORKSPACE_DIR"
 echo "CODE_DIR: $CODE_DIR"
@@ -46,8 +46,9 @@ echo "CUDA_VISIBLE_DEVICES before srun: ${CUDA_VISIBLE_DEVICES:-unset}"
 
 srun --ntasks=1 --gpus-per-task=1 --gpu-bind=single:1 \
   bash -lc '
+    source '"$VENV_DIR"' && conda activate /home/naal364i/miniconda3/envs/test_scaling_laws
     echo "CUDA_VISIBLE_DEVICES inside srun: ${CUDA_VISIBLE_DEVICES:-unset}"
-    python -u /home/alipourn/scaling_studies_vlm/train/configs_generator.py \
+    python -u /home/naal364i/scaling_studies_vlm/train/configs_generator.py \
   --hpo-optimizer "$HPO_OPTIMIZER" \
   --seed "$SEED" \
   --workspace_dir "$WORKSPACE_DIR"

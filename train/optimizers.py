@@ -1,11 +1,4 @@
-import gc
-import json
-import os
-import sys
-from pathlib import Path
-
 import neps
-from filelock import FileLock
 def set_workspace_dir(workspace_dir: str):
     """Set the workspace directory for disk cache location."""
     global _workspace_dir
@@ -44,21 +37,49 @@ primo_space = dict(
     batch_size = neps.HPOConstant(512),
 )
 
- 
+primo_space_80M = primo_space.copy()
+primo_space_80M.update({
+    "train_num_samples": neps.HPOConstant(80),
+})
+
 prior_confidence = {
-    "good":{
+    "good-n_param":{
         "lr": 0.75,
         "warmup_fraction": 0.75,
         "vision_width": 0.75,
         "text_width": 0.75,
-    }
+    },
+    "good-cifar10_acc5":{
+        "lr": 0.75,
+        "warmup_fraction": 0.75,
+        "vision_width": 0.75,
+        "text_width": 0.75,
+    },
+    "good-imagenet1k_acc5":{
+        "lr": 0.75,
+        "warmup_fraction": 0.75,
+        "vision_width": 0.75,
+        "text_width": 0.75,
+    },
 }
 
 prior_centers = {
-    "good": {
-        "lr": 0.001,
-        "warmup_fraction": 0.75,
-        "vision_width": 3,
-        "text_width": 2,
+    "good-n_param": {
+        "lr": 0.01,
+        "warmup_fraction": 0.31,
+        "vision_width": 0,
+        "text_width": 0,
+    },
+    "good-cifar10_acc5": {
+        "lr": 2.13e-5,
+        "warmup_fraction": 0.68,
+        "vision_width": 1,
+        "text_width": 0,
+    },
+    "good-imagenet1k_acc5": {
+        "lr": 1.12e-5,
+        "warmup_fraction": 0.36,
+        "vision_width": 2,
+        "text_width": 1,
     }
 }

@@ -504,6 +504,14 @@ def parse_args(args):
     )
 
     parser.add_argument(
+        "--cluster",
+        type=str,
+        default="tu_dresden",
+        choices=["meta", "juwels", "horeka", "tu_dresden"],
+        help="Cluster used to run evaluations.",
+    )
+
+    parser.add_argument(
         "--sync-neps",
         default=False,
         action="store_true",

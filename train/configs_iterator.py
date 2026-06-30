@@ -198,12 +198,15 @@ def generate_scripts_per_config(config_id, scan_space, root_dir, venv_path, wand
     build_model_cfg(out_path=model_cfg_path, **scan_space)
     model_cfg = get_local_model_str(model_cfg_path)
 
-    gpus_per_node, nodes_nr, local_bs = compute_batch_and_resources(
-        model_cfg=model_cfg,
-        hp_scale_space=scan_space,
-        precision=precision,
-        max_gpus_per_node=4,
-    )
+    # gpus_per_node, nodes_nr, local_bs = compute_batch_and_resources(
+    #     model_cfg=model_cfg,
+    #     hp_scale_space=scan_space,
+    #     precision=precision,
+    #     max_gpus_per_node=4,
+    # )
+    gpus_per_node = 4
+    nodes_nr = 1
+    local_bs = query_bs(scan_space.get("train_num_samples")) // gpus_per_node
 
     hp_space_train_num_samples = get_hp_space_train_num_samples_from_scan_space(scan_space)
     job_name = f"train_config{config_id}"
@@ -395,6 +398,3 @@ if __name__ == "__main__":
         command_dir=args.command_dir,
         partition=args.partition,
     )
-
-
-    

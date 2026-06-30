@@ -57,6 +57,7 @@ def build_cmd(config: "TrainConfig", wandb_project_name, cluster) -> str:
         "--precision amp",
         "--report-to wandb",
         f'--wandb-project-name "{wandb_project_name}"',
+        f"--cluster {cluster}",
     ]
 
     for key, value in args.items():
@@ -223,8 +224,8 @@ ml Stages/2026 GCCcore/14.3.0 PyTorch/2.9.1
         if self.cluster == "tu_dresden":
                 return """\
 module load Anaconda3
-source $EBROOTANACONDA3/etc/profile.d/conda.sh
-conda activate /data/cat/ws/dosi100i-scan_bench_suite/vlm_env"""
+source /software/genoa/r24.10/Anaconda3/2024.06-1/bin/activate && conda activate /home/naal364i/miniconda3/envs/test_scaling_laws
+"""
 
         raise ValueError(f"Unknown cluster: {self.cluster}")
 

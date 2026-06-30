@@ -6,7 +6,7 @@ from typing import Union
 import neps
 from neps.space import Parameter
 import torch
-from optimizers import primo_space, prior_confidence, prior_centers
+from optimizers import primo_space, prior_confidence, prior_centers, primo_space_80M
 from spaces import (__SCALE_SPACE_CONSTANT_ViT_S_32,
                     ScanPipeline)
 
@@ -34,6 +34,7 @@ class NePSConfig:
     pipeline_space: dict[str, Parameter] = None
     evaluations_to_spend: int | None = None
     cost_to_spend: int | None = None
+    fidelities_to_spend: int | None = None
 
     def __post_init__(self):
         if isinstance(self.optimizer, Optimizer):
@@ -47,8 +48,8 @@ class NePSConfig:
             "pipeline_space": self.pipeline_space,
             "cost_to_spend": self.cost_to_spend,
         }
-        if self.optimizer in [Optimizer.PriMO.value, Optimizer.BO_RW.value]:
-            args["fidelities_to_spend"] = 12
+        if self.fidelities_to_spend is not None:
+            args["fidelities_to_spend"] = self.fidelities_to_spend
         return args
 
 
@@ -147,7 +148,7 @@ HPO_CONFIGS = {
                                          ),
     "random_fixed_max_dp": NePSConfig(
         lambda p: neps.algorithms.random_search(p, ignore_fidelity="highest_fidelity"),
-        evaluations_to_spend=12,
+        evaluations_to_spend=20,
         pipeline_space=primo_space,
     ),
     "primo": NePSConfig(
@@ -159,9 +160,27 @@ HPO_CONFIGS = {
                 cost_aware=False,
                 device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
             ),
+        fidelities_to_spend=200,
         pipeline_space=primo_space,
     ),
     "bo_rw": NePSConfig(
+        optimizer=lambda p: neps.algorithms.bayesian_optimization(pipeline_space=p,
+                initial_design_size=5,
+                ignore_fidelity=True,
+                reference_point=None,
+                cost_aware=False,
+                device=torch.device("cpu"),
+            ),
+        evaluations_to_spend=20,
+        pipeline_space=primo_space,
+    ),
+    
+    "random_80M": NePSConfig(
+        lambda p: neps.algorithms.random_search(p, ignore_fidelity="highest_fidelity"),
+        evaluations_to_spend=20,
+        pipeline_space=primo_space_80M,
+    ),
+    "primo_80M": NePSConfig(
         optimizer=lambda p: neps.algorithms.primo(space=p,
                 prior_centers=prior_centers,
                 mo_selector="epsnet",
@@ -170,10 +189,23 @@ HPO_CONFIGS = {
                 cost_aware=False,
                 device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
             ),
-        pipeline_space=primo_space,
+        fidelities_to_spend=200,
+        pipeline_space=primo_space_80M,
     ),
-}
+    "bo_rw_80M": NePSConfig(
+        optimizer=lambda p: neps.algorithms.bayesian_optimization(pipeline_space=p,
+                initial_design_size=5,
+                ignore_fidelity=True,
+                reference_point=None,
+                cost_aware=False,
+                device=torch.device("cpu"),
+            ),
+        evaluations_to_spend=20,
+        pipeline_space=primo_space_80M,
+    ),
 
+
+}
 
 @dataclass
 class TrainConfig:
