@@ -4,6 +4,57 @@ from scipy.stats import spearmanr
 
 from train.scaling_law_plots.models_comparison import build_failure_labels
 
+TASK_NAME_MAP = {
+    "vtab_caltech101_mean_per_class_recall": "Caltech-101",
+    "cifar10_mean_per_class_recall": "CIFAR-10",
+    "vtab_cifar100_mean_per_class_recall": "CIFAR-100",
+    "vtab_clevr_count_all_acc1": "CLEVR Counts",
+    "vtab_clevr_closest_object_distance_acc1": "CLEVR Distance",
+    "country211_acc1": "Country211",
+    "vtab_dtd_acc1": "Describable Textures",
+    "vtab_eurosat_acc1": "EuroSAT",
+    "fgvc_aircraft_mean_per_class_recall": "FGVC Aircraft",
+    "food101_acc1": "Food-101",
+    "gtsrb_acc1": "GTSRB",
+    "imagenet1k_acc1": "ImageNet 1k",
+    "imagenet_sketch_acc1": "ImageNet Sketch",
+    "imagenetv2_acc1": "ImageNet v2",
+    "imagenet-a_acc1": "ImageNet-A",
+    "imagenet-o_acc1": "ImageNet-O",
+    "imagenet-r_acc1": "ImageNet-R",
+    "vtab_kitti_closest_vehicle_distance_acc1": "KITTI Vehicle Distance",
+    "mnist_acc1": "MNIST",
+    "objectnet_acc1": "ObjectNet",
+    "vtab_flowers_mean_per_class_recall": "Oxford Flowers-102",
+    "vtab_pets_mean_per_class_recall": "Oxford-IIIT Pet",
+    "voc2007_acc1": "Pascal VOC 2007",
+    "vtab_pcam_acc1": "PatchCamelyon",
+    "renderedsst2_acc1": "Rendered SST2",
+    "vtab_resisc45_acc1": "RESISC45",
+    "cars_acc1": "Stanford Cars",
+    "stl10_acc1": "STL-10",
+    "sun397_acc1": "SUN397",
+    "vtab_svhn_acc1": "SVHN",
+    "retrieval_flickr_1k_test_image_text_retrieval_mean_recall@1":
+        "Flickr",
+    "retrieval_mscoco_2014_5k_test_image_text_retrieval_mean_recall@1":
+        "MSCOCO",
+    "misc_winogavil_jaccard_score_10-12": "WinoGAViL",
+    "wilds_iwildcam_F1-macro_all": "iWildCam",
+    "wilds_camelyon17_acc1": "Camelyon17",
+    "wilds_fmow_acc_worst_region": "FMoW",
+    "fairness_dollar_street_acc_top5_wg": "Dollar Street",
+    "fairness_geode_acc_wg": "GeoDE",
+    "fairness_fairface_acc_race_avg": "FairFace",
+    "fairness_utkface_acc_race_avg": "UTKFace",
+    "val_loss": "Validation loss",
+    "test_loss": "Test loss",
+}
+
+
+def clean_task_label(task: str) -> str:
+    return TASK_NAME_MAP.get(task, task)
+
 
 def keep_only_nonfailed(df: pd.DataFrame) -> pd.DataFrame:
     fail_df = build_failure_labels(df)
@@ -284,6 +335,17 @@ def plot_downstream_fidelity_correlations(
         corr_df: pd.DataFrame,
         output_path: str,
 ):
+    corr_df = corr_df.copy()
+
+    # Remove accidental whitespace and map readable names
+    corr_df["task"] = corr_df["task"].astype(str).str.strip()
+
+    corr_df["task_label"] = (
+        corr_df["task"]
+        .map(TASK_NAME_MAP)
+        .fillna(corr_df["task"])
+    )
+
     task_order = (
         corr_df.groupby("task")["spearman_corr"]
         .mean()
@@ -298,9 +360,9 @@ def plot_downstream_fidelity_correlations(
     }
 
     colors = {
-        0.25: "#1f77b4",  # blue
-        0.5: "#ff7f0e",  # orange
-        0.75: "#2ca02c",  # green
+        0.25: "#1f77b4",
+        0.5: "#ff7f0e",
+        0.75: "#2ca02c",
     }
 
     plt.figure(figsize=(14, 5))
@@ -309,10 +371,10 @@ def plot_downstream_fidelity_correlations(
         sub = corr_df[corr_df["fidelity"] == fidelity]
 
         plt.scatter(
-            [x_positions[t] for t in sub["task"]],
+            [x_positions[task] for task in sub["task"]],
             sub["spearman_corr"],
             marker="v",
-            color=colors[fidelity],
+            color=colors.get(fidelity, "gray"),
             s=80,
             edgecolors="black",
             linewidths=0.5,
@@ -320,35 +382,29 @@ def plot_downstream_fidelity_correlations(
             alpha=0.9,
         )
 
+    task_labels = (
+        corr_df[["task", "task_label"]]
+        .drop_duplicates("task")
+        .set_index("task")["task_label"]
+    )
+
     plt.xticks(
         ticks=range(len(task_order)),
-        labels=[clean_task_label(task) for task in task_order],
+        labels=[task_labels.loc[task] for task in task_order],
         rotation=45,
         ha="right",
     )
 
     plt.ylim(0, 1.05)
-
     plt.ylabel("Spearman correlation")
     plt.xlabel("Task")
-
-    plt.title(
-        "Spearman rank correlation to final fidelity per task"
-    )
-
+    plt.title("Spearman rank correlation to final fidelity per task")
     plt.grid(True, alpha=0.3)
-
-    plt.legend(
-        title="Training progress",
-        frameon=True,
-    )
+    plt.legend(title="Training progress", frameon=True)
 
     plt.tight_layout()
-
-    plt.savefig(output_path, dpi=300)
-
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
     plt.show()
-
     plt.close()
 
 

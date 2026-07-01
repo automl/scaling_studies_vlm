@@ -472,7 +472,7 @@ def plot_pareto_front_from_csv(
 
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.set_xlabel("FLOPs", fontsize=12)
+    ax.set_xlabel("GFLOPs", fontsize=12)
     ax.set_ylabel(objective_col, fontsize=12)
     ax.set_title(f"Pareto Front (log-log) ({len(pareto_front)}/{len(rows)} points)", fontsize=13)
     ax.grid(True, linestyle="--", alpha=0.3, which="both")
