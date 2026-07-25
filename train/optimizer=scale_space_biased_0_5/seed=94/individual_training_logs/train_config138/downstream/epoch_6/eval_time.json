@@ -1,8 +1,0 @@
-{
-  "config_id": 138,
-  "checkpoint": "epoch_6.pt",
-  "epoch": 6,
-  "eval_time_seconds": 5.669075012207031,
-  "gpu_name": "NVIDIA A100-SXM4-40GB",
-  "batch_size": 64
-}

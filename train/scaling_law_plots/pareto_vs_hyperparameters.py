@@ -142,9 +142,9 @@ def plot_pareto_vs_hyperparameter(
     if log_y:
         ax.set_yscale("log")
 
-    ax.set_xlabel("GFLOPs")
-    ax.set_ylabel(hyperparam_col)
-    ax.set_title(f"GFLOPs vs {hyperparam_col}")
+    ax.set_xlabel("GFLOPs", fontsize=22)
+    ax.set_ylabel(hyperparam_col, fontsize=22)
+    # ax.set_title(f"GFLOPs vs {hyperparam_col}")
 
     ax.grid(
         True,
@@ -153,13 +153,19 @@ def plot_pareto_vs_hyperparameter(
         which="major",
     )
 
-    ax.legend(loc="upper left")
+    ax.tick_params(
+        axis="both",
+        which="major",
+        labelsize=16,
+    )
+
+    ax.legend(loc="upper left", fontsize=12)
 
     colorbar = fig.colorbar(
         scatter,
         ax=ax,
     )
-    colorbar.set_label("Loss")
+    colorbar.set_label("Loss", fontsize=22)
 
     fig.savefig(
         output_path,
@@ -309,6 +315,12 @@ def plot_vision_text_ratio(
         zorder=3,
     )
 
+    ax.tick_params(
+        axis="both",
+        which="major",
+        labelsize=13,
+    )
+
     fit_mask = (
             np.isfinite(pareto_flops)
             & np.isfinite(pareto_ratio)
@@ -371,9 +383,9 @@ def plot_vision_text_ratio(
     ax.set_xscale("log")
     ax.set_yscale("log")
 
-    ax.set_xlabel("GFLOPs")
-    ax.set_ylabel("vision-text-ratio")
-    ax.set_title("GFLOPs vs vision-text-ratio")
+    ax.set_xlabel("GFLOPs", fontsize=22)
+    ax.set_ylabel("vision-text-ratio", fontsize=22)
+    # ax.set_title("GFLOPs vs vision-text-ratio")
 
     ax.grid(
         True,
@@ -388,7 +400,7 @@ def plot_vision_text_ratio(
         scatter,
         ax=ax,
     )
-    colorbar.set_label("Loss")
+    colorbar.set_label("Loss", fontsize=22)
 
     fig.savefig(
         output_path,

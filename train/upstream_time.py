@@ -15,14 +15,12 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    root_dir: Path = args.root_dir / "individual_training_logs"
+    root_dir: Path = args.root_dir
 
     total_eval_time_per_gpu = {}
     DEFAULT_GPU = "NVIDIA A100-SXM4-40GB"
 
     for config_dir in root_dir.iterdir():
-        if not config_dir.is_dir() or not config_dir.name.startswith("train_config"):
-            continue
 
         results_jsonl = config_dir / "checkpoints" / "results.jsonl"
 

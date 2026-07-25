@@ -336,8 +336,6 @@ def plot_downstream_fidelity_correlations(
         output_path: str,
 ):
     corr_df = corr_df.copy()
-
-    # Remove accidental whitespace and map readable names
     corr_df["task"] = corr_df["task"].astype(str).str.strip()
 
     corr_df["task_label"] = (
@@ -354,7 +352,7 @@ def plot_downstream_fidelity_correlations(
         .tolist()
     )
 
-    x_positions = {
+    y_positions = {
         task: i
         for i, task in enumerate(task_order)
     }
@@ -365,14 +363,14 @@ def plot_downstream_fidelity_correlations(
         0.75: "#2ca02c",
     }
 
-    plt.figure(figsize=(14, 5))
+    plt.figure(figsize=(8, 10))
 
     for fidelity in sorted(corr_df["fidelity"].unique()):
         sub = corr_df[corr_df["fidelity"] == fidelity]
 
         plt.scatter(
-            [x_positions[task] for task in sub["task"]],
             sub["spearman_corr"],
+            [y_positions[task] for task in sub["task"]],
             marker="v",
             color=colors.get(fidelity, "gray"),
             s=80,
@@ -388,18 +386,16 @@ def plot_downstream_fidelity_correlations(
         .set_index("task")["task_label"]
     )
 
-    plt.xticks(
+    plt.yticks(
         ticks=range(len(task_order)),
         labels=[task_labels.loc[task] for task in task_order],
-        rotation=45,
-        ha="right",
     )
 
-    plt.ylim(0, 1.05)
-    plt.ylabel("Spearman correlation")
-    plt.xlabel("Task")
+    plt.xlim(0, 1.05)
+    plt.xlabel("Spearman correlation")
+    plt.ylabel("Task")
     plt.title("Spearman rank correlation to final fidelity per task")
-    plt.grid(True, alpha=0.3)
+    plt.grid(True, alpha=0.3, axis="x")
     plt.legend(title="Training progress", frameon=True)
 
     plt.tight_layout()

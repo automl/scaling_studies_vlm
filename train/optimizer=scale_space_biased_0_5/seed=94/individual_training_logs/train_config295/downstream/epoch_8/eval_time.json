@@ -1,8 +1,0 @@
-{
-  "config_id": 295,
-  "checkpoint": "epoch_8.pt",
-  "epoch": 8,
-  "eval_time_seconds": 242.71108770370483,
-  "batch_size": 512,
-  "num_tasks": 40
-}

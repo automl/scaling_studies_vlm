@@ -1,8 +1,0 @@
-{
-  "config_id": 898,
-  "checkpoint": "epoch_6.pt",
-  "epoch": 6,
-  "eval_time_seconds": 3863.4209599494934,
-  "gpu_name": "NVIDIA GeForce RTX 3080",
-  "batch_size": 256
-}
