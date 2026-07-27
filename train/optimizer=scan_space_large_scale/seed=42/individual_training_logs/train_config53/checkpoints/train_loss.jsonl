@@ -1,0 +1,9 @@
+{"epoch": 0, "train_loss": 7.230362470565217, "GPU_trained_on": "NVIDIA H100", "world_size": 8}
+{"epoch": 1, "train_loss": 5.479478837399, "GPU_trained_on": "NVIDIA H100", "world_size": 8}
+{"epoch": 2, "train_loss": 4.706595525312959, "GPU_trained_on": "NVIDIA H100", "world_size": 8}
+{"epoch": 3, "train_loss": 4.179917441994957, "GPU_trained_on": "NVIDIA H100", "world_size": 8}
+{"epoch": 4, "train_loss": 3.788284236125732, "GPU_trained_on": "NVIDIA H100", "world_size": 8}
+{"epoch": 5, "train_loss": 3.428300742687804, "GPU_trained_on": "NVIDIA H100", "world_size": 8}
+{"epoch": 6, "train_loss": 3.0608872851628934, "GPU_trained_on": "NVIDIA H100", "world_size": 8}
+{"epoch": 7, "train_loss": 2.7540341146876304, "GPU_trained_on": "NVIDIA H100", "world_size": 8}
+{"epoch": 8, "train_loss": 2.533050230212426, "GPU_trained_on": "NVIDIA H100", "world_size": 8}

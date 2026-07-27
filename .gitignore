@@ -20,12 +20,12 @@ env/
 # Data, results, checkpoints
 data/
 datasets/
-checkpoints/
 openclip_checkpoints/
 results*/
 *.log
 *data*/
-
+*.pt
+train_loss_over_data_seen.jsonl
 
 # OS files
 .DS_Store

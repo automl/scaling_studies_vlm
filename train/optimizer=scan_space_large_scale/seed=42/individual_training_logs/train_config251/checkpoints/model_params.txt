@@ -1,0 +1,4 @@
+total_mparams: 51.58
+image_mparams: 0.26
+text_mparams: 51.32
+text_mparams_non_emb: 29.14

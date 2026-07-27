@@ -1,0 +1,4 @@
+{"epoch": 1, "global_steps_completed": 1312, "total_global_steps": 5248, "in_warmup": true, "warmup_steps": 3394, "warmup_progress": 0.3865645256334708, "training_progress": 0.25}
+{"epoch": 2, "global_steps_completed": 2624, "total_global_steps": 5248, "in_warmup": true, "warmup_steps": 3394, "warmup_progress": 0.7731290512669416, "training_progress": 0.5}
+{"epoch": 3, "global_steps_completed": 3936, "total_global_steps": 5248, "in_warmup": false, "warmup_steps": 3394, "warmup_progress": 1.0, "training_progress": 0.75}
+{"epoch": 4, "global_steps_completed": 5248, "total_global_steps": 5248, "in_warmup": false, "warmup_steps": 3394, "warmup_progress": 1.0, "training_progress": 1.0}

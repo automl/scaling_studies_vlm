@@ -1,0 +1,7 @@
+{
+  "total_samples": 61341696,
+  "epochs": 6,
+  "total_compute": 367436759.04,
+  "compute_per_epoch": 61239459.84,
+  "compute_per_sample": 5.99
+}

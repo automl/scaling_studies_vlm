@@ -1,0 +1,2 @@
+{"epoch": 1, "global_steps_completed": 2336, "total_global_steps": 4672, "in_warmup": false, "warmup_steps": 2121, "warmup_progress": 1.0, "training_progress": 0.5}
+{"epoch": 2, "global_steps_completed": 4672, "total_global_steps": 4672, "in_warmup": false, "warmup_steps": 2121, "warmup_progress": 1.0, "training_progress": 1.0}

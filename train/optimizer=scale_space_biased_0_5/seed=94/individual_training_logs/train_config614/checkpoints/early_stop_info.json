@@ -1,0 +1,6 @@
+{
+  "epoch": 0,
+  "step": 2000,
+  "samples_processed_current_epoch": 1024512,
+  "target_samples": 1064960
+}

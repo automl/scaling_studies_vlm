@@ -1,0 +1,2 @@
+{"epoch": 0, "train_loss": 1.0898564958572388, "GPU_trained_on": "NVIDIA GeForce RTX 3060 Laptop GPU", "world_size": 1}
+{"epoch": 1, "train_loss": 0.8884706942240397, "GPU_trained_on": "NVIDIA GeForce RTX 3060 Laptop GPU", "world_size": 1}

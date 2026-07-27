@@ -1,0 +1,5 @@
+{"epoch": 0, "train_loss": 7.159485920581942, "GPU_trained_on": "NVIDIA A100-SXM4-40GB", "world_size": 4}
+{"epoch": 1, "train_loss": 5.887919203907836, "GPU_trained_on": "NVIDIA A100-SXM4-40GB", "world_size": 4}
+{"epoch": 2, "train_loss": 5.09113217841566, "GPU_trained_on": "NVIDIA A100-SXM4-40GB", "world_size": 4}
+{"epoch": 3, "train_loss": 4.541395118813109, "GPU_trained_on": "NVIDIA A100-SXM4-40GB", "world_size": 4}
+{"epoch": 4, "train_loss": 4.185818495898465, "GPU_trained_on": "NVIDIA A100-SXM4-40GB", "world_size": 4}

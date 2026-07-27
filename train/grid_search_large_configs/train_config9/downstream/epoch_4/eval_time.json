@@ -1,0 +1,8 @@
+{
+  "config_id": "vw_768_tw_512_lr_1e-3_wf_0p6_seed_42",
+  "checkpoint": "epoch_4.pt",
+  "epoch": 4,
+  "eval_time_seconds": 2715.124871492386,
+  "gpu_name": "NVIDIA H100",
+  "batch_size": 256
+}

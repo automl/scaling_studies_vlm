@@ -1,0 +1,10 @@
+{"epoch": 1, "global_steps_completed": 1392, "total_global_steps": 13920, "in_warmup": true, "warmup_steps": 3648, "warmup_progress": 0.3815789473684211, "training_progress": 0.1}
+{"epoch": 2, "global_steps_completed": 2784, "total_global_steps": 13920, "in_warmup": true, "warmup_steps": 3648, "warmup_progress": 0.7631578947368421, "training_progress": 0.2}
+{"epoch": 3, "global_steps_completed": 4176, "total_global_steps": 13920, "in_warmup": false, "warmup_steps": 3648, "warmup_progress": 1.0, "training_progress": 0.3}
+{"epoch": 4, "global_steps_completed": 5568, "total_global_steps": 13920, "in_warmup": false, "warmup_steps": 3648, "warmup_progress": 1.0, "training_progress": 0.4}
+{"epoch": 5, "global_steps_completed": 6960, "total_global_steps": 13920, "in_warmup": false, "warmup_steps": 3648, "warmup_progress": 1.0, "training_progress": 0.5}
+{"epoch": 6, "global_steps_completed": 8352, "total_global_steps": 13920, "in_warmup": false, "warmup_steps": 3648, "warmup_progress": 1.0, "training_progress": 0.6}
+{"epoch": 7, "global_steps_completed": 9744, "total_global_steps": 13920, "in_warmup": false, "warmup_steps": 3648, "warmup_progress": 1.0, "training_progress": 0.7}
+{"epoch": 8, "global_steps_completed": 11136, "total_global_steps": 13920, "in_warmup": false, "warmup_steps": 3648, "warmup_progress": 1.0, "training_progress": 0.8}
+{"epoch": 9, "global_steps_completed": 12528, "total_global_steps": 13920, "in_warmup": false, "warmup_steps": 3648, "warmup_progress": 1.0, "training_progress": 0.9}
+{"epoch": 10, "global_steps_completed": 13920, "total_global_steps": 13920, "in_warmup": false, "warmup_steps": 3648, "warmup_progress": 1.0, "training_progress": 1.0}

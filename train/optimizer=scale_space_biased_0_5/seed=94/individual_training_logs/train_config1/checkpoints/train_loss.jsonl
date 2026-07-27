@@ -1,0 +1,2 @@
+{"epoch": 0, "train_loss": 6.032897564754667, "GPU_trained_on": "NVIDIA L40S", "world_size": 1}
+{"epoch": 1, "train_loss": 6.019282304824574, "GPU_trained_on": "NVIDIA L40S", "world_size": 1}

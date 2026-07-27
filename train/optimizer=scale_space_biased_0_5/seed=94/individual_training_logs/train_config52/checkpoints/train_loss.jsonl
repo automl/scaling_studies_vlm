@@ -1,0 +1,6 @@
+{"epoch": 0, "train_loss": 7.598490552332416, "GPU_trained_on": "NVIDIA GeForce RTX 3080", "world_size": 2}
+{"epoch": 1, "train_loss": 7.429998723590899, "GPU_trained_on": "NVIDIA GeForce RTX 3080", "world_size": 2}
+{"epoch": 2, "train_loss": 7.282189774813142, "GPU_trained_on": "NVIDIA GeForce RTX 3080", "world_size": 2}
+{"epoch": 3, "train_loss": 6.986857908701746, "GPU_trained_on": "NVIDIA GeForce RTX 3080", "world_size": 2}
+{"epoch": 4, "train_loss": 6.428235428888093, "GPU_trained_on": "NVIDIA GeForce RTX 3080", "world_size": 2}
+{"epoch": 5, "train_loss": 5.902311635467242, "GPU_trained_on": "NVIDIA GeForce RTX 3080", "world_size": 2}

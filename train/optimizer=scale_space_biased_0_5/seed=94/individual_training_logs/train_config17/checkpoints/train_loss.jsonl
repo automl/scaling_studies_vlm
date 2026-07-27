@@ -1,0 +1,2 @@
+{"epoch": 0, "train_loss": 7.627997016906738, "GPU_trained_on": "NVIDIA GeForce RTX 2080 Ti", "world_size": 8}
+{"epoch": 1, "train_loss": 7.6249606359572635, "GPU_trained_on": "NVIDIA GeForce RTX 2080 Ti", "world_size": 8}

@@ -1,0 +1,2 @@
+{"epoch": 0, "train_loss": 6.233507871394977, "GPU_trained_on": "NVIDIA GeForce RTX 3080", "world_size": 2}
+{"epoch": 1, "train_loss": 6.177350393729284, "GPU_trained_on": "NVIDIA GeForce RTX 3080", "world_size": 2}

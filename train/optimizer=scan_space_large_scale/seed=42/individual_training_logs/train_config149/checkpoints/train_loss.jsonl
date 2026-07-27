@@ -1,0 +1,4 @@
+{"epoch": 0, "train_loss": 7.670528418991877, "GPU_trained_on": "NVIDIA H100", "world_size": 8}
+{"epoch": 1, "train_loss": 6.531193018931409, "GPU_trained_on": "NVIDIA H100", "world_size": 8}
+{"epoch": 2, "train_loss": 7.763719141483307, "GPU_trained_on": "NVIDIA H100", "world_size": 8}
+{"epoch": 3, "train_loss": 7.5036985884725524, "GPU_trained_on": "NVIDIA H100", "world_size": 8}
