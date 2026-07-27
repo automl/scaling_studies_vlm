@@ -1,0 +1,8 @@
+{
+  "config_id": 499,
+  "checkpoint": "epoch_5.pt",
+  "epoch": 5,
+  "eval_time_seconds": 2688.3953137397766,
+  "gpu_name": "NVIDIA H100",
+  "batch_size": 256
+}
