@@ -10,12 +10,18 @@ def parse_args():
         type=Path,
         required=True,
     )
+    p.add_argument(
+        "--default_gpu",
+        type=str,
+        default="NVIDIA A100-SXM4-40GB",
+    )
     return p.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
     root_dir: Path = args.root_dir
+    default_gpu: str = args.default_gpu
 
     total_eval_time_per_gpu = {}
     DEFAULT_GPU = "NVIDIA A100-SXM4-40GB"
@@ -34,7 +40,7 @@ if __name__ == "__main__":
 
                 row = json.loads(line)
 
-                gpu = row.get("gpu_name") or DEFAULT_GPU
+                gpu = row.get("gpu_name") or default_gpu
 
                 total_time = (
                         row.get("val_time_sec", 0.0)
