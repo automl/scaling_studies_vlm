@@ -123,6 +123,14 @@ A cluster script used to download the data: [`download_train_data.sh`](cluster_s
 
 Full information on the trained configurations is found [`here`](train/optimizer=scale_space_biased_0_5/seed=94)
 
+## Figures reproducibility
+
+Run the following script from the main source-tree to recreate the plottings:
+
+```bash
+bash train/figures.sh
+```
+
 ## Acknowledgments
 
 This project builds upon existing open-source software. We gratefully acknowledge the contributions of the original

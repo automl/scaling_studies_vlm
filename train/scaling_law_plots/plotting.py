@@ -947,3 +947,7 @@ def plot_all_objectives(csv_path: str, dpi: int = 200):
         all_figs[obj] = plot_all_scaling_law_figures(csv_path, objective_col=obj, dpi=dpi)
 
     return all_figs
+
+
+if __name__ == "__main__":
+    plot_all_objectives("train/surrogate_data.csv")

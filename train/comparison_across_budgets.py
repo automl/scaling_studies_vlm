@@ -186,8 +186,6 @@ def plot_heatmap(
 
     plt.savefig(output_path, dpi=300)
 
-    plt.show()
-
     plt.close()
 
 
@@ -266,7 +264,6 @@ def plot_correlation_to_final_fidelity(
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=300)
-    plt.show()
     plt.close()
 
 
@@ -400,12 +397,11 @@ def plot_downstream_fidelity_correlations(
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
-    plt.show()
     plt.close()
 
 
 if __name__ == "__main__":
-    df = pd.read_csv("surrogate_data.csv")
+    df = pd.read_csv("train/surrogate_data.csv")
 
     df = keep_only_nonfailed(df)
 

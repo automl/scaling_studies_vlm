@@ -8,8 +8,9 @@ def load_final_non_diverged(csv_path: str) -> pd.DataFrame:
     df = pd.read_csv(csv_path)
 
     mask = (
-            (df["epoch"] == df["total_epochs"])
-            & (df["epoch_diverged"] == False)
+        (df["epoch"] == df["total_epochs"])
+        & (df["epoch_diverged"] == False)
+        & (df["total_samples_planned"] != 200_000_000)
     )
 
     return df[mask].copy()
@@ -195,14 +196,14 @@ def main():
         )
 
         plot_pareto_vs_hyperparameter(
-            csv_path="../surrogate_data.csv",
+            csv_path="train/surrogate_data.csv",
             hyperparam_col=hyperparam,
             output_path=str(output_path),
             log_y=log_y,
         )
 
     plot_vision_text_ratio(
-        csv_path="../surrogate_data.csv",
+        csv_path="train/surrogate_data.csv",
         output_path=str("pareto_vs_vision_text_ratio.png"
                         ),
         objective_col="val_loss",

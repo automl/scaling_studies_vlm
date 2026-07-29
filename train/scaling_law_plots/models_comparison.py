@@ -4,7 +4,6 @@ import pandas as pd
 
 
 def plot_scaling_curve(df, benchmark_metric):
-
     selected_widths = [32, 64, 128, 256, 320, 448]
 
     models = df[['vision_width', 'text_width']].drop_duplicates()
@@ -27,14 +26,13 @@ def plot_scaling_curve(df, benchmark_metric):
     )
 
     for i, (_, row) in enumerate(models.iterrows()):
-
         vw = row['vision_width']
         tw = row['text_width']
 
         config_df = df[
             (df['vision_width'] == vw) &
             (df['text_width'] == tw)
-        ].copy()
+            ].copy()
 
         # sort by compute
         config_df = config_df.sort_values('Total compute(GLOPs)')
@@ -74,8 +72,8 @@ def plot_scaling_curve(df, benchmark_metric):
     plt.legend()
 
     plt.tight_layout()
-
-    plt.show()
+    plt.savefig("models_comparison.png", dpi=300, bbox_inches="tight")
+    plt.close()
 
 
 def build_failure_labels(df: pd.DataFrame) -> pd.DataFrame:
@@ -128,6 +126,6 @@ def paretoset_naive(costs, distinct=True):
 
 
 if __name__ == "__main__":
-    df = pd.read_csv("../surrogate_data.csv")
+    df = pd.read_csv("train/surrogate_data.csv")
     df = keep_only_nonfailed_last_epoch(df)
     plot_scaling_curve(df, "val_loss")
