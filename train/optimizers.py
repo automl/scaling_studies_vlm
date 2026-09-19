@@ -71,15 +71,15 @@ prior_centers = {
         "text_width": 0,
     },
     "good-cifar10_acc5": {
-        "lr": 2.13e-5,
-        "warmup_fraction": 0.68,
-        "vision_width": 1,
-        "text_width": 0,
+        "lr": 0.0003,
+        "warmup_fraction": 0.7,
+        "vision_width": 3,
+        "text_width": 2,
     },
     "good-imagenet1k_acc5": {
-        "lr": 1.12e-5,
-        "warmup_fraction": 0.36,
-        "vision_width": 2,
-        "text_width": 1,
+        "lr": 0.0003,
+        "warmup_fraction": 0.7,
+        "vision_width": 3,
+        "text_width": 2,
     }
 }

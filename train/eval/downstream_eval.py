@@ -27,7 +27,14 @@ class EvalDataset(Enum):
 
 
 class ZeroShotDataset(EvalDataset):
-    CIFAR10 = DatasetSpec("cifar10")
+    CIFAR10 = DatasetSpec(
+        "cifar10",
+        root={
+            "meta": Path("/work/dlclarge1/sinanid-VLM-scaling-law/scaling_studies_vlm/train/eval_data"),
+            "juwels": Path("/p/data1/datasets/scan/openclip/train/eval_data"),
+            "tu_dresden": Path("/data/cat/ws/naal364i-primo/runs/train/eval_data"),
+        },
+    )
     IMAGENET = DatasetSpec(
         "imagenet1k",
         root={
@@ -81,7 +88,10 @@ class ClipBenchmarkEvaluator:
         spec = dataset.value
 
         if spec.root is None:
-            return "eval_data"
+            raise ValueError(
+                f"Dataset '{spec.name}' has no root path configured; "
+                f"add one to its DatasetSpec instead of relying on a relative path."
+            )
 
         if isinstance(spec.root, Path):
             return str(spec.root)

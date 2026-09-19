@@ -804,17 +804,20 @@ def main(args):
             
             # Extract zero-shot and retrieval results
             zero_shot_results = downstream_results.get("zero_shot_results", [])
+            retrieval_results = downstream_results.get("retrieval_results", [])
             
             # Build multi-objective tuple: minimize n_param, zero-shot acc5,
             # and MSCOCO text retrieval recall@5.
             cifar10_acc5 = zero_shot_results[0].get("acc5", 0) if zero_shot_results else 0
             imagenet1k_acc5 = zero_shot_results[1].get("acc5", 0) if zero_shot_results else 0
+            ms_coco = retrieval_results[0].get("text_retrieval", 0) if retrieval_results else 0
             
             result = {
                 "objective_to_minimize": (
                     n_param,
-                    -1 * cifar10_acc5,
+                    # -1 * cifar10_acc5,
                     -1 * imagenet1k_acc5,
+                    -1 * ms_coco
                 ),
                 "cost": compute,
                 "info_dict": info_dict,
