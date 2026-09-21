@@ -506,7 +506,7 @@ def parse_args(args):
     parser.add_argument(
         "--cluster",
         type=str,
-        default="tu_dresden",
+        default="meta",
         choices=["meta", "juwels", "horeka", "tu_dresden"],
         help="Cluster used to run evaluations.",
     )

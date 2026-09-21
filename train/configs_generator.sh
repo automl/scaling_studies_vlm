@@ -1,6 +1,6 @@
 #!/bin/bash
 # Usage: sbatch configs_generator.sh [WORKSPACE_DIR] [CODE_DIR] [HPO_OPTIMIZER] [SEED]
-# Example: sbatch configs_generator.sh /data/cat/ws/naal364i-primo/runs /home/naal364i/scaling_studies_vlm/train bo_rw
+# Example: sbatch configs_generator.sh /work/dlc2workfs1/alipourn-primo/naal364i-primo /home/alipourn/scaling_studies_vlm/train bo_rw
 
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
@@ -14,13 +14,13 @@
 
 # Set defaults or use provided arguments
 
-source /software/genoa/r24.10/Anaconda3/2024.06-1/bin/activate && conda activate /home/naal364i/miniconda3/envs/test_scaling_laws
+source /home/alipourn/miniconda3/bin/activate && conda activate test_scaling_laws
 
-WORKSPACE_DIR="${1:-/data/cat/ws/naal364i-primo/runs}"
-CODE_DIR="${2:-/home/naal364i/scaling_studies_vlm/train}"
-HPO_OPTIMIZER="${3:-bo_rw_with_prior}"
+WORKSPACE_DIR="${1:-/work/dlc2workfs1/alipourn-primo/naal364i-primo}"
+CODE_DIR="${2:-/home/alipourn/scaling_studies_vlm/train}"
+HPO_OPTIMIZER="${3:-primo}"
 SEED="${4:-1}"
-VENV_DIR="${5:-/software/genoa/r24.10/Anaconda3/2024.06-1/bin/activate}"
+VENV_DIR="${5:-/home/alipourn/miniconda3/bin/activate}"
 
 echo "WORKSPACE_DIR: $WORKSPACE_DIR"
 echo "CODE_DIR: $CODE_DIR"
@@ -46,9 +46,9 @@ echo "CUDA_VISIBLE_DEVICES before srun: ${CUDA_VISIBLE_DEVICES:-unset}"
 
 srun --ntasks=1 --gpus-per-task=1 --gpu-bind=single:1 \
   bash -lc '
-    source '"$VENV_DIR"' && conda activate /home/naal364i/miniconda3/envs/test_scaling_laws
+    source '"$VENV_DIR"' && conda activate test_scaling_laws
     echo "CUDA_VISIBLE_DEVICES inside srun: ${CUDA_VISIBLE_DEVICES:-unset}"
-    python -u /home/naal364i/scaling_studies_vlm/train/configs_generator.py \
+    python -u /home/alipourn/scaling_studies_vlm/train/configs_generator.py \
   --hpo-optimizer "$HPO_OPTIMIZER" \
   --seed "$SEED" \
   --workspace_dir "$WORKSPACE_DIR"

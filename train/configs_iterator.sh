@@ -39,7 +39,7 @@ python -u '"${COMMAND_DIR}"'/configs_iterator.py \
   --worker_id $SLURM_PROCID \
   --num_workers $SLURM_NTASKS \
   --workspace_dir '"${WORKSPACE_DIR}"' \
-  --cluster tu_dresden \
+  --cluster meta \
   --partition capella \
   --wandb_project_name primo \
   --command_dir '"${COMMAND_DIR}"' \
